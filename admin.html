@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publishing Studio — Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap');
+    body {
+      font-family: 'Padauk', sans-serif;
+      line-height: 1.8;
+      background-color: #0b0c10;
+      color: #e2e8f0;
+    }
+    .admin-book-3d {
+      position: relative;
+      border-radius: 3px 6px 6px 3px;
+      box-shadow: -10px 12px 24px rgba(0, 0, 0, 0.7), 4px 0 0 #e7e5e4, 6px 0 0 #a8a29e;
+      overflow: hidden;
+    }
+    .admin-book-3d::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, rgba(0,0,0,0.45) 4%, rgba(255,255,255,0.2) 7%, transparent 16%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ================= 1. ADMIN LOGIN SCREEN ================= -->
+  <div id="loginScreen" style="display: flex;" class="min-h-screen items-center justify-center p-4 bg-[radial-gradient(circle_at_top,_#1f1c2c_0%,_#090a0f_100%)]">
+    <div class="bg-stone-900/95 backdrop-blur-xl border border-amber-500/30 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-stone-950 flex items-center justify-center font-bold text-xl shadow-lg">
+            ✦
+          </div>
+          <div>
+            <h1 class="font-bold text-xl text-white">Publishing Studio</h1>
+            <p class="text-xs text-amber-200/70">Admin ဝင်ရောက်ရန်</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="resetSavedAuthCache()"
+          class="px-2.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-[11px] font-bold"
+          title="မှားနေသော Key အဟောင်းများကို ရှင်းလင်းရန်"
+        >
+          🔄 Reset Cache
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-amber-300 mb-1">
+            ၁။ Supabase Publishable Key (<code>sb_publishable_...</code>)
+          </label>
+          <input
+            id="adminSbKey"
+            type="text"
+            placeholder="sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_..."
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-stone-200 font-mono text-[11px] focus:outline-none focus:border-amber-500"
+          />
+          <p class="text-[10px] text-stone-400 mt-1">
+            * သတိပြုရန် - ဤနေရာတွင် <code>ghp_...</code> (GitHub Token) မထည့်ရပါ။ Supabase Key ကိုသာ ထည့်ပါ။
+          </p>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-300 mb-1">၂။ Admin Email</label>
+          <input
+            id="loginEmail"
+            type="email"
+            placeholder="admin@example.com"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-300 mb-1">၃။ Password</label>
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="••••••••"
+            onkeydown="if(event.key === 'Enter') handleLogin()"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <label class="flex items-center gap-2 cursor-pointer text-stone-300 pt-1">
+          <input id="rememberMeCheckbox" type="checkbox" checked class="w-4 h-4 accent-amber-500" />
+          <span>Key နှင့် Admin အကောင့်ကို နောက်တစ်ကြိမ်အတွက် အသေမှတ်ထားမည်</span>
+        </label>
+
+        <div id="loginStatusBox" style="display: none;" class="p-3 rounded-xl text-xs font-bold leading-relaxed"></div>
+
+        <button
+          id="loginBtn"
+          type="button"
+          onclick="handleLogin()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg transition"
+        >
+          🔑 Studio သို့ ဝင်ရောက်မည်
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. STUDIO DASHBOARD ================= -->
+  <div id="dashboardScreen" style="display: none;" class="min-h-screen flex-col bg-[#0b0c10]">
+    <header class="sticky top-0 z-30 bg-stone-950/85 backdrop-blur-md border-b border-white/10 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-stone-950 flex items-center justify-center font-bold">
+          ✦
+        </div>
+        <div>
+          <h1 class="font-bold text-base text-white leading-tight">Book Publishing Studio</h1>
+          <p id="adminUserEmail" class="text-[11px] text-amber-400/80 font-mono"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <a href="index.html" target="_blank" class="px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold transition">
+          🪵 3D Bookshelf ကို ကြည့်ရန် ↗
+        </a>
+        <button type="button" onclick="handleLogout()" class="px-4 py-2 rounded-xl bg-stone-800 hover:bg-red-950/80 hover:text-red-300 text-stone-300 font-bold transition">
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto p-6 space-y-6 flex-1">
+      <!-- Analytics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-stone-900/90 border border-white/10 p-5 rounded-2xl">
+          <span class="text-xs text-stone-400">စာအုပ်စင်ရှိ စုစုပေါင်းစာအုပ်</span>
+          <p id="statTotalBooks" class="text-3xl font-bold text-white mt-1">0 အုပ်</p>
+          <div class="text-[11px] text-amber-400/80 mt-2">3D Shelf ပေါ်တွင် ပြသထားသည်</div>
+        </div>
+
+        <div class="bg-stone-900/90 border border-white/10 p-5 rounded-2xl">
+          <span class="text-xs text-stone-400">စာဖတ်သူ စုစုပေါင်း (Total Reads)</span>
+          <p id="statTotalReads" class="text-3xl font-bold text-amber-400 mt-1">0 ကြိမ်</p>
+          <div class="text-[11px] text-stone-400 mt-2">Real-time ဖတ်ရှုမှုမှတ်တမ်း</div>
+        </div>
+
+        <div class="bg-stone-900/90 border border-white/10 p-5 rounded-2xl">
+          <div class="flex items-center justify-between text-xs text-stone-400">
+            <span>Supabase Free Storage</span>
+            <span id="statStoragePct" class="font-mono text-emerald-400">0%</span>
+          </div>
+          <p id="statStorageUsed" class="text-3xl font-bold text-emerald-400 mt-1">0 MB</p>
+          <div class="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden mt-3">
+            <div id="storageBar" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-6">
+        <!-- Left 5 Cols: Smart Storage Upload Form -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-stone-900/90 border border-white/10 p-6 rounded-3xl space-y-5">
+            <div class="flex items-center justify-between">
+              <h2 class="font-bold text-base text-white">➕ စာအုပ်အသစ် လွှင့်တင်ရန်</h2>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Smart Storage Saver</span>
+            </div>
+
+            <!-- Storage Mode Tabs -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-400">၁။ PDF သိမ်းဆည်းမည့် နည်းလမ်း -</label>
+              <div class="grid grid-cols-3 gap-1.5 bg-stone-950 p-1.5 rounded-2xl border border-stone-800 text-[11px]">
+                <button type="button" id="modeBtnGithub" onclick="setStorageMode('github')" class="py-2 px-2 rounded-xl font-bold bg-amber-500 text-stone-950 shadow">
+                  🐙 GitHub (0 MB)
+                </button>
+                <button type="button" id="modeBtnSupabase" onclick="setStorageMode('supabase')" class="py-2 px-2 rounded-xl font-bold text-stone-400 hover:text-white">
+                  ⚡ Supabase
+                </button>
+                <button type="button" id="modeBtnUrl" onclick="setStorageMode('url')" class="py-2 px-2 rounded-xl font-bold text-stone-400 hover:text-white">
+                  🔗 ပြင်ပ Link (0 MB)
+                </button>
+              </div>
+            </div>
+
+            <!-- GitHub Saved Badge -->
+            <div id="githubSavedBadge" class="hidden bg-emerald-950/40 border border-emerald-500/30 px-4 py-3 rounded-2xl flex items-center justify-between text-xs">
+              <div>
+                <p class="font-bold text-emerald-300">✅ GitHub Storage အသေသိမ်းဆည်းထားပြီး</p>
+                <p id="githubSavedRepoText" class="text-[11px] text-stone-400 font-mono mt-0.5"></p>
+              </div>
+              <button type="button" onclick="unlockGithubConfig()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold text-[11px]">
+                ပြင်ရန်
+              </button>
+            </div>
+
+            <!-- GitHub Config Box -->
+            <div id="githubConfigBox" class="bg-stone-950/90 p-4 rounded-2xl border border-emerald-500/30 space-y-3 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-emerald-400">🐙 GitHub Unlimited Storage (Supabase 0 MB ကုန်မည်)</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-stone-400 mb-1">GitHub Repo (အသင့်ထည့်ပေးထားပါသည်)</label>
+                <input id="ghRepoInput" type="text" value="waiyanoocreative-ops/myBooks" class="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-700 text-white font-mono text-xs" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-stone-400 mb-1">GitHub Personal Access Token (<code>ghp_...</code>)</label>
+                <input id="ghTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-700 text-white font-mono text-xs" />
+              </div>
+              <button type="button" onclick="saveAndLockGithubConfig()" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-stone-950 font-bold text-xs transition">
+                💾 GitHub Repo နှင့် Token ကို အသေမှတ်သားမည်
+              </button>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleUploadBook(event)" class="space-y-4 text-xs">
+              <div id="pdfFilePickerBox">
+                <label class="block border-2 border-dashed border-stone-700 hover:border-amber-500/60 rounded-2xl p-4 text-center cursor-pointer transition bg-stone-950/50">
+                  <span class="text-2xl">📄</span>
+                  <p class="font-bold text-stone-200 mt-1">PDF စာအုပ်ဖိုင် ရွေးချယ်ရန် နှိပ်ပါ</p>
+                  <p class="text-[11px] text-stone-500">ပထမဆုံးစာမျက်နှာကို 3D မျက်နှာဖုံးအဖြစ် အလိုအလျောက် ဖြတ်ယူပေးပါမည်</p>
+                  <input id="pdfFileInput" type="file" accept="application/pdf" onchange="handlePdfPreview(event)" class="hidden" />
+                </label>
+              </div>
+
+              <div id="externalUrlBox" class="hidden space-y-2 bg-stone-950/80 p-3.5 rounded-2xl border border-amber-500/30">
+                <label class="block font-bold text-amber-300">🔗 တိုက်ရိုက် PDF URL Link ထည့်ရန် (Supabase 0 MB)</label>
+                <input id="externalPdfUrlInput" type="url" placeholder="https://example.com/book.pdf" class="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-700 text-white font-mono text-xs" />
+              </div>
+
+              <div id="compressorOptionBox" class="bg-emerald-950/30 border border-emerald-500/30 p-3.5 rounded-2xl space-y-2">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <span class="font-bold text-emerald-300 block">🗜️ Auto PDF Compress (ဖိုင်ဆိုဒ် 60% ~ 75% ချုံ့မည်)</span>
+                    <span class="text-[11px] text-stone-400">11 MB ရှိသော Scan စာအုပ်ကို 2~3 MB သို့ အလိုအလျောက် ချုံ့ပေးမည်</span>
+                  </div>
+                  <input id="enableCompressCheckbox" type="checkbox" checked class="w-4 h-4 accent-emerald-500" />
+                </label>
+                <div class="flex items-center justify-between text-[11px] pt-1 border-t border-white/5 text-stone-300">
+                  <span>ချုံ့မည့် အရည်အသွေး (Quality):</span>
+                  <select id="compressQualitySelect" class="bg-stone-900 border border-stone-700 rounded-lg px-2 py-1 text-xs text-amber-300 font-bold">
+                    <option value="0.6">High Saver (ဖိုင်ဆိုဒ် အသေးဆုံး ~75% သက်သာ)</option>
+                    <option value="0.75" selected>Balanced (ကြည်လင် + ဖိုင်ဆိုဒ် ~60% သက်သာ)</option>
+                    <option value="0.88">HD Print (အကြည်လင်ဆုံး ~35% သက်သာ)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="coverPreviewBox" class="hidden bg-gradient-to-b from-stone-950 to-stone-900 p-5 rounded-2xl border border-amber-500/25 flex flex-col items-center">
+                <p class="text-[11px] text-amber-300/90 mb-3 font-bold">✨ 3D မျက်နှာဖုံး နမူနာပုံစံ</p>
+                <div class="admin-book-3d w-32">
+                  <canvas id="coverCanvas" class="w-full h-auto block"></canvas>
+                </div>
+                <p id="autoPageCountText" class="font-bold text-amber-400 mt-3 text-xs"></p>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-400 mb-1">စာအုပ်အမည် *</label>
+                <input id="bookTitle" type="text" required placeholder="ဥပမာ - သူလိုလူ" class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-amber-500" />
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-400 mb-1">စာရေးဆရာ *</label>
+                <input id="bookAuthor" type="text" required placeholder="ဥပမာ - ဂျာနယ်ကျော် မမလေး" class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-amber-500" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-stone-400 mb-1">အမျိုးအစား</label>
+                  <select id="bookCategory" class="w-full px-3 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white"></select>
+                </div>
+                <div>
+                  <label class="block font-bold text-stone-400 mb-1">Status</label>
+                  <select id="bookStatus" class="w-full px-3 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white">
+                    <option value="published">● Published (စင်ပေါ်တင်မည်)</option>
+                    <option value="draft">○ Draft (ဖွက်ထားမည်)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-400 mb-1">စာအုပ်အညွှန်း (Synopsis)</label>
+                <textarea id="bookDesc" rows="2" placeholder="စာအုပ်အကြောင်း အကျဉ်းချုပ်..." class="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-amber-500"></textarea>
+              </div>
+
+              <div id="progressWrapper" class="hidden space-y-1.5">
+                <div class="w-full bg-stone-800 h-2 rounded-full overflow-hidden">
+                  <div id="progressBar" class="bg-amber-500 h-full transition-all" style="width: 0%"></div>
+                </div>
+                <p id="uploadStatusText" class="text-center text-amber-300 font-bold text-[11px]"></p>
+              </div>
+
+              <button id="uploadSubmitBtn" type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg transition">
+                🚀 စာအုပ်စင်ပေါ်သို့ လွှင့်တင်မည်
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-stone-900/90 border border-white/10 p-5 rounded-3xl">
+            <h2 class="font-bold text-sm mb-3 text-white">🏷️ စာအုပ်ကဏ္ဍ (Category) အသစ်တိုးရန်</h2>
+            <div class="flex gap-2 text-xs">
+              <input id="newCatName" type="text" placeholder="ဥပမာ - သမိုင်း၊ ကဗျာ" class="flex-1 px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white focus:outline-none focus:border-amber-500" />
+              <button type="button" onclick="handleAddCategory()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shrink-0">
+                + ထည့်မည်
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 7 Cols: Visual Catalog Management -->
+        <div class="lg:col-span-7 bg-stone-900/90 border border-white/10 p-6 rounded-3xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+            <div>
+              <h2 class="font-bold text-base text-white">📚 စာအုပ်စင် စာရင်းချုပ် (Catalog)</h2>
+              <p class="text-xs text-stone-400">GitHub သို့မဟုတ် ပြင်ပ Link ဖြင့် တင်ထားသော စာအုပ်များသည် Supabase Storage လုံးဝ (`0 MB`) မသုံးပါ</p>
+            </div>
+            <button type="button" onclick="loadAdminData()" class="text-xs px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold">
+              🔄 Refresh
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-stone-800 text-stone-400">
+                  <th class="py-3">စာအုပ်</th>
+                  <th class="py-3">ကဏ္ဍ</th>
+                  <th class="py-3">သိုလှောင်မှု / ဆိုဒ်</th>
+                  <th class="py-3">ဖတ်ရှုမှု</th>
+                  <th class="py-3">Status</th>
+                  <th class="py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody" class="divide-y divide-stone-800/70"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
+    const DEFAULT_GITHUB_REPO  = 'waiyanoocreative-ops/myBooks';
+    const DEFAULT_SUPABASE_KEY = '';
+    const DEFAULT_GITHUB_TOKEN = '';
+
+    let supabaseClient = null;
+    let currentClientKey = null;
+    let currentStorageMode = 'github';
+    let currentLoadedPdfDoc = null;
+    let extractedCoverBlob = null;
+    let extractedPageCount = 1;
+
+    function cleanGithubRepoName(rawInput) {
+      if (!rawInput) return DEFAULT_GITHUB_REPO;
+      return rawInput
+        .trim()
+        .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
+        .replace(/\.git$/i, '')
+        .replace(/^\/+|\/+$/g, '');
+    }
+
+    // Chrome file:// တွင် Tab နှစ်ခု ပြိုင်ဖွင့်ထားချိန် Auth Lock မငြိစေရန် Custom Lock ဖြင့် ချိတ်ဆက်ခြင်း
+    function getOrCreateSupabase(key) {
+      const cleanKey = key.trim();
+      if (!supabaseClient || currentClientKey !== cleanKey) {
+        supabaseClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, cleanKey, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            lock: async (_name, _acquireTimeout, fn) => await fn()
+          }
+        });
+        currentClientKey = cleanKey;
+      }
+      return supabaseClient;
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const savedSbKey = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY') || '';
+      const savedEmail = localStorage.getItem('ADMIN_EMAIL') || '';
+      const savedPass  = localStorage.getItem('ADMIN_PASS') || '';
+      const savedGhRepo = cleanGithubRepoName(localStorage.getItem('GH_REPO') || DEFAULT_GITHUB_REPO);
+      const savedGhToken = DEFAULT_GITHUB_TOKEN || localStorage.getItem('GH_TOKEN') || '';
+
+      // မှားပြီး GitHub token ဝင်နေပါက ဖယ်ရှားပေးမည်
+      if (savedSbKey && !savedSbKey.startsWith('ghp_')) {
+        document.getElementById('adminSbKey').value = savedSbKey;
+      }
+      if (savedEmail) document.getElementById('loginEmail').value = savedEmail;
+      if (savedPass) document.getElementById('loginPassword').value = savedPass;
+
+      document.getElementById('ghRepoInput').value = savedGhRepo;
+      document.getElementById('ghTokenInput').value = savedGhToken;
+
+      if (savedGhRepo && savedGhToken) {
+        showGithubLockedState(savedGhRepo);
+      }
+
+      // သိမ်းထားသော Session ရှိပါက အလိုအလျောက် တန်းဝင်ပေးမည်
+      if (savedSbKey && !savedSbKey.startsWith('ghp_')) {
+        try {
+          const client = getOrCreateSupabase(savedSbKey);
+          const { data } = await client.auth.getSession();
+          if (data?.session?.user) {
+            await showDashboard(data.session.user);
+          }
+        } catch (err) {
+          console.error('Auto session check:', err);
+        }
+      }
+    });
+
+    function resetSavedAuthCache() {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith('sb-') || k === 'SB_KEY' || k === 'ADMIN_PASS') {
+          localStorage.removeItem(k);
+        }
+      });
+      supabaseClient = null;
+      currentClientKey = null;
+      document.getElementById('adminSbKey').value = '';
+      showStatus('✅ Cache ရှင်းလင်းပြီးပါပြီ။ Supabase Publishable Key (sb_publishable_...)၊ Email နှင့် Password ပြန်ထည့်ပြီး ဝင်ရောက်ပါ။', false);
+    }
+
+    function showStatus(message, isError = true) {
+      const box = document.getElementById('loginStatusBox');
+      box.style.display = 'block';
+      box.className = isError
+        ? 'p-3 rounded-xl text-xs font-bold bg-red-950/90 text-red-300 border border-red-700'
+        : 'p-3 rounded-xl text-xs font-bold bg-emerald-950/90 text-emerald-300 border border-emerald-700';
+      box.textContent = message;
+    }
+
+    async function handleLogin() {
+      const key = document.getElementById('adminSbKey').value.trim();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('rememberMeCheckbox').checked;
+      const btn = document.getElementById('loginBtn');
+
+      if (!key) {
+        return showStatus('⚠️ ၁။ Supabase Publishable Key (sb_publishable_...) ကို ထည့်သွင်းပါ။', true);
+      }
+      if (key.startsWith('ghp_') || key.startsWith('github_pat_')) {
+        return showStatus('⚠️ မှားယွင်းနေပါသည် - ယခုထည့်ထားသည်မှာ GitHub Token (ghp_...) ဖြစ်နေပါသည်။ Supabase မှ sb_publishable_... Key ကို ထည့်ပေးပါ။', true);
+      }
+      if (key.startsWith('http')) {
+        return showStatus('⚠️ မှားယွင်းနေပါသည် - URL မထည့်ရပါ။ Supabase Publishable Key (sb_publishable_...) ကိုသာ ထည့်ပေးပါ။', true);
+      }
+      if (!email || !password) {
+        return showStatus('⚠️ Admin Email နှင့် Password နှစ်ခုလုံး ထည့်သွင်းပါ။', true);
+      }
+
+      try {
+        btn.disabled = true;
+        btn.textContent = '⏳ စစ်ဆေးနေပါသည်...';
+        showStatus('Supabase သို့ ချိတ်ဆက်စစ်ဆေးနေပါသည်...', false);
+
+        const client = getOrCreateSupabase(key);
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          btn.disabled = false;
+          btn.textContent = '🔑 Studio သို့ ဝင်ရောက်မည်';
+          return showStatus('❌ ဝင်ရောက်မရပါ - ' + error.message, true);
+        }
+
+        if (data?.user) {
+          // Login အောင်မြင်မှသာ Key နှင့် အကောင့်ကို သိမ်းဆည်းမည်
+          localStorage.setItem('SB_KEY', key);
+          localStorage.setItem('SB_URL', DEFAULT_SUPABASE_URL);
+          if (remember) {
+            localStorage.setItem('ADMIN_EMAIL', email);
+            localStorage.setItem('ADMIN_PASS', password);
+          }
+          showStatus('🎉 အောင်မြင်ပါပြီ! Studio သို့ ဝင်ရောက်နေပါသည်...', false);
+          await showDashboard(data.user);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = '🔑 Studio သို့ ဝင်ရောက်မည်';
+        showStatus('❌ Error: ' + err.message, true);
+      }
+    }
+
+    async function showDashboard(user) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'flex';
+      document.getElementById('adminUserEmail').textContent = user.email;
+      await loadCategories();
+      await loadAdminData();
+    }
+
+    async function handleLogout() {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = false;
+      btn.textContent = '🔑 Studio သို့ ဝင်ရောက်မည်';
+      document.getElementById('loginStatusBox').style.display = 'none';
+    }
+
+    function saveAndLockGithubConfig() {
+      const cleanRepo = cleanGithubRepoName(document.getElementById('ghRepoInput').value);
+      const token = document.getElementById('ghTokenInput').value.trim();
+
+      if (!cleanRepo || !token) {
+        return alert('ကျေးဇူးပြု၍ GitHub Repo နှင့် Personal Access Token (ghp_...) ကို ထည့်သွင်းပါ။');
+      }
+
+      document.getElementById('ghRepoInput').value = cleanRepo;
+      localStorage.setItem('GH_REPO', cleanRepo);
+      localStorage.setItem('GH_TOKEN', token);
+
+      showGithubLockedState(cleanRepo);
+    }
+
+    function showGithubLockedState(repoName) {
+      document.getElementById('githubConfigBox').classList.add('hidden');
+      document.getElementById('githubSavedBadge').classList.remove('hidden');
+      document.getElementById('githubSavedRepoText').textContent = `Repo: ${repoName}`;
+    }
+
+    function unlockGithubConfig() {
+      document.getElementById('githubSavedBadge').classList.add('hidden');
+      document.getElementById('githubConfigBox').classList.remove('hidden');
+    }
+
+    function setStorageMode(mode) {
+      currentStorageMode = mode;
+      const modes = {
+        github: document.getElementById('modeBtnGithub'),
+        supabase: document.getElementById('modeBtnSupabase'),
+        url: document.getElementById('modeBtnUrl')
+      };
+      Object.keys(modes).forEach((k) => {
+        modes[k].className = k === mode
+          ? 'py-2 px-2 rounded-xl font-bold bg-amber-500 text-stone-950 shadow'
+          : 'py-2 px-2 rounded-xl font-bold text-stone-400 hover:text-white';
+      });
+
+      const hasSavedGh = !!(localStorage.getItem('GH_TOKEN') || DEFAULT_GITHUB_TOKEN);
+      if (mode === 'github') {
+        document.getElementById('githubSavedBadge').classList.toggle('hidden', !hasSavedGh);
+        document.getElementById('githubConfigBox').classList.toggle('hidden', hasSavedGh);
+      } else {
+        document.getElementById('githubSavedBadge').classList.add('hidden');
+        document.getElementById('githubConfigBox').classList.add('hidden');
+      }
+
+      document.getElementById('externalUrlBox').classList.toggle('hidden', mode !== 'url');
+      document.getElementById('compressorOptionBox').classList.toggle('hidden', mode === 'url');
+    }
+
+    async function loadCategories() {
+      const { data } = await supabaseClient.from('categories').select('*').order('name');
+      const select = document.getElementById('bookCategory');
+      select.innerHTML = (data || []).map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function handleAddCategory() {
+      const name = document.getElementById('newCatName').value.trim();
+      if (!name) return;
+      const slug = 'cat_' + Date.now();
+      const { error } = await supabaseClient.from('categories').insert([{ name, slug }]);
+      if (error) return alert(error.message);
+      document.getElementById('newCatName').value = '';
+      await loadCategories();
+    }
+
+    async function handlePdfPreview(e) {
+      const file = e.target.files[0];
+      if (!file || !window.pdfjsLib) return;
+      const arrayBuffer = await file.arrayBuffer();
+      currentLoadedPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      extractedPageCount = currentLoadedPdfDoc.numPages;
+
+      const page = await currentLoadedPdfDoc.getPage(1);
+      const viewport = page.getViewport({ scale: 0.9 });
+      const canvas = document.getElementById('coverCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      canvas.toBlob((blob) => { extractedCoverBlob = blob; }, 'image/jpeg', 0.78);
+
+      const originalMb = (file.size / (1024 * 1024)).toFixed(2);
+      document.getElementById('coverPreviewBox').classList.remove('hidden');
+      document.getElementById('autoPageCountText').textContent = `📄 စာမျက်နှာ ${extractedPageCount} မျက်နှာ • မူရင်းဆိုဒ် ${originalMb} MB`;
+    }
+
+    async function compressPdfFileInBrowser(pdfDoc, quality, onProgress) {
+      const { jsPDF } = window.jspdf;
+      const firstPage = await pdfDoc.getPage(1);
+      const firstVp = firstPage.getViewport({ scale: 1.0 });
+
+      const doc = new jsPDF({
+        orientation: firstVp.width > firstVp.height ? 'l' : 'p',
+        unit: 'pt',
+        format: [firstVp.width, firstVp.height],
+        compress: true
+      });
+
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      const renderScale = quality <= 0.6 ? 1.05 : 1.2;
+
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        onProgress(Math.round((i / pdfDoc.numPages) * 100), `🗜️ စာမျက်နှာ (${i}/${pdfDoc.numPages}) ကို ဖိုင်ဆိုဒ်ချုံ့နေပါသည်...`);
+        const page = await pdfDoc.getPage(i);
+        const vp = page.getViewport({ scale: renderScale });
+        const ptVp = page.getViewport({ scale: 1.0 });
+
+        tempCanvas.width = vp.width;
+        tempCanvas.height = vp.height;
+        await page.render({ canvasContext: tempCtx, viewport: vp }).promise;
+
+        const imgData = tempCanvas.toDataURL('image/jpeg', quality);
+        if (i > 1) {
+          doc.addPage([ptVp.width, ptVp.height], ptVp.width > ptVp.height ? 'l' : 'p');
+        }
+        doc.addImage(imgData, 'JPEG', 0, 0, ptVp.width, ptVp.height, undefined, 'FAST');
+      }
+
+      return doc.output('blob');
+    }
+
+    async function uploadBlobToGithub(blob, fileName) {
+      const rawRepo = document.getElementById('ghRepoInput').value || localStorage.getItem('GH_REPO') || DEFAULT_GITHUB_REPO;
+      const repo = cleanGithubRepoName(rawRepo);
+      const token = document.getElementById('ghTokenInput').value.trim() || DEFAULT_GITHUB_TOKEN || localStorage.getItem('GH_TOKEN');
+
+      if (!repo || !token) {
+        unlockGithubConfig();
+        throw new Error('GitHub Repo နှင့် Personal Access Token (ghp_...) ထည့်သွင်းပါ။');
+      }
+
+      localStorage.setItem('GH_REPO', repo);
+      localStorage.setItem('GH_TOKEN', token);
+      showGithubLockedState(repo);
+
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const path = `books/${Date.now()}_${fileName}`;
+      const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Upload book ${fileName}`,
+          content: base64Data
+        })
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json();
+        throw new Error(`GitHub Upload Error: ${errJson.message || res.statusText}`);
+      }
+
+      const rawUrl = `https://raw.githubusercontent.com/${repo}/HEAD/${path}`;
+      return { rawUrl, ghPath: `github:${repo}/${path}` };
+    }
+
+    function setProgress(pct, text) {
+      document.getElementById('progressWrapper').classList.remove('hidden');
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('uploadStatusText').textContent = text;
+    }
+
+    async function handleUploadBook(e) {
+      e.preventDefault();
+      const pdfFile = document.getElementById('pdfFileInput').files[0];
+      const title = document.getElementById('bookTitle').value.trim();
+      const author = document.getElementById('bookAuthor').value.trim();
+      const categoryId = document.getElementById('bookCategory').value;
+      const status = document.getElementById('bookStatus').value;
+      const description = document.getElementById('bookDesc').value.trim();
+      const btn = document.getElementById('uploadSubmitBtn');
+
+      if (currentStorageMode !== 'url' && !pdfFile) {
+        return alert('ကျေးဇူးပြု၍ PDF စာအုပ်ဖိုင် ရွေးချယ်ပါ။');
+      }
+
+      btn.disabled = true;
+
+      try {
+        const ts = Date.now();
+        let finalPdfBlob = pdfFile;
+
+        if (currentStorageMode !== 'url' && document.getElementById('enableCompressCheckbox').checked && currentLoadedPdfDoc) {
+          const quality = parseFloat(document.getElementById('compressQualitySelect').value);
+          const compressedBlob = await compressPdfFileInBrowser(currentLoadedPdfDoc, quality, setProgress);
+          if (compressedBlob.size < pdfFile.size) {
+            finalPdfBlob = compressedBlob;
+          }
+        }
+
+        let pdfUrl = '';
+        let pdfPath = '';
+        let supabaseSizeMb = 0;
+
+        if (currentStorageMode === 'supabase') {
+          const safeName = pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          pdfPath = `pdfs/${ts}_${safeName}`;
+          supabaseSizeMb = parseFloat((finalPdfBlob.size / (1024 * 1024)).toFixed(2));
+          setProgress(85, `⏳ Supabase သို့ (${supabaseSizeMb} MB) လွှင့်တင်နေပါသည်...`);
+
+          const { error: pdfErr } = await supabaseClient.storage
+            .from('book-pdfs')
+            .upload(pdfPath, finalPdfBlob, { contentType: 'application/pdf' });
+          if (pdfErr) throw pdfErr;
+
+          pdfUrl = supabaseClient.storage.from('book-pdfs').getPublicUrl(pdfPath).data.publicUrl;
+        } else if (currentStorageMode === 'github') {
+          const safeName = pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const ghMb = (finalPdfBlob.size / (1024 * 1024)).toFixed(2);
+          setProgress(85, `🐙 GitHub Free Storage သို့ (${ghMb} MB) တိုက်ရိုက်တင်နေပါသည်...`);
+          const ghRes = await uploadBlobToGithub(finalPdfBlob, safeName);
+          pdfUrl = ghRes.rawUrl;
+          pdfPath = ghRes.ghPath;
+          supabaseSizeMb = 0.03;
+        } else if (currentStorageMode === 'url') {
+          const extUrl = document.getElementById('externalPdfUrlInput').value.trim();
+          if (!extUrl) throw new Error('Direct PDF URL Link ထည့်သွင်းပါ။');
+          pdfUrl = extUrl;
+          pdfPath = 'external_url';
+          supabaseSizeMb = 0.03;
+        }
+
+        let coverUrl = null;
+        let coverPath = null;
+        if (extractedCoverBlob) {
+          coverPath = `covers/${ts}_cover.jpg`;
+          const { error: covErr } = await supabaseClient.storage
+            .from('book-covers')
+            .upload(coverPath, extractedCoverBlob, { contentType: 'image/jpeg' });
+          if (!covErr) {
+            coverUrl = supabaseClient.storage.from('book-covers').getPublicUrl(coverPath).data.publicUrl;
+          }
+        }
+
+        const { error: dbErr } = await supabaseClient.from('books').insert([
+          {
+            title,
+            author,
+            category_id: categoryId || null,
+            description,
+            pdf_url: pdfUrl,
+            pdf_path: pdfPath,
+            cover_url: coverUrl,
+            cover_path: coverPath,
+            page_count: extractedPageCount,
+            file_size_mb: supabaseSizeMb,
+            status
+          }
+        ]);
+        if (dbErr) throw dbErr;
+
+        setProgress(100, `🎉 အောင်မြင်စွာ တင်ပြီးပါပြီ! (Supabase Storage သုံးစွဲမှု: ${supabaseSizeMb} MB)`);
+        document.getElementById('uploadForm').reset();
+        document.getElementById('coverPreviewBox').classList.add('hidden');
+        await loadAdminData();
+      } catch (err) {
+        setProgress(0, '❌ Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadAdminData() {
+      const tbody = document.getElementById('adminTableBody');
+      const { data: books } = await supabaseClient
+        .from('books')
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false });
+
+      const list = books || [];
+      const totalReads = list.reduce((sum, b) => sum + (b.read_count || 0), 0);
+      const totalMb = list.reduce((sum, b) => sum + parseFloat(b.file_size_mb || 0), 0);
+      const pct = Math.min((totalMb / 1000) * 100, 100).toFixed(1);
+
+      document.getElementById('statTotalBooks').textContent = `${list.length} အုပ်`;
+      document.getElementById('statTotalReads').textContent = `${totalReads} ကြိမ်`;
+      document.getElementById('statStorageUsed').textContent = `${totalMb.toFixed(2)} MB`;
+      document.getElementById('statStoragePct').textContent = `${pct}%`;
+      document.getElementById('storageBar').style.width = `${pct}%`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-stone-500">စာအုပ်စင်တွင် စာအုပ် မရှိသေးပါ</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((b) => {
+        const isGithub = (b.pdf_path || '').startsWith('github:');
+        const isExternal = b.pdf_path === 'external_url';
+        const storageTag = isGithub
+          ? '<span class="text-emerald-400 font-bold">🐙 GitHub (0 MB)</span>'
+          : isExternal
+          ? '<span class="text-sky-400 font-bold">🔗 Link (0 MB)</span>'
+          : `<span class="text-stone-400">⚡ ${b.file_size_mb} MB</span>`;
+
+        return `
+          <tr class="hover:bg-white/[0.02] transition">
+            <td class="py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-12 rounded bg-stone-800 overflow-hidden shrink-0 shadow">
+                  ${b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : ''}
+                </div>
+                <div>
+                  <p class="font-bold text-white">${b.title}</p>
+                  <p class="text-stone-400 text-[11px]">${b.author}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5">
+              <span class="px-2 py-0.5 rounded-md bg-stone-800 text-amber-300 font-bold text-[10px]">
+                ${b.categories?.name || 'အထွေထွေ'}
+              </span>
+            </td>
+            <td class="py-3.5 text-stone-300">${b.page_count} p<br/>${storageTag}</td>
+            <td class="py-3.5 font-bold text-amber-400">👁 ${b.read_count}</td>
+            <td class="py-3.5">
+              <button type="button" onclick="toggleBookStatus('${b.id}', '${b.status}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
+                b.status === 'published'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-stone-800 text-stone-400'
+              }">
+                ${b.status === 'published' ? '● On Shelf' : '○ Hidden'}
+              </button>
+            </td>
+            <td class="py-3.5 text-right">
+              <button type="button" onclick="deleteBook('${b.id}', '${b.pdf_path}', '${b.cover_path || ''}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 font-bold transition">
+                ဖျက်မည်
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleBookStatus(id, currentStatus) {
+      const nextStatus = currentStatus === 'published' ? 'draft' : 'published';
+      await supabaseClient.from('books').update({ status: nextStatus }).eq('id', id);
+      loadAdminData();
+    }
+
+    async function deleteBook(id, pdfPath, coverPath) {
+      if (!confirm('ဤစာအုပ်ကို စာအုပ်စင်မှ အပြီးအပိုင် ဖျက်မှာ သေချာပါသလား?')) return;
+      if (pdfPath && !pdfPath.startsWith('github:') && pdfPath !== 'external_url') {
+        await supabaseClient.storage.from('book-pdfs').remove([pdfPath]);
+      }
+      if (coverPath) await supabaseClient.storage.from('book-covers').remove([coverPath]);
+      await supabaseClient.from('books').delete().eq('id', id);
+      loadAdminData();
+    }
+  </script>
+</body>
+</html>
