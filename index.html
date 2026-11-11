@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>စာကြည့်တိုက် - Premium 3D Bookshelf</title>
+
+<!-- PWA Manifest & Mobile App Meta Tags -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#451a03" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="စာကြည့်တိုက်" />
+
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -231,6 +240,18 @@
 
         <!-- Open Settings Drawer Button -->
         <button
+
+<!-- Install PWA App Button -->
+        <button
+          onclick="installPwaApp()"
+          id="installAppBtn"
+          class="tactile-btn px-3 py-1.5 rounded-xl bg-amber-400 text-stone-950 text-xs font-bold flex items-center gap-1.5 shadow"
+        >
+          <span>📲</span>
+          <span>App သွင်းရန်</span>
+        </button>
+
+
           onclick="openSettingsModal()"
           class="tactile-btn px-3.5 py-1.5 rounded-xl bg-amber-950/85 text-amber-100 border border-amber-400/30 text-xs font-bold flex items-center gap-1.5 shadow"
         >
@@ -1094,6 +1115,45 @@
       checkContinueReading();
       loadBooks();
     }
+
+// ================= PWA SERVICE WORKER & INSTALL PROMPT =================
+    let deferredInstallPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => console.log('SW Error:', err));
+      });
+    }
+
+    // App အဖြစ် သွင်းပြီးသား ဖုန်းမှ ဖွင့်လျှင် Install ခလုတ်ကို ဖျောက်ထားမည်
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.style.display = 'none';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+
+    async function installPwaApp() {
+      triggerHaptic(15);
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installAppBtn').style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      } else {
+        alert(
+          '📱 ဖုန်းထဲသို့ App သွင်းရန် -\n\n' +
+          '• Android (Chrome): ညာဘက်အပေါ်ထောင့်ရှိ အစက် (၃) စက် (⋮) ကိုနှိပ်ပြီး "Install app" သို့မဟုတ် "Add to Home screen" ကို နှိပ်ပါ။\n\n' +
+          '• iPhone (Safari): အောက်ခြေရှိ Share ခလုတ် (⬆️) ကိုနှိပ်ပြီး "Add to Home Screen" ကို ရွေးပါ။'
+        );
+      }
+    }
+
   </script>
 </body>
 </html>
