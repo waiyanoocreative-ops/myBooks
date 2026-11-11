@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>စာကြည့်တိုက် - Premium 3D Bookshelf</title>
 
-<!-- PWA Manifest & Mobile App Meta Tags -->
+  <!-- PWA Manifest & Mobile App Meta Tags -->
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#451a03" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="စာကြည့်တိုက်" />
-
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -225,7 +224,7 @@
         </div>
       </div>
 
-      <!-- Quick Controls & User Settings Button -->
+      <!-- Quick Controls, PWA Install & User Settings Buttons -->
       <div class="flex items-center gap-2">
         <!-- Quick Sound Toggle Pill -->
         <button
@@ -238,10 +237,7 @@
           <span class="hidden sm:inline">အသံ</span>
         </button>
 
-        <!-- Open Settings Drawer Button -->
-        <button
-
-<!-- Install PWA App Button -->
+        <!-- Install PWA App Button -->
         <button
           onclick="installPwaApp()"
           id="installAppBtn"
@@ -251,7 +247,8 @@
           <span>App သွင်းရန်</span>
         </button>
 
-
+        <!-- Open Settings Drawer Button -->
+        <button
           onclick="openSettingsModal()"
           class="tactile-btn px-3.5 py-1.5 rounded-xl bg-amber-950/85 text-amber-100 border border-amber-400/30 text-xs font-bold flex items-center gap-1.5 shadow"
         >
@@ -591,7 +588,7 @@
     }
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
-    const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg'; // သင့် Publishable Key ထည့်ထားနိုင်သည်
+    const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
 
     let supabaseClient = null;
     let selectedCategoryId = null;
@@ -616,7 +613,7 @@
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
 
-    // ================= WEB AUDIO API SYNTHESIZER (NO EXTERNAL MP3 NEEDED) =================
+    // ================= WEB AUDIO API SYNTHESIZER =================
     let audioCtx = null;
 
     function getAudioContext() {
@@ -630,7 +627,6 @@
       return audioCtx;
     }
 
-    // ၁။ သဘာဝ စာရွက်လှန်သံ (Realistic Crisp Paper Flip Sound)
     function playPageFlipSound() {
       if (!userSettings.flipSound) return;
       try {
@@ -642,7 +638,6 @@
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
 
-        // Paper friction noise envelope
         for (let i = 0; i < bufferSize; i++) {
           const progress = i / bufferSize;
           const env = Math.sin(progress * Math.PI) * Math.pow(1 - progress, 1.4);
@@ -652,7 +647,6 @@
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
 
-        // Bandpass filter sweeping like a turning page
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(900, ctx.currentTime);
@@ -674,7 +668,6 @@
       } catch (e) {}
     }
 
-    // ၂။ ခလုတ်နှိပ်သံအသေး (Soft One-Touch Tactile Click)
     function playTouchClickSound() {
       if (!userSettings.clickSound) return;
       try {
@@ -698,7 +691,6 @@
       } catch (e) {}
     }
 
-    // ၃။ One-Touch Haptic Vibrate Function
     function triggerHaptic(ms = 14) {
       if (userSettings.haptic && navigator.vibrate) {
         try {
@@ -707,7 +699,6 @@
       }
     }
 
-    // Global Listener for all `.tactile-btn` elements
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.tactile-btn');
       if (btn) {
@@ -1047,7 +1038,6 @@
       const canvas = document.getElementById('pdfViewerCanvas');
       const ctx = canvas.getContext('2d');
 
-      // Visual 3D Flip Animation
       if (flipDir !== 0) {
         canvas.classList.remove('page-flip-next', 'page-flip-prev');
         void canvas.offsetWidth;
@@ -1116,7 +1106,7 @@
       loadBooks();
     }
 
-// ================= PWA SERVICE WORKER & INSTALL PROMPT =================
+    // ================= PWA SERVICE WORKER & INSTALL PROMPT =================
     let deferredInstallPrompt = null;
 
     if ('serviceWorker' in navigator) {
@@ -1125,7 +1115,6 @@
       });
     }
 
-    // App အဖြစ် သွင်းပြီးသား ဖုန်းမှ ဖွင့်လျှင် Install ခလုတ်ကို ဖျောက်ထားမည်
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       const btn = document.getElementById('installAppBtn');
       if (btn) btn.style.display = 'none';
@@ -1153,7 +1142,6 @@
         );
       }
     }
-
   </script>
 </body>
 </html>
