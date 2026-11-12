@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bookshelf-pwa-v1';
+const CACHE_NAME = 'bookshelf-pwa-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -21,9 +21,16 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-First Strategy (အမြဲတမ်း Update အသစ်ရနေစေရန်)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
