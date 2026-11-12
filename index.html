@@ -2,7 +2,7 @@
 <html lang="my">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>စာကြည့်တိုက် - Premium 3D Bookshelf</title>
 
   <!-- PWA Manifest & Mobile App Meta Tags -->
@@ -22,6 +22,7 @@
       line-height: 1.85;
       transition: background 0.4s ease;
       -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
     }
 
     /* Tactile One-Touch Button Feedback */
@@ -180,34 +181,40 @@
     /* Page Flip Visual Animation */
     @keyframes flipNextAnim {
       0% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
-      40% { transform: perspective(1200px) rotateY(-14deg) scale(0.98); opacity: 0.75; }
+      40% { transform: perspective(1200px) rotateY(-10deg) scale(0.98); opacity: 0.8; }
       100% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
     }
     @keyframes flipPrevAnim {
       0% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
-      40% { transform: perspective(1200px) rotateY(14deg) scale(0.98); opacity: 0.75; }
+      40% { transform: perspective(1200px) rotateY(10deg) scale(0.98); opacity: 0.8; }
       100% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
     }
     .page-flip-next {
-      animation: flipNextAnim 0.28s ease-out;
+      animation: flipNextAnim 0.24s ease-out;
     }
     .page-flip-prev {
-      animation: flipPrevAnim 0.28s ease-out;
+      animation: flipPrevAnim 0.24s ease-out;
     }
 
-    /* PDF Reader Color Filters */
+    /* PDF Reader Color Filters & Strict Aspect Ratio Preservation */
+    #pdfViewerCanvas {
+      display: block;
+      margin: 0 auto;
+      flex-shrink: 0;
+      border-radius: 4px;
+    }
     .pdf-theme-sepia canvas {
-      filter: sepia(0.35) contrast(0.95) brightness(0.98);
+      filter: sepia(0.32) contrast(0.96) brightness(0.98);
     }
     .pdf-theme-dark canvas {
-      filter: invert(0.9) hue-rotate(180deg) contrast(0.9);
+      filter: invert(0.9) hue-rotate(180deg) contrast(0.92);
     }
   </style>
 </head>
 <body class="theme-wood min-h-screen flex flex-col">
 
   <!-- Screen Brightness / Eye-Care Overlay -->
-  <div id="brightnessOverlay" class="fixed inset-0 pointer-events-none z-[60] bg-black transition-opacity duration-200" style="opacity: 0;"></div>
+  <div id="brightnessOverlay" class="fixed inset-0 pointer-events-none z-[90] bg-black transition-opacity duration-200" style="opacity: 0;"></div>
 
   <!-- ================= TOP BOOKSHELF PLANK HEADER ================= -->
   <header class="bookshelf-header-plank sticky top-0 z-30 px-4 py-3 transition-all">
@@ -226,8 +233,8 @@
 
       <!-- Quick Controls, PWA Install & User Settings Buttons -->
       <div class="flex items-center gap-2">
-        <!-- Quick Sound Toggle Pill -->
         <button
+          type="button"
           onclick="quickToggleSound()"
           id="headerSoundBtn"
           class="tactile-btn px-3 py-1.5 rounded-xl bg-black/15 backdrop-blur-sm border border-white/15 text-xs font-bold flex items-center gap-1.5"
@@ -237,8 +244,8 @@
           <span class="hidden sm:inline">အသံ</span>
         </button>
 
-        <!-- Install PWA App Button -->
         <button
+          type="button"
           onclick="installPwaApp()"
           id="installAppBtn"
           class="tactile-btn px-3 py-1.5 rounded-xl bg-amber-400 text-stone-950 text-xs font-bold flex items-center gap-1.5 shadow"
@@ -247,8 +254,8 @@
           <span>App သွင်းရန်</span>
         </button>
 
-        <!-- Open Settings Drawer Button -->
         <button
+          type="button"
           onclick="openSettingsModal()"
           class="tactile-btn px-3.5 py-1.5 rounded-xl bg-amber-950/85 text-amber-100 border border-amber-400/30 text-xs font-bold flex items-center gap-1.5 shadow"
         >
@@ -261,19 +268,17 @@
 
   <!-- ================= FLOATING FILTER & CONTINUE BAR ================= -->
   <section class="max-w-5xl w-full mx-auto px-4 pt-5 pb-3 space-y-3">
-    <!-- Continue Reading Pill -->
     <div id="continueBanner" class="hidden bg-black/45 backdrop-blur-md text-amber-50 px-4 py-2.5 rounded-2xl border border-amber-300/25 flex items-center justify-between gap-3 shadow-lg">
       <div class="flex items-center gap-3 truncate text-xs">
         <span class="px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-bold shrink-0">ဖတ်လက်စ</span>
         <span id="continueTitle" class="font-bold truncate"></span>
         <span id="continuePageText" class="text-amber-200/80 hidden sm:inline"></span>
       </div>
-      <button id="continueBtn" class="tactile-btn px-3.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shrink-0 transition">
+      <button type="button" id="continueBtn" class="tactile-btn px-3.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shrink-0 transition">
         ဆက်ဖတ်မည် →
       </button>
     </div>
 
-    <!-- Search, Sort & Category Bar -->
     <div class="bg-black/25 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-lg space-y-2.5">
       <div class="flex flex-col sm:flex-row gap-2.5">
         <div class="relative flex-1">
@@ -299,7 +304,6 @@
         </select>
       </div>
 
-      <!-- Category Chips -->
       <div id="categoryPills" class="flex items-center gap-1.5 overflow-x-auto pb-0.5"></div>
     </div>
   </section>
@@ -311,158 +315,10 @@
     </div>
   </main>
 
-  <!-- ================= USER SETTINGS MODAL / DRAWER ================= -->
-  <div id="settingsModal" style="display: none;" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md items-center justify-center p-4">
-    <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-white/10 pb-3">
-        <div class="flex items-center gap-2.5">
-          <span class="text-xl">⚙️</span>
-          <div>
-            <h3 class="font-bold text-base text-white">Reader Settings</h3>
-            <p class="text-[11px] text-stone-400">အသံ၊ တုန်ခါမှုနှင့် စာဖတ်စနစ် စိတ်ကြိုက်ပြင်ဆင်ရန်</p>
-          </div>
-        </div>
-        <button onclick="closeSettingsModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">
-          ✕
-        </button>
-      </div>
-
-      <!-- 1. Sound & Haptics Section -->
-      <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
-        <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">🔊 အသံနှင့် ထိတွေ့တုန်ခါမှု (Sound & Touch)</p>
-
-        <!-- Page Flip Sound Toggle -->
-        <div class="flex items-center justify-between pt-1">
-          <div>
-            <p class="text-xs font-bold text-white">စာရွက်လှန်သံ (Page Flip Sound)</p>
-            <p class="text-[11px] text-stone-400">စာမျက်နှာလှန်ချိန် စာရွက်သံဖွင့်ထားမည်</p>
-          </div>
-          <button id="toggleFlipSoundBtn" onclick="toggleSetting('flipSound')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
-            <div id="toggleFlipSoundDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
-          </button>
-        </div>
-
-        <!-- Sound Volume Slider -->
-        <div class="space-y-1 pt-1">
-          <div class="flex justify-between text-[11px] text-stone-300">
-            <span>စာရွက်လှန်သံ အတိုး/အကျယ်</span>
-            <button onclick="playPageFlipSound()" class="text-amber-400 underline font-bold">▶ အသံစမ်းသပ်ရန်</button>
-          </div>
-          <input
-            id="volumeSlider"
-            type="range"
-            min="10"
-            max="100"
-            value="75"
-            oninput="updateVolumeSetting(this.value)"
-            class="w-full accent-amber-500 cursor-pointer"
-          />
-        </div>
-
-        <!-- Touch Click Sound Toggle -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/5">
-          <div>
-            <p class="text-xs font-bold text-white">ခလုတ်နှိပ်သံအသေး (Touch Click Sound)</p>
-            <p class="text-[11px] text-stone-400">ခလုတ်နှိပ်တိုင်း နူးညံ့သော Click အသံပေးမည်</p>
-          </div>
-          <button id="toggleClickSoundBtn" onclick="toggleSetting('clickSound')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
-            <div id="toggleClickSoundDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
-          </button>
-        </div>
-
-        <!-- One-Touch Vibrate (Haptics) Toggle -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/5">
-          <div>
-            <p class="text-xs font-bold text-white">ထိတွေ့တုန်ခါမှု (One-Touch Vibrate)</p>
-            <p class="text-[11px] text-stone-400">ခလုတ်နှင့် စာမျက်နှာထိချိန် တုန်ခါမှုပေးမည်</p>
-          </div>
-          <button id="toggleHapticBtn" onclick="toggleSetting('haptic')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
-            <div id="toggleHapticDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. Reading Comfort & Controls Section -->
-      <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
-        <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">📖 စာဖတ်ခြင်းနှင့် မျက်စိကာကွယ်ရေး</p>
-
-        <!-- Eye-Care Brightness Slider -->
-        <div class="space-y-1">
-          <div class="flex justify-between text-xs">
-            <span class="font-bold text-white">🔆 မျက်နှာပြင် အလင်းအမှောင် (Brightness)</span>
-            <span id="brightnessValText" class="text-amber-300 font-mono">100%</span>
-          </div>
-          <input
-            id="brightnessSlider"
-            type="range"
-            min="35"
-            max="100"
-            value="100"
-            oninput="updateBrightnessSetting(this.value)"
-            class="w-full accent-amber-500 cursor-pointer"
-          />
-        </div>
-
-        <!-- Tap Screen Edges to Flip Toggle -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/5">
-          <div>
-            <p class="text-xs font-bold text-white">ဘေးဘက်ထိ၍ စာမျက်နှာလှန်ခြင်း (Edge Tap)</p>
-            <p class="text-[11px] text-stone-400">စာရွက်၏ ဘယ်/ညာ အစွန်ကို တို့၍ စာလှန်မည်</p>
-          </div>
-          <button id="toggleEdgeTapBtn" onclick="toggleSetting('edgeTap')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
-            <div id="toggleEdgeTapDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
-          </button>
-        </div>
-
-        <!-- Bookshelf Theme Selector -->
-        <div class="pt-2 border-t border-white/5 space-y-1.5">
-          <p class="text-xs font-bold text-white">စာအုပ်စင် ဒီဇိုင်း (Bookshelf Style)</p>
-          <div class="grid grid-cols-3 gap-2 text-xs">
-            <button onclick="setShelfTheme('wood')" id="btnThemeWood" class="tactile-btn py-2 rounded-xl font-bold bg-amber-500 text-stone-950">
-              🪵 Wood
-            </button>
-            <button onclick="setShelfTheme('midnight')" id="btnThemeMidnight" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-300">
-              🌑 Luxury
-            </button>
-            <button onclick="setShelfTheme('gallery')" id="btnThemeGallery" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-300">
-              ✨ Minimal
-            </button>
-          </div>
-        </div>
-
-        <!-- Default Reader Paper Theme -->
-        <div class="pt-2 border-t border-white/5 space-y-1.5">
-          <p class="text-xs font-bold text-white">စာဖတ်သည့် စာရွက်အရောင် (Default Paper Mode)</p>
-          <div class="grid grid-cols-3 gap-2 text-xs">
-            <button onclick="setDefaultPaperTheme('sepia')" id="btnPaperSepia" class="tactile-btn py-2 rounded-xl font-bold bg-[#FBF8F3] text-amber-950 border-2 border-amber-500">
-              📜 Sepia
-            </button>
-            <button onclick="setDefaultPaperTheme('day')" id="btnPaperDay" class="tactile-btn py-2 rounded-xl font-bold bg-white text-slate-900">
-              ☀️ Day
-            </button>
-            <button onclick="setDefaultPaperTheme('dark')" id="btnPaperDark" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-200">
-              🌙 Night
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Clear History & Reset -->
-      <div class="flex items-center justify-between pt-1">
-        <button onclick="clearReadingHistory()" class="tactile-btn text-xs text-red-400 hover:text-red-300 font-bold">
-          🗑️ ဖတ်လက်စ မှတ်တမ်းများ ရှင်းမည်
-        </button>
-        <button onclick="closeSettingsModal()" class="tactile-btn px-5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs">
-          ပြီးပြီ
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= GLASSMORPHISM BOOK DETAIL SHEET ================= -->
+  <!-- ================= GLASSMORPHISM BOOK DETAIL SHEET (z-40) ================= -->
   <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-md items-center justify-center p-4">
     <div class="bg-stone-900/95 text-stone-100 border border-amber-500/30 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
-      <button onclick="closeBookDetail()" class="tactile-btn absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">
+      <button type="button" onclick="closeBookDetail()" class="tactile-btn absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">
         ✕
       </button>
 
@@ -484,7 +340,7 @@
           <p id="detailDesc" class="text-xs text-stone-300 leading-relaxed pt-2 max-h-28 overflow-y-auto"></p>
 
           <div class="pt-4">
-            <button id="detailReadBtn" class="tactile-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg transition">
+            <button type="button" id="detailReadBtn" class="tactile-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg transition">
               📖 စတင်ဖတ်ရှုမည်
             </button>
           </div>
@@ -493,68 +349,74 @@
     </div>
   </div>
 
-  <!-- ================= FULLSCREEN PDF READER MODAL ================= -->
+  <!-- ================= FULLSCREEN PDF READER MODAL (z-50) ================= -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 bg-[#FBF8F3] flex-col">
     <!-- Top Reader Controls -->
-    <div class="px-3 sm:px-4 py-2.5 bg-stone-950 text-white flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm border-b border-white/10">
-      <div class="flex items-center gap-2.5 truncate">
-        <button onclick="closePdfReader()" class="tactile-btn px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 font-bold">
+    <div class="px-3 sm:px-4 py-2 bg-stone-950 text-white flex flex-wrap items-center justify-between gap-2 text-xs border-b border-white/10 shrink-0">
+      <div class="flex items-center gap-2 truncate max-w-[48%] sm:max-w-md">
+        <button type="button" onclick="closePdfReader()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 font-bold shrink-0">
           ← စင်သို့
         </button>
-        <span id="readerBookTitle" class="font-bold truncate max-w-[140px] sm:max-w-md text-amber-100"></span>
+        <span id="readerBookTitle" class="font-bold truncate text-amber-100"></span>
       </div>
 
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <!-- In-Reader Quick Sound Toggle -->
-        <button onclick="quickToggleSound()" id="readerSoundBtn" class="tactile-btn px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold" title="စာရွက်လှန်သံ အဖွင့်/အပိတ်">
-          🔊
+      <div class="flex items-center gap-1.5">
+        <!-- Split 2-Page Spread Mode Toggle (For Landscape 2-Page Scans like BurmeseClassic) -->
+        <button
+          type="button"
+          onclick="toggleSplitSpreadMode()"
+          id="splitModeBtn"
+          class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1"
+          title="၂ မျက်နှာတွဲ စာအုပ်များကို တစ်ခြမ်းချင်း ခွဲဖတ်ရန်"
+        >
+          <span>📖</span>
+          <span id="splitModeLabel">စာရွက်အပြည့်</span>
         </button>
 
-        <!-- Zoom Controls -->
+        <!-- Zoom Controls (Fixed & Working) -->
         <div class="flex items-center bg-stone-800 rounded-lg p-0.5 border border-stone-700">
-          <button onclick="changeZoom(-0.2)" class="tactile-btn px-2 py-1 hover:bg-stone-700 rounded font-bold">−</button>
-          <span id="zoomLabel" class="px-1.5 text-[11px] font-mono">100%</span>
-          <button onclick="changeZoom(0.2)" class="tactile-btn px-2 py-1 hover:bg-stone-700 rounded font-bold">+</button>
-        </div>
-
-        <!-- Theme Switcher -->
-        <div class="hidden sm:flex items-center gap-1">
-          <button onclick="setReaderTheme('day')" class="tactile-btn px-2.5 py-1 rounded bg-white text-slate-900 font-bold">Day</button>
-          <button onclick="setReaderTheme('sepia')" class="tactile-btn px-2.5 py-1 rounded bg-[#FBF8F3] text-amber-900 font-bold">Sepia</button>
-          <button onclick="setReaderTheme('dark')" class="tactile-btn px-2.5 py-1 rounded bg-stone-800 text-stone-200 border border-stone-600 font-bold">Night</button>
+          <button type="button" onclick="changeZoom(-0.25)" class="tactile-btn px-2.5 py-1 hover:bg-stone-700 rounded font-bold text-sm">−</button>
+          <button type="button" onclick="resetZoom()" id="zoomLabel" class="px-1.5 text-[11px] font-mono text-amber-300" title="100% ပြန်ထားရန်">100%</button>
+          <button type="button" onclick="changeZoom(0.25)" class="tactile-btn px-2.5 py-1 hover:bg-stone-700 rounded font-bold text-sm">+</button>
         </div>
 
         <!-- Open Settings Inside Reader -->
-        <button onclick="openSettingsModal()" class="tactile-btn px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+        <button
+          type="button"
+          onclick="openSettingsModal()"
+          class="tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold"
+          title="Reader Settings"
+        >
           ⚙️
         </button>
       </div>
     </div>
 
-    <!-- PDF Canvas Area with Left/Right Edge Tap Zones -->
-    <div id="pdfCanvasWrapper" class="relative flex-1 overflow-auto flex justify-center p-4 pdf-theme-sepia select-none">
-      <!-- Left Edge Tap Zone (Previous Page) -->
-      <div onclick="handleEdgeTap(-1)" class="fixed left-0 top-14 bottom-16 w-12 sm:w-20 z-20 cursor-pointer" title="ရှေ့စာမျက်နှာ"></div>
+    <!-- PDF Canvas Area (items-start prevents vertical stretching!) -->
+    <div id="pdfCanvasWrapper" class="relative flex-1 overflow-auto p-2 sm:p-5 pdf-theme-sepia select-none">
+      <!-- Left Edge Tap Zone (Previous Page - active when zoom is 100%) -->
+      <div id="leftEdgeZone" onclick="handleEdgeTap(-1)" class="fixed left-0 top-14 bottom-20 w-10 sm:w-16 z-20 cursor-pointer" title="ရှေ့စာမျက်နှာ"></div>
 
-      <canvas id="pdfViewerCanvas" class="shadow-2xl max-w-full h-auto transition-transform"></canvas>
+      <div class="min-h-full flex items-center justify-center">
+        <canvas id="pdfViewerCanvas" class="shadow-2xl transition-transform"></canvas>
+      </div>
 
-      <!-- Right Edge Tap Zone (Next Page) -->
-      <div onclick="handleEdgeTap(1)" class="fixed right-0 top-14 bottom-16 w-12 sm:w-20 z-20 cursor-pointer" title="နောက်စာမျက်နှာ"></div>
+      <!-- Right Edge Tap Zone (Next Page - active when zoom is 100%) -->
+      <div id="rightEdgeZone" onclick="handleEdgeTap(1)" class="fixed right-0 top-14 bottom-20 w-10 sm:w-16 z-20 cursor-pointer" title="နောက်စာမျက်နှာ"></div>
     </div>
 
     <!-- Bottom Page Controls + Quick Page Slider -->
-    <div class="px-4 py-3 bg-stone-950 text-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm border-t border-white/10">
-      <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
-        <button onclick="changePdfPage(-1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 font-bold">
+    <div class="px-4 py-2.5 bg-stone-950 text-white flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs border-t border-white/10 shrink-0">
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-center">
+        <button type="button" onclick="changePdfPage(-1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 font-bold">
           ◀ ရှေ့သို့
         </button>
-        <span id="pdfPageIndicator" class="font-mono text-amber-200 min-w-[90px] text-center">Page 1 / 1</span>
-        <button onclick="changePdfPage(1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold">
+        <span id="pdfPageIndicator" class="font-mono text-amber-200 text-center">Page 1 / 1</span>
+        <button type="button" onclick="changePdfPage(1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold">
           နောက်သို့ ▶
         </button>
       </div>
 
-      <!-- Quick Jump Page Slider -->
       <div class="flex items-center gap-2 w-full sm:w-64">
         <span class="text-[10px] text-stone-400 shrink-0">စာမျက်နှာရွေးရန်</span>
         <input
@@ -570,12 +432,180 @@
     </div>
   </div>
 
+  <!-- ================= USER SETTINGS MODAL / DRAWER (z-[80] - Always on top of Reader!) ================= -->
+  <div id="settingsModal" style="display: none;" class="fixed inset-0 z-[80] bg-black/75 backdrop-blur-md items-center justify-center p-4">
+    <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">⚙️</span>
+          <div>
+            <h3 class="font-bold text-base text-white">Reader Settings</h3>
+            <p class="text-[11px] text-stone-400">အသံ၊ တုန်ခါမှုနှင့် စာဖတ်စနစ် စိတ်ကြိုက်ပြင်ဆင်ရန်</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSettingsModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">
+          ✕
+        </button>
+      </div>
+
+      <!-- 1. Sound & Haptics Section -->
+      <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
+        <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">🔊 အသံနှင့် ထိတွေ့တုန်ခါမှု (Sound & Touch)</p>
+
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <p class="text-xs font-bold text-white">စာရွက်လှန်သံ (Page Flip Sound)</p>
+            <p class="text-[11px] text-stone-400">စာမျက်နှာလှန်ချိန် စာရွက်သံဖွင့်ထားမည်</p>
+          </div>
+          <button type="button" id="toggleFlipSoundBtn" onclick="toggleSetting('flipSound')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
+            <div id="toggleFlipSoundDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
+          </button>
+        </div>
+
+        <div class="space-y-1 pt-1">
+          <div class="flex justify-between text-[11px] text-stone-300">
+            <span>စာရွက်လှန်သံ အတိုး/အကျယ်</span>
+            <button type="button" onclick="playPageFlipSound()" class="text-amber-400 underline font-bold">▶ အသံစမ်းသပ်ရန်</button>
+          </div>
+          <input
+            id="volumeSlider"
+            type="range"
+            min="10"
+            max="100"
+            value="75"
+            oninput="updateVolumeSetting(this.value)"
+            class="w-full accent-amber-500 cursor-pointer"
+          />
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+          <div>
+            <p class="text-xs font-bold text-white">ခလုတ်နှိပ်သံအသေး (Touch Click Sound)</p>
+            <p class="text-[11px] text-stone-400">ခလုတ်နှိပ်တိုင်း နူးညံ့သော Click အသံပေးမည်</p>
+          </div>
+          <button type="button" id="toggleClickSoundBtn" onclick="toggleSetting('clickSound')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
+            <div id="toggleClickSoundDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+          <div>
+            <p class="text-xs font-bold text-white">ထိတွေ့တုန်ခါမှု (One-Touch Vibrate)</p>
+            <p class="text-[11px] text-stone-400">ခလုတ်နှင့် စာမျက်နှာထိချိန် တုန်ခါမှုပေးမည်</p>
+          </div>
+          <button type="button" id="toggleHapticBtn" onclick="toggleSetting('haptic')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
+            <div id="toggleHapticDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Reading Comfort & Controls Section -->
+      <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
+        <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">📖 စာဖတ်ခြင်းနှင့် မျက်စိကာကွယ်ရေး</p>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs">
+            <span class="font-bold text-white">🔆 မျက်နှာပြင် အလင်းအမှောင် (Brightness)</span>
+            <span id="brightnessValText" class="text-amber-300 font-mono">100%</span>
+          </div>
+          <input
+            id="brightnessSlider"
+            type="range"
+            min="35"
+            max="100"
+            value="100"
+            oninput="updateBrightnessSetting(this.value)"
+            class="w-full accent-amber-500 cursor-pointer"
+          />
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+          <div>
+            <p class="text-xs font-bold text-white">ဘေးဘက်ထိ၍ စာမျက်နှာလှန်ခြင်း (Edge Tap)</p>
+            <p class="text-[11px] text-stone-400">စာရွက်၏ ဘယ်/ညာ အစွန်ကို တို့၍ စာလှန်မည်</p>
+          </div>
+          <button type="button" id="toggleEdgeTapBtn" onclick="toggleSetting('edgeTap')" class="tactile-btn w-12 h-6 rounded-full p-0.5 transition-colors bg-amber-500 flex items-center">
+            <div id="toggleEdgeTapDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
+          </button>
+        </div>
+
+        <div class="pt-2 border-t border-white/5 space-y-1.5">
+          <p class="text-xs font-bold text-white">စာအုပ်စင် ဒီဇိုင်း (Bookshelf Style)</p>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <button type="button" onclick="setShelfTheme('wood')" id="btnThemeWood" class="tactile-btn py-2 rounded-xl font-bold bg-amber-500 text-stone-950">
+              🪵 Wood
+            </button>
+            <button type="button" onclick="setShelfTheme('midnight')" id="btnThemeMidnight" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-300">
+              🌑 Luxury
+            </button>
+            <button type="button" onclick="setShelfTheme('gallery')" id="btnThemeGallery" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-300">
+              ✨ Minimal
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-white/5 space-y-1.5">
+          <p class="text-xs font-bold text-white">စာဖတ်သည့် စာရွက်အရောင် (Paper Mode)</p>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <button type="button" onclick="setDefaultPaperTheme('sepia')" id="btnPaperSepia" class="tactile-btn py-2 rounded-xl font-bold bg-[#FBF8F3] text-amber-950 border-2 border-amber-500">
+              📜 Sepia
+            </button>
+            <button type="button" onclick="setDefaultPaperTheme('day')" id="btnPaperDay" class="tactile-btn py-2 rounded-xl font-bold bg-white text-slate-900">
+              ☀️ Day
+            </button>
+            <button type="button" onclick="setDefaultPaperTheme('dark')" id="btnPaperDark" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-200">
+              🌙 Night
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <button type="button" onclick="clearReadingHistory()" class="tactile-btn text-xs text-red-400 hover:text-red-300 font-bold">
+          🗑️ ဖတ်လက်စ မှတ်တမ်းများ ရှင်းမည်
+        </button>
+        <button type="button" onclick="closeSettingsModal()" class="tactile-btn px-5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs">
+          ပြီးပြီ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= EXIT APP CONFIRMATION MODAL (z-[85]) ================= -->
+  <div id="exitConfirmModal" style="display: none;" class="fixed inset-0 z-[85] bg-black/75 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center text-2xl mx-auto">
+        🚪
+      </div>
+      <div class="space-y-1">
+        <h3 class="font-bold text-base text-white">App မှ ထွက်မည်လား?</h3>
+        <p class="text-xs text-stone-400">စာကြည့်တိုက် App မှ ထွက်ခွာရန် သေချာပါသလား?</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
+        <button
+          type="button"
+          onclick="cancelExitApp()"
+          class="tactile-btn py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold"
+        >
+          မထွက်သေးပါ
+        </button>
+        <button
+          type="button"
+          onclick="confirmExitApp()"
+          class="tactile-btn py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg"
+        >
+          ထွက်မည်
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Key Setup Modal (Only if key not found) -->
-  <div id="setupKeyModal" style="display: none;" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm items-center justify-center p-4">
+  <div id="setupKeyModal" style="display: none;" class="fixed inset-0 z-[95] bg-black/75 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 text-slate-800">
       <h3 class="font-bold text-base">🔌 Supabase Publishable Key ထည့်သွင်းရန်</h3>
       <textarea id="setupKeyInput" rows="3" placeholder="sb_publishable_..." class="w-full px-3 py-2 rounded-lg border border-slate-300 font-mono text-xs"></textarea>
-      <button onclick="saveSetupKey()" class="tactile-btn w-full py-2.5 rounded-lg bg-amber-700 text-white font-bold text-sm">
+      <button type="button" onclick="saveSetupKey()" class="tactile-btn w-full py-2.5 rounded-lg bg-amber-700 text-white font-bold text-sm">
         ချိတ်ဆက်မည်
       </button>
     </div>
@@ -596,9 +626,12 @@
     let currentBooksList = [];
     let searchTimeout = null;
 
+    // PDF Reader State
     let currentPdfDoc = null;
     let currentPageNum = 1;
-    let currentScale = 1.4;
+    let zoomPercent = 100; // 100% fits width cleanly with true aspect ratio
+    let splitSpreadMode = false; // false = Full Page, true = Split 2-Page Scan into Left/Right halves
+    let currentSpreadHalf = 'left'; // 'left' | 'right'
     let currentReadingBookId = null;
 
     // ================= USER SETTINGS STATE =================
@@ -612,6 +645,70 @@
       shelfTheme: localStorage.getItem('SHELF_THEME') || 'wood',
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
+
+    // ================= STEP-BY-STEP HARDWARE BACK BUTTON & EXIT CONFIRMATION =================
+    let allowExitNow = false;
+
+    function initBackNavigationGuard() {
+      // Push base root guard state so back press on main page can be intercepted
+      history.replaceState({ view: 'shelf_root' }, '');
+      history.pushState({ view: 'shelf_guard' }, '');
+
+      window.addEventListener('popstate', (event) => {
+        if (allowExitNow) return;
+
+        // 1. If Exit Confirm Modal is open and user presses Back again -> cancel it
+        if (isModalVisible('exitConfirmModal')) {
+          document.getElementById('exitConfirmModal').style.display = 'none';
+          history.pushState({ view: 'shelf_guard' }, '');
+          return;
+        }
+
+        // 2. If Settings Modal is open -> close Settings only
+        if (isModalVisible('settingsModal')) {
+          document.getElementById('settingsModal').style.display = 'none';
+          history.pushState({ view: 'active_layer' }, '');
+          return;
+        }
+
+        // 3. If PDF Reader Modal is open -> close Reader and return to Book Detail or Shelf
+        if (isModalVisible('pdfReaderModal')) {
+          document.getElementById('pdfReaderModal').style.display = 'none';
+          checkContinueReading();
+          loadBooks();
+          history.pushState({ view: 'active_layer' }, '');
+          return;
+        }
+
+        // 4. If Book Detail Modal is open -> close Detail and return to Main Bookshelf
+        if (isModalVisible('bookDetailModal')) {
+          document.getElementById('bookDetailModal').style.display = 'none';
+          history.pushState({ view: 'shelf_guard' }, '');
+          return;
+        }
+
+        // 5. User is on Main Bookshelf Page -> Show Exit Confirmation Modal
+        triggerHaptic(18);
+        document.getElementById('exitConfirmModal').style.display = 'flex';
+        history.pushState({ view: 'exit_prompt' }, '');
+      });
+    }
+
+    function isModalVisible(id) {
+      const el = document.getElementById(id);
+      return el && el.style.display !== 'none' && el.style.display !== '';
+    }
+
+    function cancelExitApp() {
+      document.getElementById('exitConfirmModal').style.display = 'none';
+    }
+
+    function confirmExitApp() {
+      allowExitNow = true;
+      document.getElementById('exitConfirmModal').style.display = 'none';
+      window.close();
+      history.go(-2);
+    }
 
     // ================= WEB AUDIO API SYNTHESIZER =================
     let audioCtx = null;
@@ -709,6 +806,7 @@
 
     // ================= INITIALIZATION =================
     window.addEventListener('DOMContentLoaded', async () => {
+      initBackNavigationGuard();
       applyAllSettingsToUI();
 
       const url = localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL;
@@ -736,8 +834,6 @@
 
       const soundIcon = userSettings.flipSound ? '🔊' : '🔇';
       document.getElementById('headerSoundIcon').textContent = soundIcon;
-      const readerSoundBtn = document.getElementById('readerSoundBtn');
-      if (readerSoundBtn) readerSoundBtn.textContent = soundIcon;
     }
 
     function updateToggleUI(btnId, dotId, isOn) {
@@ -826,6 +922,7 @@
     }
 
     function openSettingsModal() {
+      history.pushState({ modal: 'settings' }, '');
       document.getElementById('settingsModal').style.display = 'flex';
     }
 
@@ -855,14 +952,14 @@
     function renderCategoryPills() {
       const box = document.getElementById('categoryPills');
       box.innerHTML = `
-        <button onclick="selectCategory(null)" class="tactile-btn px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition ${
+        <button type="button" onclick="selectCategory(null)" class="tactile-btn px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition ${
           selectedCategoryId === null ? 'bg-amber-400 text-slate-950 shadow' : 'bg-white/15 text-white hover:bg-white/25'
         }">အားလုံး</button>
       `;
       categoriesList.forEach((c) => {
         const active = selectedCategoryId === c.id;
         box.innerHTML += `
-          <button onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition ${
+          <button type="button" onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition ${
             active ? 'bg-amber-400 text-slate-950 shadow' : 'bg-white/15 text-white hover:bg-white/25'
           }">${c.name}</button>
         `;
@@ -963,6 +1060,9 @@
 
     window.addEventListener('resize', () => {
       if (currentBooksList) renderShelfRows(currentBooksList);
+      if (isModalVisible('pdfReaderModal') && currentPdfDoc) {
+        renderPdfPage(currentPageNum, 0);
+      }
     });
 
     function openBookDetail(bookId) {
@@ -987,10 +1087,10 @@
         ? `📖 စာမျက်နှာ (${savedPage}) မှ ဆက်လက်ဖတ်ရှုမည်`
         : '📖 စတင်ဖတ်ရှုမည်';
       readBtn.onclick = () => {
-        closeBookDetail();
         openPdfReader(book.id, book.title, book.pdf_url, book.page_count);
       };
 
+      history.pushState({ modal: 'detail' }, '');
       document.getElementById('bookDetailModal').style.display = 'flex';
     }
 
@@ -1012,10 +1112,14 @@
       } catch (e) {}
     }
 
-    // ================= PDF READER WITH SOUND & HAPTICS =================
+    // ================= PDF READER WITH TRUE ASPECT RATIO, WORKING ZOOM & 2-PAGE SPLIT =================
     async function openPdfReader(bookId, title, pdfUrl, totalPages = 1) {
       currentReadingBookId = bookId;
+      zoomPercent = 100;
+      currentSpreadHalf = 'left';
+
       document.getElementById('readerBookTitle').textContent = title;
+      history.pushState({ modal: 'reader' }, '');
       document.getElementById('pdfReaderModal').style.display = 'flex';
       setReaderTheme(userSettings.paperTheme);
 
@@ -1025,16 +1129,51 @@
       currentPdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       document.getElementById('pageJumpSlider').max = currentPdfDoc.numPages;
 
+      // Auto-detect if this book is a 2-page wide landscape scan (like burmeseclassic.com)
+      const firstPage = await currentPdfDoc.getPage(1);
+      const vp1 = firstPage.getViewport({ scale: 1 });
+      if (vp1.width > vp1.height * 1.15 && window.innerWidth < 768) {
+        // Enable split mode automatically for mobile on wide 2-page scans, or restore user choice
+        splitSpreadMode = JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'true');
+      } else {
+        splitSpreadMode = JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'false');
+      }
+      updateSplitModeUI();
+
       const savedPage = parseInt(localStorage.getItem('BOOK_PAGE_' + bookId) || '1', 10);
       currentPageNum = savedPage <= currentPdfDoc.numPages ? savedPage : 1;
 
       playPageFlipSound();
-      await renderPdfPage(currentPageNum);
+      await renderPdfPage(currentPageNum, 0);
+    }
+
+    function toggleSplitSpreadMode() {
+      if (!currentPdfDoc) return;
+      splitSpreadMode = !splitSpreadMode;
+      currentSpreadHalf = 'left';
+      if (currentReadingBookId) {
+        localStorage.setItem('SPLIT_MODE_' + currentReadingBookId, JSON.stringify(splitSpreadMode));
+      }
+      updateSplitModeUI();
+      renderPdfPage(currentPageNum, 0);
+    }
+
+    function updateSplitModeUI() {
+      const btn = document.getElementById('splitModeBtn');
+      const label = document.getElementById('splitModeLabel');
+      if (splitSpreadMode) {
+        btn.className = 'tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] flex items-center gap-1 shadow';
+        label.textContent = '၁ ခြမ်းချင်း';
+      } else {
+        btn.className = 'tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 font-bold text-[11px] flex items-center gap-1';
+        label.textContent = 'စာရွက်အပြည့်';
+      }
     }
 
     async function renderPdfPage(num, flipDir = 0) {
+      if (!currentPdfDoc) return;
       const page = await currentPdfDoc.getPage(num);
-      const viewport = page.getViewport({ scale: currentScale });
+      const wrapper = document.getElementById('pdfCanvasWrapper');
       const canvas = document.getElementById('pdfViewerCanvas');
       const ctx = canvas.getContext('2d');
 
@@ -1044,18 +1183,122 @@
         canvas.classList.add(flipDir > 0 ? 'page-flip-next' : 'page-flip-prev');
       }
 
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+      // Base unscaled PDF dimensions
+      const baseVp = page.getViewport({ scale: 1.0 });
+      const availableWidth = Math.max(wrapper.clientWidth - 20, 260);
+      const availableHeight = Math.max(wrapper.clientHeight - 20, 320);
 
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      document.getElementById('pdfPageIndicator').textContent = `Page ${num} / ${currentPdfDoc.numPages}`;
+      // Source crop region (Full page vs Left/Right half of a 2-page spread)
+      const srcWidth = splitSpreadMode ? baseVp.width / 2 : baseVp.width;
+      const srcHeight = baseVp.height;
+      const pageAspectRatio = srcHeight / srcWidth;
+
+      // Fit cleanly inside screen at 100% zoom without ANY distortion
+      let fitWidth = availableWidth;
+      let fitHeight = fitWidth * pageAspectRatio;
+
+      if (fitHeight > availableHeight && !splitSpreadMode && baseVp.width < baseVp.height) {
+        fitHeight = availableHeight;
+        fitWidth = fitHeight / pageAspectRatio;
+      }
+
+      const scaleMultiplier = zoomPercent / 100;
+      const displayWidth = Math.round(fitWidth * scaleMultiplier);
+      const displayHeight = Math.round(fitHeight * scaleMultiplier);
+
+      // Apply exact CSS dimensions so aspect ratio is 100% locked and Zoom works visually
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+
+      // Disable edge tap zones when zoomed in so user can pan freely
+      const edgeDisplay = zoomPercent > 105 ? 'none' : 'block';
+      document.getElementById('leftEdgeZone').style.display = edgeDisplay;
+      document.getElementById('rightEdgeZone').style.display = edgeDisplay;
+
+      // Render at high DPI for crisp Burmese font clarity
+      const dpr = Math.min(window.devicePixelRatio || 1.5, 2.5);
+      const renderScale = (displayWidth / srcWidth) * dpr;
+      const renderVp = page.getViewport({ scale: renderScale });
+
+      canvas.width = Math.round(srcWidth * renderScale);
+      canvas.height = Math.round(srcHeight * renderScale);
+
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (splitSpreadMode && currentSpreadHalf === 'right') {
+        // Shift canvas left by half page width to show Right Page of spread
+        ctx.translate(-Math.round((baseVp.width / 2) * renderScale), 0);
+      }
+
+      await page.render({ canvasContext: ctx, viewport: renderVp }).promise;
+      ctx.restore();
+
+      const halfLabel = splitSpreadMode ? (currentSpreadHalf === 'left' ? ' (ဘယ်)' : ' (ညာ)') : '';
+      document.getElementById('pdfPageIndicator').textContent = `Page ${num}${halfLabel} / ${currentPdfDoc.numPages}`;
       document.getElementById('pageJumpSlider').value = num;
-      document.getElementById('zoomLabel').textContent = `${Math.round((currentScale / 1.4) * 100)}%`;
+      document.getElementById('zoomLabel').textContent = `${zoomPercent}%`;
       localStorage.setItem('BOOK_PAGE_' + currentReadingBookId, num);
+    }
+
+    function changeZoom(deltaPct) {
+      if (!currentPdfDoc) return;
+      const nextZoom = Math.min(Math.max(zoomPercent + Math.round(deltaPct * 100), 60), 300);
+      if (nextZoom !== zoomPercent) {
+        zoomPercent = nextZoom;
+        renderPdfPage(currentPageNum, 0);
+      }
+    }
+
+    function resetZoom() {
+      if (!currentPdfDoc) return;
+      zoomPercent = 100;
+      renderPdfPage(currentPageNum, 0);
     }
 
     function changePdfPage(delta) {
       if (!currentPdfDoc) return;
+
+      // If in Split 2-Page Spread Mode, step through Left Half -> Right Half -> Next Page
+      if (splitSpreadMode) {
+        if (delta > 0) {
+          if (currentSpreadHalf === 'left') {
+            currentSpreadHalf = 'right';
+            triggerHaptic(16);
+            playPageFlipSound();
+            renderPdfPage(currentPageNum, 1);
+            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+            return;
+          } else if (currentPageNum < currentPdfDoc.numPages) {
+            currentPageNum++;
+            currentSpreadHalf = 'left';
+            triggerHaptic(18);
+            playPageFlipSound();
+            renderPdfPage(currentPageNum, 1);
+            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+            return;
+          }
+        } else if (delta < 0) {
+          if (currentSpreadHalf === 'right') {
+            currentSpreadHalf = 'left';
+            triggerHaptic(16);
+            playPageFlipSound();
+            renderPdfPage(currentPageNum, -1);
+            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+            return;
+          } else if (currentPageNum > 1) {
+            currentPageNum--;
+            currentSpreadHalf = 'right';
+            triggerHaptic(18);
+            playPageFlipSound();
+            renderPdfPage(currentPageNum, -1);
+            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+            return;
+          }
+        }
+        return;
+      }
+
       const next = currentPageNum + delta;
       if (next >= 1 && next <= currentPdfDoc.numPages) {
         currentPageNum = next;
@@ -1072,6 +1315,7 @@
       if (target >= 1 && target <= currentPdfDoc.numPages && target !== currentPageNum) {
         const dir = target > currentPageNum ? 1 : -1;
         currentPageNum = target;
+        currentSpreadHalf = 'left';
         triggerHaptic(18);
         playPageFlipSound();
         renderPdfPage(currentPageNum, dir);
@@ -1080,20 +1324,14 @@
     }
 
     function handleEdgeTap(delta) {
-      if (!userSettings.edgeTap) return;
+      if (!userSettings.edgeTap || zoomPercent > 105) return;
       changePdfPage(delta);
-    }
-
-    function changeZoom(delta) {
-      if (!currentPdfDoc) return;
-      currentScale = Math.min(Math.max(currentScale + delta, 0.8), 2.6);
-      renderPdfPage(currentPageNum, 0);
     }
 
     function setReaderTheme(mode) {
       const wrapper = document.getElementById('pdfCanvasWrapper');
       if (!wrapper) return;
-      wrapper.className = 'relative flex-1 overflow-auto flex justify-center p-4 select-none ';
+      wrapper.className = 'relative flex-1 overflow-auto p-2 sm:p-5 select-none ';
       if (mode === 'sepia') wrapper.classList.add('bg-[#FBF8F3]', 'pdf-theme-sepia');
       else if (mode === 'dark') wrapper.classList.add('bg-[#121212]', 'pdf-theme-dark');
       else wrapper.classList.add('bg-stone-200');
