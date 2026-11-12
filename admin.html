@@ -43,37 +43,34 @@
           </div>
           <div>
             <h1 class="font-bold text-xl text-white">Publishing Studio</h1>
-            <p class="text-xs text-amber-200/70">Admin ဝင်ရောက်ရန်</p>
+            <p class="text-xs text-amber-200/70">Admin စီမံခန့်ခွဲမှုစနစ်</p>
           </div>
         </div>
         <button
           type="button"
           onclick="resetSavedAuthCache()"
           class="px-2.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-[11px] font-bold"
-          title="မှားနေသော Key အဟောင်းများကို ရှင်းလင်းရန်"
+          title="Key အဟောင်းများကို ပြန်လည်စစ်ဆေးရန်"
         >
-          🔄 Reset Cache
+          🔄 Reset
         </button>
       </div>
 
       <div class="space-y-4 text-xs">
-        <div>
+        <div id="sbKeyInputWrapper" class="hidden">
           <label class="block font-bold text-amber-300 mb-1">
-            ၁။ Supabase Publishable Key (<code>sb_publishable_...</code>)
+            Supabase Publishable Key (<code>sb_publishable_...</code>)
           </label>
           <input
             id="adminSbKey"
             type="text"
-            placeholder="sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_..."
+            value="sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg"
             class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-stone-200 font-mono text-[11px] focus:outline-none focus:border-amber-500"
           />
-          <p class="text-[10px] text-stone-400 mt-1">
-            * သတိပြုရန် - ဤနေရာတွင် <code>ghp_...</code> (GitHub Token) မထည့်ရပါ။ Supabase Key ကိုသာ ထည့်ပါ။
-          </p>
         </div>
 
         <div>
-          <label class="block font-bold text-stone-300 mb-1">၂။ Admin Email</label>
+          <label class="block font-bold text-stone-300 mb-1">Admin Email</label>
           <input
             id="loginEmail"
             type="email"
@@ -83,7 +80,7 @@
         </div>
 
         <div>
-          <label class="block font-bold text-stone-300 mb-1">၃။ Password</label>
+          <label class="block font-bold text-stone-300 mb-1">Password</label>
           <input
             id="loginPassword"
             type="password"
@@ -95,7 +92,7 @@
 
         <label class="flex items-center gap-2 cursor-pointer text-stone-300 pt-1">
           <input id="rememberMeCheckbox" type="checkbox" checked class="w-4 h-4 accent-amber-500" />
-          <span>Key နှင့် Admin အကောင့်ကို နောက်တစ်ကြိမ်အတွက် အသေမှတ်ထားမည်</span>
+          <span>Admin အကောင့်ကို နောက်တစ်ကြိမ်အတွက် အသေမှတ်ထားမည်</span>
         </label>
 
         <div id="loginStatusBox" style="display: none;" class="p-3 rounded-xl text-xs font-bold leading-relaxed"></div>
@@ -136,8 +133,8 @@
     </header>
 
     <main class="max-w-7xl w-full mx-auto p-6 space-y-6 flex-1">
-      <!-- Analytics Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <!-- Analytics Cards (4 Columns including Pending Requests) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-stone-900/90 border border-white/10 p-5 rounded-2xl">
           <span class="text-xs text-stone-400">စာအုပ်စင်ရှိ စုစုပေါင်းစာအုပ်</span>
           <p id="statTotalBooks" class="text-3xl font-bold text-white mt-1">0 အုပ်</p>
@@ -148,6 +145,12 @@
           <span class="text-xs text-stone-400">စာဖတ်သူ စုစုပေါင်း (Total Reads)</span>
           <p id="statTotalReads" class="text-3xl font-bold text-amber-400 mt-1">0 ကြိမ်</p>
           <div class="text-[11px] text-stone-400 mt-2">Real-time ဖတ်ရှုမှုမှတ်တမ်း</div>
+        </div>
+
+        <div class="bg-stone-900/90 border border-amber-500/25 p-5 rounded-2xl">
+          <span class="text-xs text-amber-300 font-bold">📩 တောင်းဆိုထားသော စာအုပ်များ</span>
+          <p id="statPendingRequests" class="text-3xl font-bold text-amber-300 mt-1">0 အုပ်</p>
+          <div id="statCompletedRequests" class="text-[11px] text-emerald-400 mt-2">တင်ပေးပြီး: 0 အုပ်</div>
         </div>
 
         <div class="bg-stone-900/90 border border-white/10 p-5 rounded-2xl">
@@ -165,10 +168,19 @@
       <div class="grid lg:grid-cols-12 gap-6">
         <!-- Left 5 Cols: Smart Storage Upload Form -->
         <div class="lg:col-span-5 space-y-6">
-          <div class="bg-stone-900/90 border border-white/10 p-6 rounded-3xl space-y-5">
+          <div id="uploadCardBox" class="bg-stone-900/90 border border-white/10 p-6 rounded-3xl space-y-5 transition-all">
             <div class="flex items-center justify-between">
               <h2 class="font-bold text-base text-white">➕ စာအုပ်အသစ် လွှင့်တင်ရန်</h2>
               <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Smart Storage Saver</span>
+            </div>
+
+            <!-- Banner shown when filling from a Reader Request -->
+            <div id="fillingRequestBanner" class="hidden bg-amber-500/15 border border-amber-500/40 p-3 rounded-2xl flex items-center justify-between text-xs">
+              <div>
+                <p class="font-bold text-amber-300">📩 တောင်းဆိုထားသော စာအုပ်ကို တင်ပေးနေသည်</p>
+                <p id="fillingRequestSub" class="text-[11px] text-stone-300 mt-0.5"></p>
+              </div>
+              <button type="button" onclick="clearLinkedRequest()" class="text-stone-400 hover:text-white px-2">✕</button>
             </div>
 
             <!-- Storage Mode Tabs -->
@@ -310,33 +322,69 @@
           </div>
         </div>
 
-        <!-- Right 7 Cols: Visual Catalog Management -->
-        <div class="lg:col-span-7 bg-stone-900/90 border border-white/10 p-6 rounded-3xl">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
-            <div>
-              <h2 class="font-bold text-base text-white">📚 စာအုပ်စင် စာရင်းချုပ် (Catalog)</h2>
-              <p class="text-xs text-stone-400">GitHub သို့မဟုတ် ပြင်ပ Link ဖြင့် တင်ထားသော စာအုပ်များသည် Supabase Storage လုံးဝ (`0 MB`) မသုံးပါ</p>
+        <!-- Right 7 Cols: 1) Reader Book Requests & 2) Visual Catalog Management -->
+        <div class="lg:col-span-7 space-y-6">
+
+          <!-- ================= NEW: READER BOOK REQUESTS PANEL ================= -->
+          <div class="bg-stone-900/90 border border-amber-500/30 p-6 rounded-3xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-base text-white">📩 စာဖတ်သူများ တောင်းဆိုထားသော စာအုပ်များ</h2>
+                  <span id="reqCountBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs">0</span>
+                </div>
+                <p class="text-xs text-stone-400">စာအုပ်တင်ပေးပြီးပါက အမှန်ခြစ်ပေးနိုင်သည် သို့မဟုတ် "⚡ ဖောင်ဖြည့်မည်" နှိပ်၍ တိုက်ရိုက်တင်ပေးနိုင်သည်</p>
+              </div>
+              <button type="button" onclick="loadBookRequestsAdmin()" class="text-xs px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold">
+                🔄 Refresh
+              </button>
             </div>
-            <button type="button" onclick="loadAdminData()" class="text-xs px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold">
-              🔄 Refresh
-            </button>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-stone-800 text-stone-400">
+                    <th class="py-2.5">တောင်းဆိုထားသော စာအုပ် / စာရေးဆရာ</th>
+                    <th class="py-2.5">တောင်းဆိုသူ</th>
+                    <th class="py-2.5">ထောက်ခံမဲ</th>
+                    <th class="py-2.5">အခြေအနေ (Status)</th>
+                    <th class="py-2.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminRequestsTableBody" class="divide-y divide-stone-800/70"></tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="border-b border-stone-800 text-stone-400">
-                  <th class="py-3">စာအုပ်</th>
-                  <th class="py-3">ကဏ္ဍ</th>
-                  <th class="py-3">သိုလှောင်မှု / ဆိုဒ်</th>
-                  <th class="py-3">ဖတ်ရှုမှု</th>
-                  <th class="py-3">Status</th>
-                  <th class="py-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="adminTableBody" class="divide-y divide-stone-800/70"></tbody>
-            </table>
+          <!-- ================= EXISTING: BOOK CATALOG TABLE ================= -->
+          <div class="bg-stone-900/90 border border-white/10 p-6 rounded-3xl">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+              <div>
+                <h2 class="font-bold text-base text-white">📚 စာအုပ်စင် စာရင်းချုပ် (Catalog)</h2>
+                <p class="text-xs text-stone-400">GitHub သို့မဟုတ် ပြင်ပ Link ဖြင့် တင်ထားသော စာအုပ်များသည် Supabase Storage လုံးဝ (`0 MB`) မသုံးပါ</p>
+              </div>
+              <button type="button" onclick="loadAdminData()" class="text-xs px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold">
+                🔄 Refresh
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-stone-800 text-stone-400">
+                    <th class="py-3">စာအုပ်</th>
+                    <th class="py-3">ကဏ္ဍ</th>
+                    <th class="py-3">သိုလှောင်မှု / ဆိုဒ်</th>
+                    <th class="py-3">ဖတ်ရှုမှု</th>
+                    <th class="py-3">Status</th>
+                    <th class="py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTableBody" class="divide-y divide-stone-800/70"></tbody>
+              </table>
+            </div>
           </div>
+
         </div>
       </div>
     </main>
@@ -347,9 +395,10 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
+    // အသေထည့်သွင်းပေးထားသော Default Settings များ
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
     const DEFAULT_GITHUB_REPO  = 'waiyanoocreative-ops/myBooks';
-    const DEFAULT_SUPABASE_KEY = '';
     const DEFAULT_GITHUB_TOKEN = '';
 
     let supabaseClient = null;
@@ -358,6 +407,7 @@
     let currentLoadedPdfDoc = null;
     let extractedCoverBlob = null;
     let extractedPageCount = 1;
+    let linkedRequestIdForUpload = null; // စာအုပ်တင်ပြီးသည်နှင့် အလိုအလျောက် အမှန်ခြစ်ပေးရန်
 
     function cleanGithubRepoName(rawInput) {
       if (!rawInput) return DEFAULT_GITHUB_REPO;
@@ -368,9 +418,8 @@
         .replace(/^\/+|\/+$/g, '');
     }
 
-    // Chrome file:// တွင် Tab နှစ်ခု ပြိုင်ဖွင့်ထားချိန် Auth Lock မငြိစေရန် Custom Lock ဖြင့် ချိတ်ဆက်ခြင်း
     function getOrCreateSupabase(key) {
-      const cleanKey = key.trim();
+      const cleanKey = (key || DEFAULT_SUPABASE_KEY).trim();
       if (!supabaseClient || currentClientKey !== cleanKey) {
         supabaseClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, cleanKey, {
           auth: {
@@ -385,13 +434,12 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      const savedSbKey = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY') || '';
+      const savedSbKey = localStorage.getItem('SB_KEY') || DEFAULT_SUPABASE_KEY;
       const savedEmail = localStorage.getItem('ADMIN_EMAIL') || '';
       const savedPass  = localStorage.getItem('ADMIN_PASS') || '';
       const savedGhRepo = cleanGithubRepoName(localStorage.getItem('GH_REPO') || DEFAULT_GITHUB_REPO);
       const savedGhToken = DEFAULT_GITHUB_TOKEN || localStorage.getItem('GH_TOKEN') || '';
 
-      // မှားပြီး GitHub token ဝင်နေပါက ဖယ်ရှားပေးမည်
       if (savedSbKey && !savedSbKey.startsWith('ghp_')) {
         document.getElementById('adminSbKey').value = savedSbKey;
       }
@@ -405,7 +453,6 @@
         showGithubLockedState(savedGhRepo);
       }
 
-      // သိမ်းထားသော Session ရှိပါက အလိုအလျောက် တန်းဝင်ပေးမည်
       if (savedSbKey && !savedSbKey.startsWith('ghp_')) {
         try {
           const client = getOrCreateSupabase(savedSbKey);
@@ -427,8 +474,9 @@
       });
       supabaseClient = null;
       currentClientKey = null;
-      document.getElementById('adminSbKey').value = '';
-      showStatus('✅ Cache ရှင်းလင်းပြီးပါပြီ။ Supabase Publishable Key (sb_publishable_...)၊ Email နှင့် Password ပြန်ထည့်ပြီး ဝင်ရောက်ပါ။', false);
+      document.getElementById('adminSbKey').value = DEFAULT_SUPABASE_KEY;
+      document.getElementById('sbKeyInputWrapper').classList.remove('hidden');
+      showStatus('✅ Cache ရှင်းလင်းပြီးပါပြီ။ Admin Email နှင့် Password ပြန်ထည့်ပြီး ဝင်ရောက်ပါ။', false);
     }
 
     function showStatus(message, isError = true) {
@@ -441,21 +489,12 @@
     }
 
     async function handleLogin() {
-      const key = document.getElementById('adminSbKey').value.trim();
+      const key = document.getElementById('adminSbKey').value.trim() || DEFAULT_SUPABASE_KEY;
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
       const remember = document.getElementById('rememberMeCheckbox').checked;
       const btn = document.getElementById('loginBtn');
 
-      if (!key) {
-        return showStatus('⚠️ ၁။ Supabase Publishable Key (sb_publishable_...) ကို ထည့်သွင်းပါ။', true);
-      }
-      if (key.startsWith('ghp_') || key.startsWith('github_pat_')) {
-        return showStatus('⚠️ မှားယွင်းနေပါသည် - ယခုထည့်ထားသည်မှာ GitHub Token (ghp_...) ဖြစ်နေပါသည်။ Supabase မှ sb_publishable_... Key ကို ထည့်ပေးပါ။', true);
-      }
-      if (key.startsWith('http')) {
-        return showStatus('⚠️ မှားယွင်းနေပါသည် - URL မထည့်ရပါ။ Supabase Publishable Key (sb_publishable_...) ကိုသာ ထည့်ပေးပါ။', true);
-      }
       if (!email || !password) {
         return showStatus('⚠️ Admin Email နှင့် Password နှစ်ခုလုံး ထည့်သွင်းပါ။', true);
       }
@@ -475,7 +514,6 @@
         }
 
         if (data?.user) {
-          // Login အောင်မြင်မှသာ Key နှင့် အကောင့်ကို သိမ်းဆည်းမည်
           localStorage.setItem('SB_KEY', key);
           localStorage.setItem('SB_URL', DEFAULT_SUPABASE_URL);
           if (remember) {
@@ -498,6 +536,7 @@
       document.getElementById('adminUserEmail').textContent = user.email;
       await loadCategories();
       await loadAdminData();
+      await loadBookRequestsAdmin();
     }
 
     async function handleLogout() {
@@ -578,6 +617,172 @@
       await loadCategories();
     }
 
+    // =========================================================================
+    // 📩 READER BOOK REQUESTS MANAGEMENT (LOAD, CHECKMARK, AUTO-FILL, DELETE)
+    // =========================================================================
+    async function loadBookRequestsAdmin() {
+      const tbody = document.getElementById('adminRequestsTableBody');
+      let list = [];
+
+      // 1. Load from Supabase book_requests table
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('book_requests')
+            .select('*')
+            .order('upvotes', { ascending: false })
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            list = data;
+          }
+        } catch (err) {
+          console.warn('Supabase book_requests fetch notice:', err);
+        }
+      }
+
+      // 2. Also merge any local requests from same browser if table is empty
+      const localReqs = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]');
+      if (list.length === 0 && localReqs.length > 0) {
+        list = localReqs;
+      }
+
+      const pendingCount = list.filter((r) => r.status !== 'uploaded').length;
+      const completedCount = list.filter((r) => r.status === 'uploaded').length;
+
+      document.getElementById('reqCountBadge').textContent = `${list.length}`;
+      document.getElementById('statPendingRequests').textContent = `${pendingCount} အုပ်`;
+      document.getElementById('statCompletedRequests').textContent = `✅ တင်ပေးပြီး: ${completedCount} အုပ်`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-8 text-center text-stone-500">
+              လက်ရှိတွင် စာဖတ်သူများ တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((r) => {
+        const isUploaded = r.status === 'uploaded';
+        const safeTitle = (r.book_title || '').replace(/'/g, "\\'");
+        const safeAuthor = (r.author_name || '').replace(/'/g, "\\'");
+
+        return `
+          <tr class="hover:bg-white/[0.02] transition ${isUploaded ? 'opacity-65' : ''}">
+            <td class="py-3">
+              <p class="font-bold ${isUploaded ? 'line-through text-stone-400' : 'text-white'}">${r.book_title}</p>
+              <p class="text-[11px] text-stone-400">✍️ ${r.author_name || 'မသိရှိပါ'}</p>
+            </td>
+            <td class="py-3 text-stone-300">
+              👤 ${r.user_name || 'Reader'}
+            </td>
+            <td class="py-3">
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 font-bold text-[11px]">
+                👍 ${r.upvotes || 1}
+              </span>
+            </td>
+            <td class="py-3">
+              <button
+                type="button"
+                onclick="toggleRequestStatus('${r.id}', '${r.status || 'pending'}')"
+                class="px-3 py-1 rounded-full text-[11px] font-bold transition ${
+                  isUploaded
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-emerald-500/25 hover:text-emerald-200'
+                }"
+                title="နှိပ်၍ အမှန်ခြစ် (တင်ပေးပြီး) ပြောင်းရန်"
+              >
+                ${isUploaded ? '✅ တင်ပေးပြီး' : '⏳ စောင့်ဆိုင်းဆဲ (အမှန်ခြစ်ရန်)'}
+              </button>
+            </td>
+            <td class="py-3 text-right space-x-1">
+              ${
+                !isUploaded
+                  ? `<button
+                      type="button"
+                      onclick="fillUploadFormFromRequest('${r.id}', '${safeTitle}', '${safeAuthor}')"
+                      class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] transition"
+                      title="ဘယ်ဘက်ရှိ စာအုပ်တင်သည့်ဖောင်ထဲသို့ အမည်အလိုအလျောက်ဖြည့်မည်"
+                    >
+                      ⚡ ဖောင်ဖြည့်မည်
+                    </button>`
+                  : ''
+              }
+              <button
+                type="button"
+                onclick="deleteBookRequest('${r.id}')"
+                class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 font-bold text-[11px] transition"
+              >
+                ဖျက်မည်
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleRequestStatus(reqId, currentStatus) {
+      const nextStatus = currentStatus === 'uploaded' ? 'pending' : 'uploaded';
+
+      // Update LocalStorage fallback list
+      const localList = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]');
+      const localItem = localList.find((x) => String(x.id) === String(reqId));
+      if (localItem) {
+        localItem.status = nextStatus;
+        localStorage.setItem('BOOK_REQUESTS_LIST', JSON.stringify(localList));
+      }
+
+      // Update Supabase book_requests table
+      if (supabaseClient && !String(reqId).startsWith('req_')) {
+        await supabaseClient
+          .from('book_requests')
+          .update({ status: nextStatus })
+          .eq('id', reqId);
+      }
+
+      await loadBookRequestsAdmin();
+    }
+
+    function fillUploadFormFromRequest(reqId, bookTitle, authorName) {
+      linkedRequestIdForUpload = reqId;
+      document.getElementById('bookTitle').value = bookTitle;
+      document.getElementById('bookAuthor').value = authorName && authorName !== 'မသိရှိပါ' ? authorName : '';
+
+      document.getElementById('fillingRequestBanner').classList.remove('hidden');
+      document.getElementById('fillingRequestSub').textContent = `"${bookTitle}" ကို တင်ပြီးသည်နှင့် အလိုအလျောက် ✅ တင်ပေးပြီး အမှန်ခြစ်ပေးပါမည်`;
+
+      const card = document.getElementById('uploadCardBox');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      card.classList.add('ring-2', 'ring-amber-500');
+      setTimeout(() => card.classList.remove('ring-2', 'ring-amber-500'), 2200);
+    }
+
+    function clearLinkedRequest() {
+      linkedRequestIdForUpload = null;
+      document.getElementById('fillingRequestBanner').classList.add('hidden');
+    }
+
+    async function deleteBookRequest(reqId) {
+      if (!confirm('ဤစာအုပ်တောင်းဆိုမှုကို စာရင်းမှ ဖျက်မှာ သေချာပါသလား?')) return;
+
+      const localList = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]').filter(
+        (x) => String(x.id) !== String(reqId)
+      );
+      localStorage.setItem('BOOK_REQUESTS_LIST', JSON.stringify(localList));
+
+      if (supabaseClient && !String(reqId).startsWith('req_')) {
+        await supabaseClient.from('book_requests').delete().eq('id', reqId);
+      }
+
+      await loadBookRequestsAdmin();
+    }
+
+    // =========================================================================
+    // 📄 PDF PREVIEW, COMPRESSION & UPLOAD
+    // =========================================================================
     async function handlePdfPreview(e) {
       const file = e.target.files[0];
       if (!file || !window.pdfjsLib) return;
@@ -777,10 +982,17 @@
         ]);
         if (dbErr) throw dbErr;
 
+        // အကယ်၍ တောင်းဆိုထားသော စာအုပ်မှ "⚡ ဖောင်ဖြည့်မည်" နှိပ်၍ တင်ခြင်းဖြစ်ပါက အလိုအလျောက် အမှန်ခြစ်ပေးမည်
+        if (linkedRequestIdForUpload) {
+          await toggleRequestStatus(linkedRequestIdForUpload, 'pending');
+          clearLinkedRequest();
+        }
+
         setProgress(100, `🎉 အောင်မြင်စွာ တင်ပြီးပါပြီ! (Supabase Storage သုံးစွဲမှု: ${supabaseSizeMb} MB)`);
         document.getElementById('uploadForm').reset();
         document.getElementById('coverPreviewBox').classList.add('hidden');
         await loadAdminData();
+        await loadBookRequestsAdmin();
       } catch (err) {
         setProgress(0, '❌ Error: ' + err.message);
       } finally {
