@@ -1,9 +1,9 @@
-const CACHE_NAME = 'sa-library-pwa-v3';
-const STATE_CACHE = 'sa-library-sw-state-v1';
+const CACHE_NAME = 'bookshelf-pwa-v3';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon.png'
 ];
 
 const SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
