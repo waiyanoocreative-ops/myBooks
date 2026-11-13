@@ -1,1 +1,9 @@
 
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.sar.library",
+        "sha256_cert_fingerprints": ["F9:FF:B9:1B:E8:AF:7B:DD:7F:C5:E9:80:B2:5D:2D:59:5E:C8:5E:5A:78:04:E0:46:CC:8F:8F:08:92:D6:4F:8C"]
+      }
+    }]
