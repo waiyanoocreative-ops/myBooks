@@ -25,43 +25,36 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 3. Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: 3. Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: 5. Generate Native Android WebView Project
+      - name: 4. Generate Native Android WebView Project
         run: |
-          mkdir -p android-native/app/src/main/java/com/sar/library
-          mkdir -p android-native/app/src/main/res/drawable
-          mkdir -p android-native/app/src/main/res/values
-          mkdir -p .github/keystore
+          python3 - << 'EOF'
+          import os, shutil, subprocess
 
-          # Copy icon.png from repo root into Android drawable
-          if [ -f "icon.png" ]; then
-            cp icon.png android-native/app/src/main/res/drawable/ic_launcher.png
-          else
-            convert -size 512x512 xc:#6B141A android-native/app/src/main/res/drawable/ic_launcher.png || true
-          fi
+          base = "android-native/app/src/main"
+          os.makedirs(f"{base}/java/com/sar/library", exist_ok=True)
+          os.makedirs(f"{base}/res/drawable", exist_ok=True)
+          os.makedirs(f"{base}/res/values", exist_ok=True)
+          os.makedirs(".github/keystore", exist_ok=True)
 
-          # Create persistent keystore so future APK updates install smoothly
-          if [ ! -f ".github/keystore/release.jks" ]; then
-            keytool -genkeypair -v \
-              -keystore .github/keystore/release.jks \
-              -alias sar_key \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -storepass sar123456 \
-              -keypass sar123456 \
-              -dname "CN=Sar Library, OU=Digital, O=Sar, L=Mandalay, S=MDY, C=MM"
-          fi
+          if os.path.exists("icon.png"):
+              shutil.copy("icon.png", f"{base}/res/drawable/ic_launcher.png")
 
-          cat << 'EOF' > android-native/settings.gradle
-          pluginManagement {
+          if not os.path.exists(".github/keystore/release.jks"):
+              subprocess.run([
+                  "keytool", "-genkeypair", "-v",
+                  "-keystore", ".github/keystore/release.jks",
+                  "-alias", "sar_key", "-keyalg", "RSA", "-keysize", "2048",
+                  "-validity", "10000", "-storepass", "sar123456", "-keypass", "sar123456",
+                  "-dname", "CN=Sar Library, OU=Digital, O=Sar, L=Mandalay, S=MDY, C=MM"
+              ], check=True)
+
+          with open("android-native/settings.gradle", "w") as f:
+              f.write('''pluginManagement {
               repositories {
                   google()
                   mavenCentral()
@@ -77,16 +70,16 @@ jobs:
           }
           rootProject.name = "SarLibrary"
           include ':app'
-          EOF
+          ''')
 
-          cat << 'EOF' > android-native/build.gradle
-          plugins {
-              id 'com.android.application' version '8.3.0' apply false
+          with open("android-native/build.gradle", "w") as f:
+              f.write('''plugins {
+              id 'com.android.application' version '8.2.2' apply false
           }
-          EOF
+          ''')
 
-          cat << 'EOF' > android-native/app/build.gradle
-          plugins {
+          with open("android-native/app/build.gradle", "w") as f:
+              f.write('''plugins {
               id 'com.android.application'
           }
 
@@ -100,6 +93,10 @@ jobs:
                   targetSdk 34
                   versionCode 2
                   versionName "2.0"
+              }
+
+              aaptOptions {
+                  cruncherEnabled = false
               }
 
               signingConfigs {
@@ -123,10 +120,10 @@ jobs:
                   targetCompatibility JavaVersion.VERSION_17
               }
           }
-          EOF
+          ''')
 
-          cat << 'EOF' > android-native/app/src/main/res/values/styles.xml
-          <?xml version="1.0" encoding="utf-8"?>
+          with open(f"{base}/res/values/styles.xml", "w") as f:
+              f.write('''<?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
                   <item name="android:statusBarColor">#1E120A</item>
@@ -134,12 +131,11 @@ jobs:
                   <item name="android:windowBackground">@android:color/black</item>
               </style>
           </resources>
-          EOF
+          ''')
 
-          cat << 'EOF' > android-native/app/src/main/AndroidManifest.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.sar.library">
+          with open(f"{base}/AndroidManifest.xml", "w") as f:
+              f.write('''<?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -152,7 +148,6 @@ jobs:
                   android:label="စာ"
                   android:supportsRtl="true"
                   android:usesCleartextTraffic="true"
-                  android:enableOnBackInvokedCallback="false"
                   android:theme="@style/AppTheme">
 
                   <activity
@@ -166,10 +161,10 @@ jobs:
                   </activity>
               </application>
           </manifest>
-          EOF
+          ''')
 
-          cat << 'EOF' > android-native/app/src/main/java/com/sar/library/MainActivity.java
-          package com.sar.library;
+          with open(f"{base}/java/com/sar/library/MainActivity.java", "w") as f:
+              f.write('''package com.sar.library;
 
           import android.app.Activity;
           import android.content.Intent;
@@ -225,7 +220,7 @@ jobs:
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           String url = request.getUrl().toString();
                           if (url.startsWith("http://") || url.startsWith("https://")) {
-                              if (url.contains("waiyanoocreative-ops.github.io") || url.contains("supabase.co")) {
+                              if (url.contains("waiyanoocreative-ops.github.io") || url.contains("supabase.co") || url.contains("githubusercontent.com")) {
                                   return false;
                               }
                           }
@@ -239,7 +234,6 @@ jobs:
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-                          // Connect confirmExitApp() button in index.html directly to Native Exit
                           view.evaluateJavascript(
                               "window.confirmExitApp = function() { if(window.AndroidNative) { window.AndroidNative.exitApp(); } else { window.close(); } };",
                               null
@@ -247,14 +241,7 @@ jobs:
                       }
                   });
 
-                  webView.setWebChromeClient(new WebChromeClient() {
-                      @Override
-                      public void onCloseWindow(WebView window) {
-                          finishAndRemoveTask();
-                          System.exit(0);
-                      }
-                  });
-
+                  webView.setWebChromeClient(new WebChromeClient());
                   webView.loadUrl(APP_URL);
               }
 
@@ -290,22 +277,24 @@ jobs:
                   });
               }
           }
+          ''')
           EOF
 
-      - name: 6. Build Signed Release APK
+      - name: 5. Build Signed Release APK
         working-directory: android-native
-        run: gradle assembleRelease
+        run: gradle assembleRelease --no-daemon
 
-      - name: 7. Copy APK to Repository Root (sar-app.apk)
+      - name: 6. Publish sar-app.apk to Repository
         run: |
           cp android-native/app/build/outputs/apk/release/app-release.apk ./sar-app.apk
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git rm -rf .github/workflows/.github || true
           git add sar-app.apk .github/keystore/release.jks
-          git diff --staged --quiet || git commit -m "chore: build pure native WebView sar-app.apk [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: publish native sar-app.apk"
           git push
 
-      - name: 8. Upload APK as Downloadable Artifact
+      - name: 7. Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: စာ-Pure-Native-APK
