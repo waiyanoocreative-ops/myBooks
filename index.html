@@ -2154,6 +2154,257 @@
       triggerHaptic(15);
       window.location.href = 'https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-app.apk';
     }
+
+    // ================= 12. GMAIL SIGN IN / SIGN UP & PROFILE MODULE =================
+    (function initSarAuthModule() {
+      // 1. Inject Auth Modal UI & Styles
+      const authStyle = document.createElement('style');
+      authStyle.textContent = `
+        .sar-auth-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 6px 12px; border-radius: 999px;
+          background: rgba(107, 20, 26, 0.1); color: var(--text-main, #2b1810);
+          border: 1px solid rgba(107, 20, 26, 0.25);
+          font-family: 'Padauk', sans-serif; font-size: 13px; font-weight: 700;
+          cursor: pointer; transition: all 0.2s ease;
+        }
+        .sar-auth-btn.logged-in {
+          background: rgba(22, 101, 52, 0.14);
+          border-color: rgba(22, 101, 52, 0.4);
+          color: #15803d;
+        }
+        #sarAuthModal {
+          display: none; position: fixed; inset: 0; z-index: 9999;
+          background: rgba(15, 10, 7, 0.72); backdrop-filter: blur(6px);
+          align-items: center; justify-content: center; padding: 16px;
+        }
+        .sar-auth-card {
+          width: 100%; max-width: 390px; background: var(--bg-main, #FAF8F5);
+          color: var(--text-main, #2A1810); border-radius: 22px;
+          padding: 22px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+          border: 1px solid rgba(107, 20, 26, 0.18); font-family: 'Padauk', sans-serif;
+        }
+        .sar-auth-tabs {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+          background: rgba(0,0,0,0.06); padding: 4px; border-radius: 12px; margin: 14px 0;
+        }
+        .sar-auth-tab {
+          padding: 8px; border: none; border-radius: 9px; background: transparent;
+          font-family: 'Padauk', sans-serif; font-weight: 700; font-size: 14px;
+          cursor: pointer; color: inherit; opacity: 0.65;
+        }
+        .sar-auth-tab.active {
+          background: #6B141A; color: #FFF; opacity: 1;
+        }
+        .sar-auth-input {
+          width: 100%; padding: 11px 13px; margin-bottom: 10px;
+          border-radius: 11px; border: 1px solid rgba(0,0,0,0.18);
+          background: rgba(255,255,255,0.9); font-size: 14px; box-sizing: border-box;
+          font-family: 'Padauk', sans-serif; color: #1c1008;
+        }
+        .sar-auth-submit {
+          width: 100%; padding: 11px; border: none; border-radius: 12px;
+          background: linear-gradient(135deg, #7A1820, #4A0B10);
+          color: #FEF3C7; font-family: 'Padauk', sans-serif;
+          font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px;
+        }
+        .sar-google-btn {
+          width: 100%; padding: 10px; border-radius: 12px;
+          border: 1px solid rgba(0,0,0,0.18); background: #FFFFFF; color: #1f2937;
+          font-family: 'Padauk', sans-serif; font-size: 14px; font-weight: 700;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          cursor: pointer; margin-top: 10px;
+        }
+      `;
+      document.head.appendChild(authStyle);
+
+      const modalHtml = `
+        <div id="sarAuthModal" onclick="if(event.target===this) closeSarAuthModal()">
+          <div class="sar-auth-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3 style="margin:0; font-size:18px;">👤 စာဖတ်သူ အကောင့်</h3>
+              <button onclick="closeSarAuthModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
+            </div>
+
+            <!-- Logged Out View -->
+            <div id="sarAuthGuestView">
+              <div class="sar-auth-tabs">
+                <button id="tabSignIn" class="sar-auth-tab active" onclick="switchSarAuthTab('signin')">အကောင့်ဝင်ရန်</button>
+                <button id="tabSignUp" class="sar-auth-tab" onclick="switchSarAuthTab('signup')">အကောင့်သစ်ဖွင့်ရန်</button>
+              </div>
+
+              <div id="sarAuthNameWrap" style="display:none;">
+                <input id="sarAuthName" type="text" class="sar-auth-input" placeholder="သင့်အမည် (ဥပမာ - မောင်မောင်)" />
+              </div>
+              <input id="sarAuthEmail" type="email" class="sar-auth-input" placeholder="Gmail လိပ်စာ (example@gmail.com)" />
+              <input id="sarAuthPassword" type="password" class="sar-auth-input" placeholder="စကားဝှက် (အနည်းဆုံး ၆ လုံး)" />
+
+              <div id="sarAuthMsg" style="font-size:13px; margin:4px 0 8px; display:none;"></div>
+
+              <button id="sarAuthSubmitBtn" class="sar-auth-submit" onclick="handleSarEmailAuth()">
+                Gmail ဖြင့် အကောင့်ဝင်မည်
+              </button>
+
+              <div style="text-align:center; font-size:12px; opacity:0.6; margin:10px 0 4px;">— သို့မဟုတ် —</div>
+
+              <button class="sar-google-btn" onclick="handleSarGoogleOAuth()">
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Google (Gmail) ဖြင့် တိုက်ရိုက်ဝင်မည်
+              </button>
+            </div>
+
+            <!-- Logged In View -->
+            <div id="sarAuthUserView" style="display:none; text-align:center; padding:12px 0 4px;">
+              <div style="width:56px; height:56px; border-radius:50%; background:#6B141A; color:#FEF3C7; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; margin:0 auto 10px;" id="sarUserAvatar">U</div>
+              <div id="sarUserNameDisplay" style="font-weight:700; font-size:16px;">စာဖတ်သူ</div>
+              <div id="sarUserEmailDisplay" style="font-size:13px; opacity:0.75; margin-bottom:16px;">user@gmail.com</div>
+              <button onclick="handleSarSignOut()" style="width:100%; padding:10px; border-radius:12px; border:1px solid #dc2626; background:rgba(220,38,38,0.08); color:#dc2626; font-family:'Padauk',sans-serif; font-weight:700; cursor:pointer;">
+                🚪 အကောင့်မှ ထွက်မည် (Sign Out)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+      // 2. Inject Header Button next to Settings/Notification buttons
+      const targetBtn = document.getElementById('settingsBtn') || document.getElementById('notifBtn') || document.getElementById('installAppBtn');
+      const authBtn = document.createElement('button');
+      authBtn.id = 'sarHeaderAuthBtn';
+      authBtn.className = 'sar-auth-btn';
+      authBtn.innerHTML = '👤 <span id="sarHeaderAuthLabel">အကောင့်ဝင်ရန်</span>';
+      authBtn.onclick = () => {
+        if (typeof triggerHaptic === 'function') triggerHaptic(10);
+        document.getElementById('sarAuthModal').style.display = 'flex';
+      };
+      if (targetBtn && targetBtn.parentNode) {
+        targetBtn.parentNode.insertBefore(authBtn, targetBtn);
+      } else {
+        document.body.appendChild(authBtn);
+      }
+    })();
+
+    let currentSarAuthMode = 'signin';
+
+    function closeSarAuthModal() {
+      const m = document.getElementById('sarAuthModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function switchSarAuthTab(mode) {
+      currentSarAuthMode = mode;
+      document.getElementById('tabSignIn').classList.toggle('active', mode === 'signin');
+      document.getElementById('tabSignUp').classList.toggle('active', mode === 'signup');
+      document.getElementById('sarAuthNameWrap').style.display = mode === 'signup' ? 'block' : 'none';
+      document.getElementById('sarAuthSubmitBtn').textContent =
+        mode === 'signin' ? 'Gmail ဖြင့် အကောင့်ဝင်မည်' : 'Gmail ဖြင့် အကောင့်သစ်ဖွင့်မည်';
+      const msg = document.getElementById('sarAuthMsg');
+      if (msg) msg.style.display = 'none';
+    }
+
+    function showSarAuthMsg(text, isError) {
+      const msg = document.getElementById('sarAuthMsg');
+      if (!msg) return;
+      msg.style.display = 'block';
+      msg.style.color = isError ? '#dc2626' : '#15803d';
+      msg.textContent = text;
+    }
+
+    async function handleSarEmailAuth() {
+      if (typeof supabaseClient === 'undefined') {
+        return showSarAuthMsg('Supabase ချိတ်ဆက်မှု မတွေ့ရှိပါ။', true);
+      }
+      const email = document.getElementById('sarAuthEmail').value.trim();
+      const password = document.getElementById('sarAuthPassword').value.trim();
+      const fullName = document.getElementById('sarAuthName').value.trim();
+
+      if (!email || !password) {
+        return showSarAuthMsg('ကျေးဇူးပြု၍ Gmail နှင့် စကားဝှက် ပြည့်စုံစွာ ထည့်သွင်းပါ။', true);
+      }
+      if (password.length < 6) {
+        return showSarAuthMsg('စကားဝှက်သည် အနည်းဆုံး (၆) လုံး ရှိရပါမည်။', true);
+      }
+
+      const btn = document.getElementById('sarAuthSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'ခေတ္တစောင့်ပါ...';
+
+      try {
+        if (currentSarAuthMode === 'signup') {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName || email.split('@')[0] } }
+          });
+          if (error) throw error;
+          if (data.session) {
+            showSarAuthMsg('အကောင့်သစ်ဖွင့်ခြင်း အောင်မြင်ပါသည်။', false);
+            setTimeout(closeSarAuthModal, 700);
+          } else {
+            showSarAuthMsg('သင့် Gmail သို့ အတည်ပြုလင့်ခ် ပို့ထားပါသည်။ စစ်ဆေးပေးပါ (သို့မဟုတ် အကောင့်ဝင်ရန် နှိပ်ပါ)။', false);
+          }
+        } else {
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showSarAuthMsg('အကောင့်ဝင်ရောက်မှု အောင်မြင်ပါသည်။', false);
+          setTimeout(closeSarAuthModal, 600);
+        }
+      } catch (err) {
+        showSarAuthMsg(err.message || 'အကောင့်ဝင်ရာတွင် အမှားအယွင်းရှိနေပါသည်။', true);
+      } finally {
+        btn.disabled = false;
+        switchSarAuthTab(currentSarAuthMode);
+      }
+    }
+
+    async function handleSarGoogleOAuth() {
+      if (typeof supabaseClient === 'undefined') return;
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) showSarAuthMsg(error.message, true);
+    }
+
+    async function handleSarSignOut() {
+      if (typeof supabaseClient === 'undefined') return;
+      await supabaseClient.auth.signOut();
+      closeSarAuthModal();
+    }
+
+    function updateSarAuthUI(user) {
+      const btn = document.getElementById('sarHeaderAuthBtn');
+      const label = document.getElementById('sarHeaderAuthLabel');
+      const guestView = document.getElementById('sarAuthGuestView');
+      const userView = document.getElementById('sarAuthUserView');
+
+      if (user) {
+        const displayName = (user.user_metadata && user.user_metadata.full_name) || user.email.split('@')[0];
+        if (btn) btn.classList.add('logged-in');
+        if (label) label.textContent = displayName.slice(0, 10);
+        if (guestView) guestView.style.display = 'none';
+        if (userView) userView.style.display = 'block';
+        document.getElementById('sarUserNameDisplay').textContent = displayName;
+        document.getElementById('sarUserEmailDisplay').textContent = user.email;
+        document.getElementById('sarUserAvatar').textContent = displayName.charAt(0).toUpperCase();
+      } else {
+        if (btn) btn.classList.remove('logged-in');
+        if (label) label.textContent = 'အကောင့်ဝင်ရန်';
+        if (guestView) guestView.style.display = 'block';
+        if (userView) userView.style.display = 'none';
+      }
+    }
+
+    if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
+      supabaseClient.auth.getSession().then(({ data }) => {
+        updateSarAuthUI(data && data.session ? data.session.user : null);
+      });
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        updateSarAuthUI(session ? session.user : null);
+      });
+    }
+
+    
   </script>
 </body>
 </html>
