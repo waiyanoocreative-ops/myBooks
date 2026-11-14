@@ -2122,40 +2122,37 @@
     }
 
     // ================= 11. PWA SERVICE WORKER & INSTALL PROMPT =================
-    let deferredInstallPrompt = null;
-
+ // ================= 11. NATIVE APK DETECTION & DIRECT APK DOWNLOAD =================
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-       navigator.serviceWorker.register('/myBooks/sw.js').catch((err) => console.log('SW Error:', err));
+        navigator.serviceWorker.register('/myBooks/sw.js').catch((err) => console.log('SW Error:', err));
       });
     }
 
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-      const btn = document.getElementById('installAppBtn');
-      if (btn) btn.style.display = 'none';
+    function hideInstallBtnIfNativeApp() {
+      const isStandalonePwa =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+
+      // Native Android WebView (sar-app.apk) ဟုတ်/မဟုတ် စစ်ဆေးခြင်း
+      const isAndroidWebView =
+        Boolean(window.AndroidNative) ||
+        /; wv\)|Version\/[\d.]+.*Chrome\/[\d.]+ Mobile/i.test(navigator.userAgent);
+
+      if (isStandalonePwa || isAndroidWebView) {
+        const btn = document.getElementById('installAppBtn');
+        if (btn) btn.style.display = 'none';
+      }
     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredInstallPrompt = e;
-    });
+    hideInstallBtnIfNativeApp();
+    window.addEventListener('DOMContentLoaded', hideInstallBtnIfNativeApp);
+    setTimeout(hideInstallBtnIfNativeApp, 500);
 
-    async function installPwaApp() {
+    // Website (Browser) မှ ဝင်ကြည့်သူများ 📲 App ခလုတ်နှိပ်လျှင် sar-app.apk ကို တိုက်ရိုက်ဒေါင်းပေးမည်
+    function installPwaApp() {
       triggerHaptic(15);
-      if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installAppBtn').style.display = 'none';
-        }
-        deferredInstallPrompt = null;
-      } else {
-        alert(
-          '📱 ဖုန်းထဲသို့ App သွင်းရန် -\n\n' +
-          '• Android (Chrome): ညာဘက်အပေါ်ထောင့်ရှိ အစက် (၃) စက် (⋮) ကိုနှိပ်ပြီး "Install app" သို့မဟုတ် "Add to Home screen" ကို နှိပ်ပါ။\n\n' +
-          '• iPhone (Safari): အောက်ခြေရှိ Share ခလုတ် (⬆️) ကိုနှိပ်ပြီး "Add to Home Screen" ကို ရွေးပါ။'
-        );
-      }
+      window.location.href = 'https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-app.apk';
     }
   </script>
 </body>
