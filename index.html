@@ -2156,7 +2156,69 @@
     }
 
    
+// ================= SPONSOR BANNER DISPLAY (READER APP) =================
+    let activeSponsorAds = [];
+    let currentAdIndex = 0;
+    let adSlideTimer = null;
 
+    async function initReaderSponsorBanner() {
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+      if (!client) return;
+
+      if (!document.getElementById('sarSponsorBannerSlot')) {
+        const slot = document.createElement('div');
+        slot.id = 'sarSponsorBannerSlot';
+        slot.style.cssText = 'max-width:760px; margin:8px auto 14px; padding:0 14px; display:none;';
+        const shelf = document.getElementById('bookshelfContainer') || document.querySelector('main') || document.body;
+        shelf.parentNode.insertBefore(slot, shelf);
+      }
+
+      const { data } = await client.from('ads').select('*').eq('is_active', true).order('created_at', { ascending: false });
+      activeSponsorAds = data || [];
+      renderSponsorBannerSlide();
+
+      if (adSlideTimer) clearInterval(adSlideTimer);
+      if (activeSponsorAds.length > 1) {
+        adSlideTimer = setInterval(() => {
+          currentAdIndex = (currentAdIndex + 1) % activeSponsorAds.length;
+          renderSponsorBannerSlide();
+        }, 5500);
+      }
+    }
+
+    function renderSponsorBannerSlide() {
+      const slot = document.getElementById('sarSponsorBannerSlot');
+      if (!slot) return;
+      if (!activeSponsorAds.length) {
+        slot.style.display = 'none';
+        return;
+      }
+
+      const ad = activeSponsorAds[currentAdIndex] || activeSponsorAds[0];
+      slot.style.display = 'block';
+      slot.innerHTML = `
+        <div onclick="openSponsorAdLink(${ad.id}, '${ad.target_url.replace(/'/g, "\\'")}')" style="position:relative; cursor:pointer; border-radius:14px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.16); border:1px solid rgba(107,20,26,0.22); background:#1E120A;">
+          <img src="${ad.image_url}" alt="${ad.title}" style="width:100%; max-height:115px; object-fit:cover; display:block;" />
+          <span style="position:absolute; top:6px; right:8px; background:rgba(15,10,7,0.72); color:#FEF3C7; font-size:10px; padding:2px 7px; border-radius:999px; font-family:'Padauk',sans-serif;">
+            ကြော်ငြာ • ${ad.title}
+          </span>
+        </div>
+      `;
+    }
+
+    async function openSponsorAdLink(id, url) {
+      if (typeof triggerHaptic === 'function') triggerHaptic(10);
+      window.open(url, '_blank');
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+      if (client) {
+        const ad = activeSponsorAds.find(a => a.id === id);
+        const nextClicks = ((ad && ad.clicks) || 0) + 1;
+        if (ad) ad.clicks = nextClicks;
+        await client.from('ads').update({ clicks: nextClicks }).eq('id', id);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => setTimeout(initReaderSponsorBanner, 600));
     
   </script>
 </body>
