@@ -1087,553 +1087,203 @@
       loadAdminData();
     }
 
-// ================= DIRECT SPONSOR BANNER MANAGER (ADMIN) =================
-    (function initAdminAdManager() {
-      const adPanelHtml = `
-        <div id="adminAdManagerCard" style="max-width:900px; margin:24px auto; background:#ffffff; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(107,20,26,0.15); font-family:'Padauk',sans-serif; color:#1f2937;">
-          <h3 style="margin:0 0 14px; font-size:18px; color:#6B141A; display:flex; align-items:center; gap:8px;">
-            📢 ကိုယ်ပိုင် ကြော်ငြာ Banner စီမံရန် (Direct Sponsor Ads)
-          </h3>
-
-          <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:12px;">
-            <input id="adTitleInput" type="text" placeholder="ကြော်ငြာခေါင်းစဉ် (ဥပမာ - Hugme Skincare)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
-            <input id="adTargetUrlInput" type="url" placeholder="နှိပ်လျှင်ပွင့်မည့် လင့်ခ် (https://...)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
-          </div>
-
-          <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); align-items:center; margin-bottom:12px;">
-            <div>
-              <label style="font-size:13px; font-weight:700; display:block; margin-bottom:4px;">🖼️ ကြော်ငြာ Banner ပုံ ရွေးရန် (အလျားလိုက်ပုံ အကြံပြုသည်):</label>
-              <input id="adImageFileInput" type="file" accept="image/*" style="width:100%; font-size:13px;" onchange="previewAdminAdImage(this)" />
-            </div>
-            <div>
-              <label style="font-size:13px; font-weight:700; display:block; margin-bottom:4px;">သို့မဟုတ် ပုံလင့်ခ် (Image URL) တိုက်ရိုက်ထည့်ရန်:</label>
-              <input id="adImageUrlInput" type="url" placeholder="https://.../banner.jpg" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
-            </div>
-          </div>
-
-          <div id="adPreviewWrap" style="display:none; margin-bottom:12px;">
-            <img id="adPreviewImg" src="" style="max-height:110px; border-radius:10px; border:1px solid #e5e7eb; object-fit:cover;" />
-          </div>
-
-          <button id="adSubmitBtn" onclick="publishSponsorAd()" style="background:#6B141A; color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-family:'Padauk',sans-serif; font-weight:700; cursor:pointer;">
-            ➕ ကြော်ငြာ Banner တင်မည်
-          </button>
-
-          <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
-          <div id="adminAdsList" style="display:grid; gap:10px;">ကြော်ငြာစာရင်း ရယူနေပါသည်...</div>
+<script>
+// ================= STANDALONE SPONSOR AD & VIP MANAGER (ADMIN) =================
+window.addEventListener('load', function() {
+  const extraPanel = document.createElement('div');
+  extraPanel.id = 'adminExtraToolsWrap';
+  extraPanel.style.cssText = 'max-width:900px; margin:24px auto; padding:0 16px; font-family:Padauk,sans-serif; color:#1f2937;';
+  extraPanel.innerHTML = `
+    <!-- Sponsor Banner Card -->
+    <div style="background:#ffffff; border-radius:18px; padding:20px; margin-bottom:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(107,20,26,0.15);">
+      <h3 style="margin:0 0 14px; font-size:18px; color:#6B141A;">📢 ကိုယ်ပိုင် ကြော်ငြာ Banner စီမံရန် (16:9 Ratio)</h3>
+      <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:12px;">
+        <input id="adTitleInput" type="text" placeholder="ကြော်ငြာခေါင်းစဉ် (ဥပမာ - Hugme Skincare)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db;" />
+        <input id="adTargetUrlInput" type="url" placeholder="နှိပ်လျှင်ပွင့်မည့် လင့်ခ် (https://...)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db;" />
+      </div>
+      <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); align-items:center; margin-bottom:12px;">
+        <div>
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:4px;">🖼️ 16:9 ကြော်ငြာပုံ ရွေးရန်:</label>
+          <input id="adImageFileInput" type="file" accept="image/*" style="width:100%; font-size:13px;" onchange="previewAdminAdImage(this)" />
         </div>
-      `;
+        <div>
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:4px;">သို့မဟုတ် ပုံလင့်ခ် (Image URL) ထည့်ရန်:</label>
+          <input id="adImageUrlInput" type="url" placeholder="https://.../banner.jpg" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #d1d5db;" />
+        </div>
+      </div>
+      <div id="adPreviewWrap" style="display:none; margin-bottom:12px;">
+        <img id="adPreviewImg" src="" style="width:260px; aspect-ratio:16/9; border-radius:10px; border:1px solid #e5e7eb; object-fit:cover;" />
+      </div>
+      <button id="adSubmitBtn" onclick="publishSponsorAd()" style="background:#6B141A; color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer;">
+        ➕ ကြော်ငြာ Banner တင်မည်
+      </button>
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
+      <div id="adminAdsList" style="display:grid; gap:10px;"></div>
+    </div>
 
-      window.addEventListener('DOMContentLoaded', () => {
-        const container = document.querySelector('main') || document.body;
-        container.insertAdjacentHTML('beforeend', adPanelHtml);
-        loadAdminAds();
-      });
-    })();
+    <!-- VIP Code Card -->
+    <div style="background:#ffffff; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(217,119,6,0.3);">
+      <h3 style="margin:0 0 14px; font-size:18px; color:#b45309;">👑 VIP Premium Code စီမံရန် (Ad-Free)</h3>
+      <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:12px;">
+        <input id="vipMemberNameInput" type="text" placeholder="ဝယ်ယူသူအမည် / မှတ်ချက်" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db;" />
+        <select id="vipDurationSelect" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-weight:700;">
+          <option value="30|၁ လစာ">🗓️ ၁ လစာ (30 ရက်)</option>
+          <option value="90|၃ လစာ">🗓️ ၃ လစာ (90 ရက်)</option>
+          <option value="180|၆ လစာ">🗓️ ၆ လစာ (180 ရက်)</option>
+          <option value="365|၁ နှစ်စာ">🗓️ ၁ နှစ်စာ (365 ရက်)</option>
+          <option value="36500|တစ်သက်တာ (Lifetime)">♾️ တစ်သက်တာ (Lifetime)</option>
+        </select>
+      </div>
+      <button id="vipGenerateBtn" onclick="generateVipCode()" style="background:linear-gradient(135deg, #d97706, #92400e); color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer;">
+        ✨ VIP Code အသစ်ထုတ်မည်
+      </button>
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
+      <div id="adminVipCodesList" style="display:grid; gap:10px;"></div>
+    </div>
+  `;
 
-    let compressedAdBase64 = '';
+  const mainDashboard = document.getElementById('dashboardSection') || document.getElementById('adminContent') || document.querySelector('main') || document.body;
+  mainDashboard.appendChild(extraPanel);
+  loadAdminAds();
+  loadAdminVipCodes();
+});
 
-    function previewAdminAdImage(input) {
-      const file = input.files && input.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxW = 900;
-          const scale = img.width > maxW ? maxW / img.width : 1;
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          compressedAdBase64 = canvas.toDataURL('image/jpeg', 0.84);
-          document.getElementById('adPreviewImg').src = compressedAdBase64;
-          document.getElementById('adPreviewWrap').style.display = 'block';
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
+let compressedAdBase64 = '';
 
-    async function publishSponsorAd() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return alert('Supabase ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
+function getSbClient() {
+  return typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+}
 
-      const title = document.getElementById('adTitleInput').value.trim() || 'Sponsor';
-      const targetUrl = document.getElementById('adTargetUrlInput').value.trim();
-      const manualImageUrl = document.getElementById('adImageUrlInput').value.trim();
-      const finalImage = compressedAdBase64 || manualImageUrl;
-
-      if (!finalImage || !targetUrl) {
-        return alert('ကျေးဇူးပြု၍ ကြော်ငြာပုံနှင့် နှိပ်လျှင်ပွင့်မည့် လင့်ခ်ကို ပြည့်စုံစွာ ထည့်သွင်းပါ။');
-      }
-
-      const btn = document.getElementById('adSubmitBtn');
-      btn.disabled = true;
-      btn.textContent = 'တင်နေပါသည်...';
-
-      const { error } = await client.from('ads').insert([
-        { title, image_url: finalImage, target_url: targetUrl, is_active: true }
-      ]);
-
-      btn.disabled = false;
-      btn.textContent = '➕ ကြော်ငြာ Banner တင်မည်';
-
-      if (error) {
-        alert('Error: ' + error.message);
+function previewAdminAdImage(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      const srcRatio = img.width / img.height;
+      const dstRatio = 16 / 9;
+      let sx = 0, sy = 0, sw = img.width, sh = img.height;
+      if (srcRatio > dstRatio) {
+        sw = img.height * dstRatio;
+        sx = (img.width - sw) / 2;
       } else {
-        compressedAdBase64 = '';
-        document.getElementById('adTitleInput').value = '';
-        document.getElementById('adTargetUrlInput').value = '';
-        document.getElementById('adImageUrlInput').value = '';
-        document.getElementById('adImageFileInput').value = '';
-        document.getElementById('adPreviewWrap').style.display = 'none';
-        loadAdminAds();
+        sh = img.width / dstRatio;
+        sy = (img.height - sh) / 2;
       }
-    }
+      canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, 1280, 720);
+      compressedAdBase64 = canvas.toDataURL('image/jpeg', 0.88);
+      document.getElementById('adPreviewImg').src = compressedAdBase64;
+      document.getElementById('adPreviewWrap').style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-    async function loadAdminAds() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      const listEl = document.getElementById('adminAdsList');
-      if (!client || !listEl) return;
+async function publishSponsorAd() {
+  const client = getSbClient();
+  if (!client) return alert('Supabase client မတွေ့ရှိပါ။');
+  const title = document.getElementById('adTitleInput').value.trim() || 'Sponsor';
+  const targetUrl = document.getElementById('adTargetUrlInput').value.trim();
+  const finalImage = compressedAdBase64 || document.getElementById('adImageUrlInput').value.trim();
+  if (!finalImage || !targetUrl) return alert('ကြော်ငြာပုံနှင့် လင့်ခ် ထည့်သွင်းပါ။');
 
-      const { data, error } = await client.from('ads').select('*').order('created_at', { ascending: false });
-      if (error) {
-        listEl.innerHTML = `<div style="color:#dc2626; font-size:13px;">SQL Table မဆောက်ရသေးပါ (${error.message})</div>`;
-        return;
-      }
-      if (!data || data.length === 0) {
-        listEl.innerHTML = `<div style="font-size:13px; opacity:0.65;">လက်ရှိ တင်ထားသော ကြော်ငြာ မရှိသေးပါ။</div>`;
-        return;
-      }
+  const { error } = await client.from('ads').insert([{ title, image_url: finalImage, target_url: targetUrl, is_active: true }]);
+  if (error) return alert('Error: ' + error.message);
+  compressedAdBase64 = '';
+  document.getElementById('adTitleInput').value = '';
+  document.getElementById('adTargetUrlInput').value = '';
+  document.getElementById('adImageUrlInput').value = '';
+  document.getElementById('adImageFileInput').value = '';
+  document.getElementById('adPreviewWrap').style.display = 'none';
+  loadAdminAds();
+}
 
-      listEl.innerHTML = data.map(ad => `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <img src="${ad.image_url}" style="width:110px; height:52px; object-fit:cover; border-radius:8px; border:1px solid #d1d5db;" />
-            <div>
-              <div style="font-weight:700; font-size:14px;">${ad.title} <span style="font-size:12px; color:#15803d;">(👆 ${ad.clicks || 0} Clicks)</span></div>
-              <a href="${ad.target_url}" target="_blank" style="font-size:12px; color:#2563eb; word-break:break-all;">${ad.target_url}</a>
-            </div>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button onclick="toggleSponsorAd(${ad.id}, ${!ad.is_active})" style="padding:6px 12px; border-radius:8px; border:none; cursor:pointer; font-family:'Padauk',sans-serif; font-weight:700; background:${ad.is_active ? '#dcfce7' : '#fee2e2'}; color:${ad.is_active ? '#166534' : '#991b1b'};">
-              ${ad.is_active ? '🟢 ပြသထားသည်' : '⚪ ပိတ်ထားသည်'}
-            </button>
-            <button onclick="deleteSponsorAd(${ad.id})" style="padding:6px 12px; border-radius:8px; border:none; cursor:pointer; background:#ef4444; color:#fff; font-family:'Padauk',sans-serif;">
-              🗑️ ဖျက်မည်
-            </button>
-          </div>
+async function loadAdminAds() {
+  const client = getSbClient();
+  const listEl = document.getElementById('adminAdsList');
+  if (!client || !listEl) return;
+  const { data, error } = await client.from('ads').select('*').order('created_at', { ascending: false });
+  if (error || !data || !data.length) {
+    listEl.innerHTML = '<div style="font-size:13px; opacity:0.65;">လက်ရှိ ကြော်ငြာ မရှိသေးပါ။</div>';
+    return;
+  }
+  listEl.innerHTML = data.map(ad => `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid #e5e7eb; border-radius:12px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="${ad.image_url}" style="width:96px; aspect-ratio:16/9; object-fit:cover; border-radius:6px;" />
+        <div>
+          <div style="font-weight:700; font-size:14px;">${ad.title} (👆 ${ad.clicks || 0})</div>
+          <div style="font-size:12px; color:#2563eb;">${ad.target_url}</div>
         </div>
-      `).join('');
-    }
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="toggleSponsorAd(${ad.id}, ${!ad.is_active})" style="padding:6px 10px; border-radius:8px; border:none; cursor:pointer;">${ad.is_active ? '🟢 ပြထားသည်' : '⚪ ပိတ်ထားသည်'}</button>
+        <button onclick="deleteSponsorAd(${ad.id})" style="padding:6px 10px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
 
-    async function toggleSponsorAd(id, status) {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      await client.from('ads').update({ is_active: status }).eq('id', id);
-      loadAdminAds();
-    }
+async function toggleSponsorAd(id, status) {
+  await getSbClient().from('ads').update({ is_active: status }).eq('id', id);
+  loadAdminAds();
+}
 
-    async function deleteSponsorAd(id) {
-      if (!confirm('ဤကြော်ငြာကို ဖျက်ရန် သေချာပါသလား?')) return;
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      await client.from('ads').delete().eq('id', id);
-      loadAdminAds();
-    }
+async function deleteSponsorAd(id) {
+  if (!confirm('ဖျက်ရန် သေချာပါသလား?')) return;
+  await getSbClient().from('ads').delete().eq('id', id);
+  loadAdminAds();
+}
 
-    // ================= VIP PREMIUM CODE GENERATOR (ADMIN) =================
-    (function initAdminVipManager() {
-      const vipPanelHtml = `
-        <div id="adminVipManagerCard" style="max-width:900px; margin:24px auto; background:#ffffff; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(217,119,6,0.3); font-family:'Padauk',sans-serif; color:#1f2937;">
-          <h3 style="margin:0 0 14px; font-size:18px; color:#b45309; display:flex; align-items:center; gap:8px;">
-            👑 VIP Premium Code စီမံရန် (Ad-Free Membership)
-          </h3>
+async function generateVipCode() {
+  const client = getSbClient();
+  if (!client) return;
+  const memberName = document.getElementById('vipMemberNameInput').value.trim() || 'VIP Reader';
+  const [daysStr, planName] = document.getElementById('vipDurationSelect').value.split('|');
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let newCode = 'SAR-';
+  for (let i = 0; i < 6; i++) newCode += chars.charAt(Math.floor(Math.random() * chars.length));
 
-          <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:12px;">
-            <input id="vipMemberNameInput" type="text" placeholder="ဝယ်ယူသူအမည် / မှတ်ချက် (ဥပမာ - ကိုမောင်မောင် KPay)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
-            <select id="vipDurationSelect" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif; font-weight:700;">
-              <option value="30|၁ လစာ">🗓️ ၁ လစာ (30 ရက်)</option>
-              <option value="90|၃ လစာ">🗓️ ၃ လစာ (90 ရက်)</option>
-              <option value="180|၆ လစာ">🗓️ ၆ လစာ (180 ရက်)</option>
-              <option value="365|၁ နှစ်စာ">🗓️ ၁ နှစ်စာ (365 ရက်)</option>
-              <option value="36500|တစ်သက်တာ (Lifetime)">♾️ တစ်သက်တာ (Lifetime)</option>
-            </select>
-          </div>
+  const { error } = await client.from('vip_codes').insert([{ code: newCode, member_name: memberName, plan_name: planName, duration_days: parseInt(daysStr, 10), is_active: true }]);
+  if (error) return alert('Error: ' + error.message);
+  document.getElementById('vipMemberNameInput').value = '';
+  loadAdminVipCodes();
+}
 
-          <button id="vipGenerateBtn" onclick="generateVipCode()" style="background:linear-gradient(135deg, #d97706, #92400e); color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-family:'Padauk',sans-serif; font-weight:700; cursor:pointer;">
-            ✨ VIP Code အသစ်ထုတ်မည်
-          </button>
+async function loadAdminVipCodes() {
+  const client = getSbClient();
+  const listEl = document.getElementById('adminVipCodesList');
+  if (!client || !listEl) return;
+  const { data, error } = await client.from('vip_codes').select('*').order('created_at', { ascending: false });
+  if (error || !data || !data.length) {
+    listEl.innerHTML = '<div style="font-size:13px; opacity:0.65;">VIP Code မရှိသေးပါ။</div>';
+    return;
+  }
+  listEl.innerHTML = data.map(item => `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid #fde68a; border-radius:12px; background:#fffbeb; flex-wrap:wrap;">
+      <div>
+        <b>${item.code}</b> • ${item.member_name} (${item.plan_name})
+        <div style="font-size:12px; color:#6b7280;">${item.activated_at ? '🟢 သုံးပြီး' : '🟡 အသင့်သုံးနိုင်သည်'}</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="navigator.clipboard.writeText('${item.code}'); alert('Copied: ${item.code}');" style="padding:6px 10px; border-radius:8px; border:1px solid #d97706; background:#fff; cursor:pointer;">📋 Copy</button>
+        <button onclick="deleteVipCode(${item.id})" style="padding:6px 10px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
 
-          <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
-          <div id="adminVipCodesList" style="display:grid; gap:10px;">VIP Code စာရင်း ရယူနေပါသည်...</div>
-        </div>
-      `;
-
-      window.addEventListener('DOMContentLoaded', () => {
-        const container = document.querySelector('main') || document.body;
-        container.insertAdjacentHTML('beforeend', vipPanelHtml);
-        loadAdminVipCodes();
-      });
-    })();
-
-    function createRandomVipString() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let res = 'SAR-';
-      for (let i = 0; i < 6; i++) {
-        res += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return res;
-    }
-
-    async function generateVipCode() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return alert('Supabase ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
-
-      const memberName = document.getElementById('vipMemberNameInput').value.trim() || 'VIP Reader';
-      const [daysStr, planName] = document.getElementById('vipDurationSelect').value.split('|');
-      const durationDays = parseInt(daysStr, 10);
-      const newCode = createRandomVipString();
-
-      const btn = document.getElementById('vipGenerateBtn');
-      btn.disabled = true;
-      btn.textContent = 'ထုတ်ပေးနေပါသည်...';
-
-      const { error } = await client.from('vip_codes').insert([{
-        code: newCode,
-        member_name: memberName,
-        plan_name: planName,
-        duration_days: durationDays,
-        is_active: true
-      }]);
-
-      btn.disabled = false;
-      btn.textContent = '✨ VIP Code အသစ်ထုတ်မည်';
-
-      if (error) {
-        alert('Error: ' + error.message);
-      } else {
-        document.getElementById('vipMemberNameInput').value = '';
-        loadAdminVipCodes();
-      }
-    }
-
-    async function loadAdminVipCodes() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      const listEl = document.getElementById('adminVipCodesList');
-      if (!client || !listEl) return;
-
-      const { data, error } = await client.from('vip_codes').select('*').order('created_at', { ascending: false });
-      if (error) {
-        listEl.innerHTML = `<div style="color:#dc2626; font-size:13px;">vip_codes Table မဆောက်ရသေးပါ (${error.message})</div>`;
-        return;
-      }
-      if (!data || data.length === 0) {
-        listEl.innerHTML = `<div style="font-size:13px; opacity:0.65;">ထုတ်ထားသော VIP Code မရှိသေးပါ။</div>`;
-        return;
-      }
-
-      listEl.innerHTML = data.map(item => {
-        const isUsed = Boolean(item.activated_at);
-        const expText = item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'မသုံးရသေးပါ';
-        return `
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #e5e7eb; border-radius:12px; background:#fffbeb; flex-wrap:wrap;">
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-family:monospace; font-size:16px; font-weight:800; color:#92400e; background:#fef3c7; padding:3px 10px; border-radius:6px; border:1px dashed #d97706;">${item.code}</span>
-                <span style="font-weight:700; font-size:14px;">${item.member_name}</span>
-                <span style="font-size:12px; background:#fde
-
-                // ================= VIP PREMIUM READER SYSTEM (AD-FREE) =================
-    const SAR_VIP_STORAGE_KEY = 'sar_vip_membership_v1';
-
-    function isReaderVipActive() {
-      try {
-        const raw = localStorage.getItem(SAR_VIP_STORAGE_KEY);
-        if (!raw) return false;
-        const vip = JSON.parse(raw);
-        if (!vip || !vip.code || !vip.expires_at) return false;
-        if (new Date(vip.expires_at).getTime() < Date.now()) {
-          localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-          return false;
-        }
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    function applyVipAdFreeState() {
-      const slot = document.getElementById('sarSponsorBannerSlot');
-      const headerBtn = document.getElementById('sarVipHeaderBtn');
-      if (isReaderVipActive()) {
-        if (slot) slot.style.display = 'none';
-        if (typeof adSlideTimer !== 'undefined' && adSlideTimer) clearInterval(adSlideTimer);
-        if (headerBtn) {
-          headerBtn.innerHTML = '👑 VIP';
-          headerBtn.style.background = 'linear-gradient(135deg, #f59e0b, #b45309)';
-          headerBtn.style.color = '#FFFBEB';
-        }
-      } else if (headerBtn) {
-        headerBtn.innerHTML = '👑 VIP';
-        headerBtn.style.background = 'rgba(217, 119, 6, 0.14)';
-        headerBtn.style.color = '#b45309';
-      }
-    }
-
-    (function injectVipModalAndButton() {
-      const modalHtml = `
-        <div id="sarVipModal" onclick="if(event.target===this) this.style.display='none'" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,10,7,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px; font-family:'Padauk',sans-serif;">
-          <div style="width:100%; max-width:380px; background:var(--bg-main, #FAF8F5); color:var(--text-main, #2A1810); border-radius:22px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.45);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <h3 style="margin:0; font-size:18px; color:#b45309;">👑 စာကြည့်တိုက် VIP Package</h3>
-              <button onclick="document.getElementById('sarVipModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
-            </div>
-            <div id="sarVipModalBody"></div>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-      const targetBtn = document.getElementById('settingsBtn') || document.getElementById('notifBtn') || document.getElementById('installAppBtn');
-      const vipBtn = document.createElement('button');
-      vipBtn.id = 'sarVipHeaderBtn';
-      vipBtn.style.cssText = 'padding:5px 11px; border-radius:999px; border:1px solid rgba(217,119,6,0.4); font-family:Padauk,sans-serif; font-size:12px; font-weight:700; cursor:pointer; margin-right:6px;';
-      vipBtn.onclick = openSarVipModal;
-      if (targetBtn && targetBtn.parentNode) {
-        targetBtn.parentNode.insertBefore(vipBtn, targetBtn);
-      }
-
-      // Sponsor Banner ဖော်ပြသည့် Function ကို VIP စစ်ဆေးချက်ဖြင့် ထိန်းချုပ်ခြင်း
-      const origRender = window.renderSponsorBannerSlide;
-      if (typeof origRender === 'function') {
-        window.renderSponsorBannerSlide = function() {
-          if (isReaderVipActive()) {
-            const slot = document.getElementById('sarSponsorBannerSlot');
-            if (slot) slot.style.display = 'none';
-            return;
-          }
-          origRender();
-        };
-      }
-
-      applyVipAdFreeState();
-      verifyVipWithServer();
-    })();
-
-    function openSarVipModal() {
-      if (typeof triggerHaptic === 'function') triggerHaptic(10);
-      const modal = document.getElementById('sarVipModal');
-      const body = document.getElementById('sarVipModalBody');
-      modal.style.display = 'flex';
-
-      if (isReaderVipActive()) {
-        const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
-        const expDate = new Date(vip.expires_at).toLocaleDateString();
-        body.innerHTML = `
-          <div style="text-align:center; padding:10px 0;">
-            <div style="font-size:38px; margin-bottom:6px;">👑</div>
-            <div style="font-weight:700; font-size:17px; color:#b45309;">${vip.member_name} (${vip.plan_name})</div>
-            <div style="font-size:13px; opacity:0.8; margin:6px 0 14px;">ကြော်ငြာကင်းစင်သော VIP စနစ် အသက်ဝင်နေပါသည်။<br/>သက်တမ်းကုန်ဆုံးရက်: <b>${expDate}</b></div>
-            <div style="font-family:monospace; padding:8px; background:rgba(217,119,6,0.1); border-radius:8px; font-weight:700; color:#92400e; margin-bottom:14px;">Code: ${vip.code}</div>
-            <button onclick="localStorage.removeItem('${SAR_VIP_STORAGE_KEY}'); applyVipAdFreeState(); openSarVipModal();" style="padding:8px 14px; border-radius:10px; border:1px solid #dc2626; background:transparent; color:#dc2626; font-family:'Padauk',sans-serif; cursor:pointer; font-size:12px;">
-              VIP Code ဖြုတ်မည်
-            </button>
-          </div>
-        `;
-      } else {
-        body.innerHTML = `
-          <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px;">
-            ✨ <b>VIP အဖွဲ့ဝင် အခွင့်အရေးများ</b><br/>
-            • App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>
-            • စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်
-          </div>
-          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (ဥပမာ - SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
-          <div id="sarVipStatusMsg" style="font-size:13px; margin-bottom:8px; display:none;"></div>
-          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">
-            🔓 VIP Code အသက်သွင်းမည်
-          </button>
-        `;
-      }
-    }
-
-    async function activateSarVipCode() {
-      const input = document.getElementById('sarVipCodeInput');
-      const msg = document.getElementById('sarVipStatusMsg');
-      const code = (input.value || '').trim().toUpperCase();
-      if (!code) return;
-
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      msg.style.display = 'block';
-      msg.style.color = '#b45309';
-      msg.textContent = 'စစ်ဆေးနေပါသည်...';
-
-      const { data, error } = await client.from('vip_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
-      if (error || !data) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
-      }
-
-      let expiresAt = data.expires_at;
-      if (!expiresAt) {
-        const now = new Date();
-        const exp = new Date(now.getTime() + (data.duration_days || 30) * 86400000);
-        expiresAt = exp.toISOString();
-        await client.from('vip_codes').update({ activated_at: now.toISOString(), expires_at: expiresAt }).eq('id', data.id);
-      } else if (new Date(expiresAt).getTime() < Date.now()) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ ဤ VIP Code သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
-      }
-
-      localStorage.setItem(SAR_VIP_STORAGE_KEY, JSON.stringify({
-        code: data.code,
-        member_name: data.member_name,
-        plan_name: data.plan_name,
-        expires_at: expiresAt
-      }));
-
-      applyVipAdFreeState();
-      openSarVipModal();
-    }
-
-    async function verifyVipWithServer() {
-      if (!isReaderVipActive()) return;
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return;
-      const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
-      const { data } = await client.from('vip_codes').select('is_active, expires_at').eq('code', vip.code).maybeSingle();
-      if (!data || !data.is_active || (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
-        localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-        applyVipAdFreeState();
-      }
-    }
-    // ================= VIP PREMIUM CODE GENERATOR (ADMIN) =================
-    (function initAdminVipManager() {
-      const vipPanelHtml = `
-        <div id="adminVipManagerCard" style="max-width:900px; margin:24px auto; background:#ffffff; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(217,119,6,0.3); font-family:'Padauk',sans-serif; color:#1f2937;">
-          <h3 style="margin:0 0 14px; font-size:18px; color:#b45309; display:flex; align-items:center; gap:8px;">
-            👑 VIP Premium Code စီမံရန် (Ad-Free Membership)
-          </h3>
-
-          <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:12px;">
-            <input id="vipMemberNameInput" type="text" placeholder="ဝယ်ယူသူအမည် / မှတ်ချက် (ဥပမာ - ကိုမောင်မောင် KPay)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
-            <select id="vipDurationSelect" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif; font-weight:700;">
-              <option value="30|၁ လစာ">🗓️ ၁ လစာ (30 ရက်)</option>
-              <option value="90|၃ လစာ">🗓️ ၃ လစာ (90 ရက်)</option>
-              <option value="180|၆ လစာ">🗓️ ၆ လစာ (180 ရက်)</option>
-              <option value="365|၁ နှစ်စာ">🗓️ ၁ နှစ်စာ (365 ရက်)</option>
-              <option value="36500|တစ်သက်တာ (Lifetime)">♾️ တစ်သက်တာ (Lifetime)</option>
-            </select>
-          </div>
-
-          <button id="vipGenerateBtn" onclick="generateVipCode()" style="background:linear-gradient(135deg, #d97706, #92400e); color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-family:'Padauk',sans-serif; font-weight:700; cursor:pointer;">
-            ✨ VIP Code အသစ်ထုတ်မည်
-          </button>
-
-          <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
-          <div id="adminVipCodesList" style="display:grid; gap:10px;">VIP Code စာရင်း ရယူနေပါသည်...</div>
-        </div>
-      `;
-
-      window.addEventListener('DOMContentLoaded', () => {
-        const container = document.querySelector('main') || document.body;
-        container.insertAdjacentHTML('beforeend', vipPanelHtml);
-        loadAdminVipCodes();
-      });
-    })();
-
-    function createRandomVipString() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let res = 'SAR-';
-      for (let i = 0; i < 6; i++) {
-        res += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return res;
-    }
-
-    async function generateVipCode() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return alert('Supabase ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
-
-      const memberName = document.getElementById('vipMemberNameInput').value.trim() || 'VIP Reader';
-      const [daysStr, planName] = document.getElementById('vipDurationSelect').value.split('|');
-      const durationDays = parseInt(daysStr, 10);
-      const newCode = createRandomVipString();
-
-      const btn = document.getElementById('vipGenerateBtn');
-      btn.disabled = true;
-      btn.textContent = 'ထုတ်ပေးနေပါသည်...';
-
-      const { error } = await client.from('vip_codes').insert([{
-        code: newCode,
-        member_name: memberName,
-        plan_name: planName,
-        duration_days: durationDays,
-        is_active: true
-      }]);
-
-      btn.disabled = false;
-      btn.textContent = '✨ VIP Code အသစ်ထုတ်မည်';
-
-      if (error) {
-        alert('Error: ' + error.message);
-      } else {
-        document.getElementById('vipMemberNameInput').value = '';
-        loadAdminVipCodes();
-      }
-    }
-
-    async function loadAdminVipCodes() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      const listEl = document.getElementById('adminVipCodesList');
-      if (!client || !listEl) return;
-
-      const { data, error } = await client.from('vip_codes').select('*').order('created_at', { ascending: false });
-      if (error) {
-        listEl.innerHTML = `<div style="color:#dc2626; font-size:13px;">vip_codes Table မဆောက်ရသေးပါ (${error.message})</div>`;
-        return;
-      }
-      if (!data || data.length === 0) {
-        listEl.innerHTML = `<div style="font-size:13px; opacity:0.65;">ထုတ်ထားသော VIP Code မရှိသေးပါ။</div>`;
-        return;
-      }
-
-      listEl.innerHTML = data.map(item => {
-        const isUsed = Boolean(item.activated_at);
-        const expText = item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'မသုံးရသေးပါ';
-        return `
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #e5e7eb; border-radius:12px; background:#fffbeb; flex-wrap:wrap;">
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-family:monospace; font-size:16px; font-weight:800; color:#92400e; background:#fef3c7; padding:3px 10px; border-radius:6px; border:1px dashed #d97706;">${item.code}</span>
-                <span style="font-weight:700; font-size:14px;">${item.member_name}</span>
-                <span style="font-size:12px; background:#fde68a; color:#78350f; padding:2px 8px; border-radius:999px;">${item.plan_name}</span>
-              </div>
-              <div style="font-size:12px; color:#6b7280; margin-top:4px;">
-                အခြေအနေ: ${isUsed ? `🟢 အသုံးပြုပြီး (ကုန်ဆုံးရက်: ${expText})` : '🟡 အသင့်သုံးနိုင်သည်'}
-              </div>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button onclick="navigator.clipboard.writeText('${item.code}'); alert('VIP Code (${item.code}) ကို Copy ကူးပြီးပါပြီ။');" style="padding:6px 12px; border-radius:8px; border:1px solid #d97706; background:#ffffff; color:#92400e; cursor:pointer; font-family:'Padauk',sans-serif; font-weight:700;">
-                📋 Copy ကူးမည်
-              </button>
-              <button onclick="deleteVipCode(${item.id})" style="padding:6px 12px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-family:'Padauk',sans-serif;">
-                🗑️ ဖျက်မည်
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function deleteVipCode(id) {
-      if (!confirm('ဤ VIP Code ကို ဖျက်ရန် သေချာပါသလား? (ဖျက်လိုက်ပါက သုံးစွဲသူထံတွင် ကြော်ငြာများ ပြန်ပေါ်လာပါမည်)')) return;
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      await client.from('vip_codes').delete().eq('id', id);
-      loadAdminVipCodes();
-    }
+async function deleteVipCode(id) {
+  if (!confirm('VIP Code ဖျက်ရန် သေချာပါသလား?')) return;
+  await getSbClient().from('vip_codes').delete().eq('id', id);
+  loadAdminVipCodes();
+}
+</script>
     
   </script>
 </body>
