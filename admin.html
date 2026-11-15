@@ -1509,7 +1509,131 @@
         applyVipAdFreeState();
       }
     }
-    
+    // ================= VIP PREMIUM CODE GENERATOR (ADMIN) =================
+    (function initAdminVipManager() {
+      const vipPanelHtml = `
+        <div id="adminVipManagerCard" style="max-width:900px; margin:24px auto; background:#ffffff; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,0.08); border:1px solid rgba(217,119,6,0.3); font-family:'Padauk',sans-serif; color:#1f2937;">
+          <h3 style="margin:0 0 14px; font-size:18px; color:#b45309; display:flex; align-items:center; gap:8px;">
+            👑 VIP Premium Code စီမံရန် (Ad-Free Membership)
+          </h3>
+
+          <div style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:12px;">
+            <input id="vipMemberNameInput" type="text" placeholder="ဝယ်ယူသူအမည် / မှတ်ချက် (ဥပမာ - ကိုမောင်မောင် KPay)" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif;" />
+            <select id="vipDurationSelect" style="padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; font-family:'Padauk',sans-serif; font-weight:700;">
+              <option value="30|၁ လစာ">🗓️ ၁ လစာ (30 ရက်)</option>
+              <option value="90|၃ လစာ">🗓️ ၃ လစာ (90 ရက်)</option>
+              <option value="180|၆ လစာ">🗓️ ၆ လစာ (180 ရက်)</option>
+              <option value="365|၁ နှစ်စာ">🗓️ ၁ နှစ်စာ (365 ရက်)</option>
+              <option value="36500|တစ်သက်တာ (Lifetime)">♾️ တစ်သက်တာ (Lifetime)</option>
+            </select>
+          </div>
+
+          <button id="vipGenerateBtn" onclick="generateVipCode()" style="background:linear-gradient(135deg, #d97706, #92400e); color:#FEF3C7; border:none; padding:10px 20px; border-radius:10px; font-family:'Padauk',sans-serif; font-weight:700; cursor:pointer;">
+            ✨ VIP Code အသစ်ထုတ်မည်
+          </button>
+
+          <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
+          <div id="adminVipCodesList" style="display:grid; gap:10px;">VIP Code စာရင်း ရယူနေပါသည်...</div>
+        </div>
+      `;
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const container = document.querySelector('main') || document.body;
+        container.insertAdjacentHTML('beforeend', vipPanelHtml);
+        loadAdminVipCodes();
+      });
+    })();
+
+    function createRandomVipString() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let res = 'SAR-';
+      for (let i = 0; i < 6; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return res;
+    }
+
+    async function generateVipCode() {
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+      if (!client) return alert('Supabase ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
+
+      const memberName = document.getElementById('vipMemberNameInput').value.trim() || 'VIP Reader';
+      const [daysStr, planName] = document.getElementById('vipDurationSelect').value.split('|');
+      const durationDays = parseInt(daysStr, 10);
+      const newCode = createRandomVipString();
+
+      const btn = document.getElementById('vipGenerateBtn');
+      btn.disabled = true;
+      btn.textContent = 'ထုတ်ပေးနေပါသည်...';
+
+      const { error } = await client.from('vip_codes').insert([{
+        code: newCode,
+        member_name: memberName,
+        plan_name: planName,
+        duration_days: durationDays,
+        is_active: true
+      }]);
+
+      btn.disabled = false;
+      btn.textContent = '✨ VIP Code အသစ်ထုတ်မည်';
+
+      if (error) {
+        alert('Error: ' + error.message);
+      } else {
+        document.getElementById('vipMemberNameInput').value = '';
+        loadAdminVipCodes();
+      }
+    }
+
+    async function loadAdminVipCodes() {
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+      const listEl = document.getElementById('adminVipCodesList');
+      if (!client || !listEl) return;
+
+      const { data, error } = await client.from('vip_codes').select('*').order('created_at', { ascending: false });
+      if (error) {
+        listEl.innerHTML = `<div style="color:#dc2626; font-size:13px;">vip_codes Table မဆောက်ရသေးပါ (${error.message})</div>`;
+        return;
+      }
+      if (!data || data.length === 0) {
+        listEl.innerHTML = `<div style="font-size:13px; opacity:0.65;">ထုတ်ထားသော VIP Code မရှိသေးပါ။</div>`;
+        return;
+      }
+
+      listEl.innerHTML = data.map(item => {
+        const isUsed = Boolean(item.activated_at);
+        const expText = item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'မသုံးရသေးပါ';
+        return `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #e5e7eb; border-radius:12px; background:#fffbeb; flex-wrap:wrap;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-family:monospace; font-size:16px; font-weight:800; color:#92400e; background:#fef3c7; padding:3px 10px; border-radius:6px; border:1px dashed #d97706;">${item.code}</span>
+                <span style="font-weight:700; font-size:14px;">${item.member_name}</span>
+                <span style="font-size:12px; background:#fde68a; color:#78350f; padding:2px 8px; border-radius:999px;">${item.plan_name}</span>
+              </div>
+              <div style="font-size:12px; color:#6b7280; margin-top:4px;">
+                အခြေအနေ: ${isUsed ? `🟢 အသုံးပြုပြီး (ကုန်ဆုံးရက်: ${expText})` : '🟡 အသင့်သုံးနိုင်သည်'}
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button onclick="navigator.clipboard.writeText('${item.code}'); alert('VIP Code (${item.code}) ကို Copy ကူးပြီးပါပြီ။');" style="padding:6px 12px; border-radius:8px; border:1px solid #d97706; background:#ffffff; color:#92400e; cursor:pointer; font-family:'Padauk',sans-serif; font-weight:700;">
+                📋 Copy ကူးမည်
+              </button>
+              <button onclick="deleteVipCode(${item.id})" style="padding:6px 12px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-family:'Padauk',sans-serif;">
+                🗑️ ဖျက်မည်
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function deleteVipCode(id) {
+      if (!confirm('ဤ VIP Code ကို ဖျက်ရန် သေချာပါသလား? (ဖျက်လိုက်ပါက သုံးစွဲသူထံတွင် ကြော်ငြာများ ပြန်ပေါ်လာပါမည်)')) return;
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
+      await client.from('vip_codes').delete().eq('id', id);
+      loadAdminVipCodes();
+    }
     
   </script>
 </body>
