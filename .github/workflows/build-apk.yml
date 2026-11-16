@@ -31,15 +31,17 @@ jobs:
       - name: 3. Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 4. Generate iOS WebClip Profile (sar-ios.mobileconfig) & Privacy Policy
+      - name: 4. Generate iOS WebClip Profile & Privacy Policy
         run: |
-          ICON_B64=""
-          if [ -f "icon.png" ]; then
-            ICON_B64=$(base64 -w 0 icon.png)
-          fi
+          python3 - << 'PYEOF'
+          import base64, os
 
-          cat <<EOF > sar-ios.mobileconfig
-          <?xml version="1.0" encoding="UTF-8"?>
+          icon_b64 = ""
+          if os.path.exists("icon.png"):
+              with open("icon.png", "rb") as f:
+                  icon_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+          mobileconfig = f"""<?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
@@ -71,7 +73,7 @@ jobs:
                 <key>URL</key>
                 <string>https://waiyanoocreative-ops.github.io/myBooks/</string>
                 <key>Icon</key>
-                <data>${ICON_B64}</data>
+                <data>{icon_b64}</data>
               </dict>
             </array>
             <key>PayloadDescription</key>
@@ -92,10 +94,11 @@ jobs:
             <integer>1</integer>
           </dict>
           </plist>
-          EOF
+          """
+          with open("sar-ios.mobileconfig", "w", encoding="utf-8") as f:
+              f.write(mobileconfig.strip())
 
-          cat << 'EOF' > privacy.html
-          <!DOCTYPE html>
+          privacy_html = """<!DOCTYPE html>
           <html lang="my">
           <head>
             <meta charset="UTF-8" />
@@ -113,24 +116,23 @@ jobs:
               <p><strong>"စာ" ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</strong> သည် စာဖတ်သူများ၏ ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အချက်အလက်များ (ဖုန်းနံပါတ်၊ တည်နေရာ၊ ဓာတ်ပုံနှင့် အဆက်အသွယ်များ) ကို လုံးဝ ရယူသိမ်းဆည်းခြင်း မရှိပါ။</p>
               <h2>သိမ်းဆည်းသော အချက်အလက်များ</h2>
               <p>စာဖတ်သူ နောက်ဆုံးဖတ်ရှုခဲ့သော စာမျက်နှာနံပါတ်၊ အကြိုက်ဆုံးမှတ်သားထားသော စာအုပ်များနှင့် App Theme ရွေးချယ်မှုများကို သုံးစွဲသူ၏ ဖုန်းအတွင်း (Local Storage) ၌သာ သိမ်းဆည်းပါသည်။</p>
-              <h2>ဆက်သွယ်ရန်</h2>
-              <p>မူပိုင်ခွင့်နှင့် ပတ်သက်၍သော်လည်းကောင်း၊ အကြံပြုလိုသည်များရှိပါက App အတွင်းရှိ ဆက်သွယ်ရန် ကဏ္ဍမှတစ်ဆင့် ဆက်သွယ်နိုင်ပါသည်။</p>
             </div>
           </body>
           </html>
-          EOF
+          """
+          with open("privacy.html", "w", encoding="utf-8") as f:
+              f.write(privacy_html.strip())
+          PYEOF
 
-      - name: 5. Create Native Android Project Structure (With Offline Protection)
+      - name: 5. Create Native Android Project Structure
         run: |
           mkdir -p android-app/app/src/main/java/com/waiyanoo/sar
-          mkdir -p android-app/app/src/main/res/layout
           mkdir -p android-app/app/src/main/res/drawable
           mkdir -p android-app/app/src/main/res/mipmap-hdpi
           mkdir -p android-app/app/src/main/res/mipmap-mdpi
           mkdir -p android-app/app/src/main/res/mipmap-xhdpi
           mkdir -p android-app/app/src/main/res/mipmap-xxhdpi
           mkdir -p android-app/app/src/main/res/mipmap-xxxhdpi
-          mkdir -p android-app/app/src/main/res/values
 
           if [ -f "icon.png" ]; then
             cp icon.png android-app/app/src/main/res/drawable/ic_launcher.png
@@ -141,13 +143,12 @@ jobs:
             cp icon.png android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           fi
 
-          cat << 'EOF' > android-app/settings.gradle
-          rootProject.name = "SarLibrary"
-          include ':app'
-          EOF
+          python3 - << 'PYEOF'
+          import os
 
-          cat << 'EOF' > android-app/build.gradle
-          buildscript {
+          files = {
+              "android-app/settings.gradle": 'rootProject.name = "SarLibrary"\ninclude ":app"\n',
+              "android-app/build.gradle": """buildscript {
               repositories {
                   google()
                   mavenCentral()
@@ -162,15 +163,9 @@ jobs:
                   mavenCentral()
               }
           }
-          EOF
-
-          cat << 'EOF' > android-app/gradle.properties
-          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-          android.useAndroidX=true
-          EOF
-
-          cat << 'EOF' > android-app/app/build.gradle
-          plugins {
+          """,
+              "android-app/gradle.properties": "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n",
+              "android-app/app/build.gradle": """plugins {
               id 'com.android.application'
           }
           android {
@@ -205,15 +200,8 @@ jobs:
               }
           }
           dependencies {}
-          EOF
-
-          keytool -genkey -v -keystore android-app/app/release.keystore \
-            -alias sarkey -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass sarlibrarypass -keypass sarlibrarypass \
-            -dname "CN=WaiYanOo, OU=SarLibrary, O=Sar, L=Mandalay, S=Mandalay, C=MM"
-
-          cat << 'EOF' > android-app/app/src/main/AndroidManifest.xml
-          <?xml version="1.0" encoding="utf-8"?>
+          """,
+              "android-app/app/src/main/AndroidManifest.xml": """<?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.waiyanoo.sar">
 
@@ -240,10 +228,8 @@ jobs:
                   </activity>
               </application>
           </manifest>
-          EOF
-
-          cat << 'EOF' > android-app/app/src/main/java/com/waiyanoo/sar/MainActivity.java
-          package com.waiyanoo.sar;
+          """,
+              "android-app/app/src/main/java/com/waiyanoo/sar/MainActivity.java": """package com.waiyanoo.sar;
 
           import android.app.Activity;
           import android.content.Intent;
@@ -302,7 +288,7 @@ jobs:
                                   + "<div style='width:68px;height:68px;border-radius:20px;background:#6B141A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:bold;margin-bottom:16px;'>စာ</div>"
                                   + "<h2 style='margin:0 0 8px;'>အင်တာနက် ချိတ်ဆက်မှု မရှိပါ</h2>"
                                   + "<p style='font-size:14px;opacity:0.75;margin:0 0 20px;'>စာအုပ်စင်ကို ဖွင့်ရန် Wi-Fi သို့မဟုတ် Mobile Data ပြန်ဖွင့်ပြီး ထပ်မံကြိုးစားပါ။</p>"
-                                  + "<button onclick=\"location.href='" + APP_URL + "'\" style='background:#6B141A;color:#fff;border:none;padding:12px 28px;border-radius:999px;font-size:14px;font-weight:bold;'>🔄 ပြန်လည်ချိတ်ဆက်မည်</button>"
+                                  + "<button onclick=\\"location.href='" + APP_URL + "'\\" style='background:#6B141A;color:#fff;border:none;padding:12px 28px;border-radius:999px;font-size:14px;font-weight:bold;'>🔄 ပြန်လည်ချိတ်ဆက်မည်</button>"
                                   + "</body></html>";
                               view.loadDataWithBaseURL(null, offlineHtml, "text/html", "UTF-8", null);
                           }
@@ -321,14 +307,27 @@ jobs:
                   }
               }
           }
-          EOF
+          """
+          }
 
-      - name: 6. Build Signed APK & Play Store AAB Bundle
+          for path, content in files.items():
+              with open(path, "w", encoding="utf-8") as f:
+                  f.write(content)
+          PYEOF
+
+          keytool -genkey -v -keystore android-app/app/release.keystore \
+            -alias sarkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass sarlibrarypass -keypass sarlibrarypass \
+            -dname "CN=WaiYanOo, OU=SarLibrary, O=Sar, L=Mandalay, S=Mandalay, C=MM"
+
+      - name: 6. Setup Gradle & Build Signed APK + Play Store AAB
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: 7. Run Gradle Release Build
         working-directory: ./android-app
-        run: |
-          gradle assembleRelease bundleRelease
+        run: gradle assembleRelease bundleRelease
 
-      - name: 7. Copy & Commit APK, AAB, iOS Profile & Privacy Policy to Repo
+      - name: 8. Copy & Commit APK, AAB, iOS Profile & Privacy Policy to Repo
         run: |
           cp android-app/app/build/outputs/apk/release/app-release.apk ./sar-app.apk
           cp android-app/app/build/outputs/bundle/release/app-release.aab ./sar-app.aab
