@@ -2,7 +2,7 @@
 <html lang="my">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
 
   <!-- PWA Manifest & Mobile App Meta Tags -->
@@ -38,7 +38,6 @@
       --nav-bg: rgba(255, 255, 255, 0.95);
     }
 
-    /* ❄️ WINTER FROST THEME (Auto in Nov-Feb or Manual) */
     body.theme-winter {
       --bg-main: #F0F6FA;
       --bg-card: #E3EFF8;
@@ -55,7 +54,6 @@
       --nav-bg: rgba(255, 255, 255, 0.95);
     }
 
-    /* 🪵 WARM WALNUT THEME */
     body.theme-walnut {
       --bg-main: #1E120A;
       --bg-card: #2C1B10;
@@ -72,7 +70,6 @@
       --nav-bg: rgba(38, 23, 14, 0.96);
     }
 
-    /* ✨ MODERN LIGHT OAK THEME */
     body.theme-oak {
       --bg-main: #F4EFE6;
       --bg-card: #EAE0D0;
@@ -89,7 +86,6 @@
       --nav-bg: rgba(252, 249, 245, 0.96);
     }
 
-    /* 🌑 MIDNIGHT GOLD THEME */
     body.theme-midnight {
       --bg-main: #0F1319;
       --bg-card: #181F29;
@@ -106,7 +102,6 @@
       --nav-bg: rgba(22, 29, 39, 0.96);
     }
 
-    /* 🌧️ MONSOON FOREST THEME */
     body.theme-forest {
       --bg-main: #F1F5F2;
       --bg-card: #E2ECE5;
@@ -157,7 +152,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ================= ROTATING WHEEL ON 3s SPLASH SCREEN ================= */
     @keyframes orbitRotate {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -169,7 +163,6 @@
     .orbit-wheel { animation: orbitRotate 28s linear infinite; }
     .orbit-book-item { animation: counterRotate 28s linear infinite; }
 
-    /* ================= WINTER SNOWFLAKES ANIMATION ================= */
     @keyframes snowfall {
       0% { transform: translateY(-10vh) translateX(0); opacity: 0.9; }
       50% { transform: translateY(50vh) translateX(15px); opacity: 0.7; }
@@ -184,7 +177,6 @@
       user-select: none;
     }
 
-    /* ================= CLEAN 3D BOOK COVER & SHELF LEDGE ================= */
     .book-cover-3d {
       position: relative;
       aspect-ratio: 2 / 3;
@@ -221,7 +213,6 @@
       pointer-events: none;
     }
 
-    /* Premium Floating 3D Shelf Ledge Directly Under Book Covers */
     .premium-shelf-ledge {
       height: 15px;
       background: var(--ledge-bg);
@@ -231,9 +222,10 @@
       box-shadow:
         0 10px 18px rgba(0, 0, 0, 0.22),
         0 3px 6px rgba(0, 0, 0, 0.14);
+      position: relative;
+      overflow: visible !important;
     }
 
-    /* PDF Reader Flip Animation & Filters */
     @keyframes flipNextAnim {
       0% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
       40% { transform: perspective(1200px) rotateY(-9deg) scale(0.98); opacity: 0.8; }
@@ -255,19 +247,19 @@
     }
     .pdf-theme-sepia canvas { filter: sepia(0.32) contrast(0.96) brightness(0.98); }
     .pdf-theme-dark canvas { filter: invert(0.9) hue-rotate(180deg) contrast(0.92); }
+
+    @supports (padding-top: env(safe-area-inset-top)) {
+      header { padding-top: calc(0.625rem + env(safe-area-inset-top)) !important; }
+      body { padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; }
+    }
   </style>
 </head>
 <body class="theme-crimson min-h-screen flex flex-col pb-28">
 
-  <!-- Screen Brightness / Eye-Care Overlay -->
   <div id="brightnessOverlay" class="fixed inset-0 pointer-events-none z-[95] bg-black transition-opacity duration-200" style="opacity: 0;"></div>
-
-  <!-- Winter Snowfall Container (Active only in Winter Theme) -->
   <div id="winterSnowContainer" class="hidden pointer-events-none fixed inset-0 z-20 overflow-hidden"></div>
 
-  <!-- ===================================================================== -->
-  <!-- 1. 3-SECOND SMART PRELOADER SPLASH SCREEN ("စာ")                      -->
-  <!-- ===================================================================== -->
+  <!-- SPLASH SCREEN -->
   <div id="smartSplashLoader" class="fixed inset-0 z-[100] flex flex-col items-center justify-between p-6 select-none transition-opacity duration-500" style="background-color: var(--bg-main); color: var(--text-primary);">
     <div class="pt-4 text-center z-10">
       <span id="splashSeasonPill" class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase theme-card">
@@ -275,7 +267,6 @@
       </span>
     </div>
 
-    <!-- Center Rotating Book Orbit & "စာ" Emblem -->
     <div class="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center my-auto">
       <div class="absolute inset-2 rounded-full border border-current opacity-10"></div>
       <div class="absolute inset-12 rounded-full border border-current opacity-15"></div>
@@ -290,7 +281,6 @@
         <div class="absolute top-12 -left-2"><div class="orbit-book-item w-11 h-15 rounded shadow-lg bg-amber-900 border border-white/40 overflow-hidden" id="orbitCover5"></div></div>
       </div>
 
-      <!-- Center Brand "စာ" -->
       <div class="relative z-10 text-center flex flex-col items-center">
         <div class="w-20 h-20 rounded-3xl theme-accent-btn flex items-center justify-center font-serif-display font-bold text-4xl shadow-2xl mb-3">
           စာ
@@ -300,7 +290,6 @@
       </div>
     </div>
 
-    <!-- Smooth 3-Second Loading Progress Bar -->
     <div class="w-full max-w-xs space-y-2 pb-4 z-10">
       <div class="w-full h-1.5 rounded-full overflow-hidden theme-card">
         <div id="splashProgressBar" class="h-full theme-accent-btn transition-all duration-150 rounded-full" style="width: 8%;"></div>
@@ -312,9 +301,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 2. IN-APP NEW BOOK NOTIFICATION TOAST BANNER (SLIDES DOWN LIVE)       -->
-  <!-- ===================================================================== -->
+  <!-- TOAST NOTIFICATION -->
   <div id="inAppNotiToast" class="fixed top-3 inset-x-0 z-[92] px-4 pointer-events-none hidden">
     <div class="max-w-md mx-auto bg-stone-950/95 backdrop-blur-xl text-white border border-amber-400/50 rounded-2xl p-3 shadow-2xl flex items-center justify-between gap-3 pointer-events-auto">
       <div class="flex items-center gap-3 min-w-0">
@@ -328,26 +315,17 @@
         </div>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <button type="button" id="notiToastReadBtn" class="tactile-btn px-3 py-1.5 rounded-xl bg-amber-400 text-stone-950 font-bold text-xs shadow">
-          ဖတ်မည်
-        </button>
-        <button type="button" onclick="hideInAppNotiToast()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs">
-          ✕
-        </button>
+        <button type="button" id="notiToastReadBtn" class="tactile-btn px-3 py-1.5 rounded-xl bg-amber-400 text-stone-950 font-bold text-xs shadow">ဖတ်မည်</button>
+        <button type="button" onclick="hideInAppNotiToast()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs">✕</button>
       </div>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 3. TOP HEADER BAR (APP NAME "စာ" + LIVE READERS + NOTI BELL + THEME)  -->
-  <!-- ===================================================================== -->
+  <!-- TOP HEADER -->
   <header class="sticky top-0 z-30 backdrop-blur-md border-b px-4 py-2.5 transition-colors" style="background-color: var(--bg-header); border-color: var(--border-col);">
     <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
-      <!-- App Brand "စာ" -->
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl theme-accent-btn flex items-center justify-center font-serif-display font-bold text-lg shadow-sm">
-          စာ
-        </div>
+        <div class="w-9 h-9 rounded-xl theme-accent-btn flex items-center justify-center font-serif-display font-bold text-lg shadow-sm">စာ</div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-serif-display font-bold text-xl leading-none">စာ</h1>
@@ -359,112 +337,47 @@
         </div>
       </div>
 
-      <!-- Right Action Icons: Theme Picker, Notification Bell, Install, Settings -->
       <div class="flex items-center gap-1.5">
-        <!-- Quick Theme Switcher Button -->
-        <button
-          type="button"
-          onclick="openThemeSelectorModal()"
-          class="tactile-btn px-2.5 py-1.5 rounded-full theme-card text-xs font-bold flex items-center gap-1"
-          title="Theme ပြောင်းရန်"
-        >
+        <button type="button" onclick="openThemeSelectorModal()" class="tactile-btn px-2.5 py-1.5 rounded-full theme-card text-xs font-bold flex items-center gap-1" title="Theme ပြောင်းရန်">
           <span id="headerThemeEmoji">🎨</span>
           <span id="headerThemeName" class="text-[11px] hidden sm:inline">Auto</span>
         </button>
 
-        <!-- In-App Notification Bell Button -->
-        <button
-          type="button"
-          id="notifBtn"
-          onclick="openNotificationsModal()"
-          class="tactile-btn relative w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs"
-          title="စာအုပ်အသစ် အသိပေးချက်များ"
-        >
+        <button type="button" id="notifBtn" onclick="openNotificationsModal()" class="tactile-btn relative w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs" title="စာအုပ်အသစ် အသိပေးချက်များ">
           <span>🔔</span>
-          <span id="notiBadgeDot" class="hidden absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold items-center justify-center shadow">
-            1
-          </span>
+          <span id="notiBadgeDot" class="hidden absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold items-center justify-center shadow">1</span>
         </button>
 
-        <!-- Install PWA App Button -->
-        <button
-          type="button"
-          onclick="installPwaApp()"
-          id="installAppBtn"
-          class="tactile-btn px-3 py-1.5 rounded-full theme-accent-btn text-xs font-bold flex items-center gap-1 shadow-sm"
-        >
+        <button type="button" onclick="installPwaApp()" id="installAppBtn" class="tactile-btn px-3 py-1.5 rounded-full theme-accent-btn text-xs font-bold flex items-center gap-1 shadow-sm">
           <span>📲</span>
           <span class="hidden sm:inline">App</span>
         </button>
 
-        <!-- Settings Button -->
-        <button
-          type="button"
-          id="settingsBtn"
-          onclick="openSettingsModal()"
-          class="tactile-btn w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs"
-          title="Settings"
-        >
-          ⚙️
-        </button>
+        <button type="button" id="settingsBtn" onclick="openSettingsModal()" class="tactile-btn w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs" title="Settings">⚙️</button>
       </div>
     </div>
   </header>
 
-  <!-- ===================================================================== -->
-  <!-- 4. MAIN COLLECTION VIEW (CLEAN 3D SHELVES WITHOUT MESSY TEXT BELOW)   -->
-  <!-- ===================================================================== -->
+  <!-- MAIN COLLECTION -->
   <main class="max-w-3xl w-full mx-auto px-4 pt-4 space-y-6 flex-1 relative z-10">
-
-    <!-- Dynamic Theme Hero Banner Card -->
     <div class="relative overflow-hidden rounded-3xl text-white p-5 sm:p-6 shadow-lg transition-all" style="background: var(--hero-grad);">
       <div class="relative z-10 max-w-[66%] space-y-2.5">
-        <span id="heroStatsBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-white/15 text-[10px] font-bold tracking-wider uppercase text-amber-200">
-          စာကြည့်တိုက်
-        </span>
-        <h2 id="heroBannerTitle" class="font-serif-display font-bold text-base sm:text-xl leading-snug">
-          မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့ ဖတ်ရှုလိုက်ပါ
-        </h2>
+        <span id="heroStatsBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-white/15 text-[10px] font-bold tracking-wider uppercase text-amber-200">စာကြည့်တိုက်</span>
+        <h2 id="heroBannerTitle" class="font-serif-display font-bold text-base sm:text-xl leading-snug">မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့ ဖတ်ရှုလိုက်ပါ</h2>
         <div class="pt-1 flex flex-wrap gap-2">
-          <button
-            type="button"
-            id="heroActionBtn"
-            onclick="openRandomOrContinueBook()"
-            class="tactile-btn px-4 py-2 rounded-full bg-white text-stone-950 font-bold text-xs shadow hover:bg-amber-50 transition"
-          >
-            📖 ယခု စတင်ဖတ်ရှုမည်
-          </button>
-          <button
-            type="button"
-            onclick="openRequestBookModal()"
-            class="tactile-btn px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition"
-          >
-            📩 စာအုပ်တောင်းရန်
-          </button>
+          <button type="button" id="heroActionBtn" onclick="openRandomOrContinueBook()" class="tactile-btn px-4 py-2 rounded-full bg-white text-stone-950 font-bold text-xs shadow hover:bg-amber-50 transition">📖 ယခု စတင်ဖတ်ရှုမည်</button>
+          <button type="button" onclick="openRequestBookModal()" class="tactile-btn px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition">📩 စာအုပ်တောင်းရန်</button>
         </div>
       </div>
-
-      <!-- Tilted Decorative Book Covers on Right of Banner -->
       <div id="heroFanCovers" class="absolute -right-3 -bottom-4 flex items-end pointer-events-none opacity-95"></div>
     </div>
 
-    <!-- Search & Sort Bar -->
     <div class="flex gap-2">
       <div class="relative flex-1">
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာဖွေရန်..."
-          oninput="debounceLoadBooks()"
-          class="w-full pl-9 pr-4 py-2.5 rounded-2xl theme-card text-xs sm:text-sm focus:outline-none"
-        />
+        <input id="searchInput" type="text" placeholder="စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာဖွေရန်..." oninput="debounceLoadBooks()" class="w-full pl-9 pr-4 py-2.5 rounded-2xl theme-card text-xs sm:text-sm focus:outline-none" />
         <span class="absolute left-3.5 top-3 text-xs opacity-60">🔍</span>
       </div>
-      <select
-        id="sortSelect"
-        onchange="triggerHaptic(10); loadBooks();"
-        class="px-3.5 py-2.5 rounded-2xl theme-card text-xs font-bold focus:outline-none"
-      >
+      <select id="sortSelect" onchange="triggerHaptic(10); loadBooks();" class="px-3.5 py-2.5 rounded-2xl theme-card text-xs font-bold focus:outline-none">
         <option value="newest" class="text-stone-900">🕒 အသစ်ဆုံး</option>
         <option value="popular" class="text-stone-900">🔥 လူဖတ်အများဆုံး</option>
         <option value="pages_asc" class="text-stone-900">📄 စာမျက်နှာ (နည်း-များ)</option>
@@ -472,12 +385,10 @@
       </select>
     </div>
 
-    <!-- Horizontal Genre Tabs -->
     <div class="border-b" style="border-color: var(--border-col);">
       <div id="categoryTabsRow" class="flex items-center gap-5 overflow-x-auto no-scrollbar text-xs font-bold"></div>
     </div>
 
-    <!-- SECTION A: Featured / Recommendations Horizontal Cards -->
     <section id="recommendationsSection" class="space-y-3">
       <div class="flex items-center justify-between">
         <div>
@@ -488,38 +399,30 @@
       <div id="recommendationsRow" class="flex gap-3.5 overflow-x-auto no-scrollbar pb-1"></div>
     </section>
 
-    <!-- SECTION B: Clean 3D Book Shelves (Covers ONLY on Ledges — No messy text below!) -->
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <h3 id="catalogSectionTitle" class="font-serif-display font-bold text-base sm:text-lg">စာအုပ်စင်</h3>
         <span id="totalBooksCountText" class="text-xs font-bold opacity-70">0 အုပ်</span>
       </div>
-
       <div id="cleanShelfRows" class="space-y-8 pt-2"></div>
     </section>
-
   </main>
 
-  <!-- ===================================================================== -->
-  <!-- 5. FLOATING PILL BOTTOM NAVIGATION BAR                                -->
-  <!-- ===================================================================== -->
+  <!-- BOTTOM NAVIGATION BAR -->
   <div class="fixed bottom-4 inset-x-0 z-30 px-4 pointer-events-none">
     <nav class="max-w-md mx-auto backdrop-blur-xl rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.18)] px-3 py-2 grid grid-cols-4 text-center pointer-events-auto border" style="background-color: var(--nav-bg); border-color: var(--border-col);">
       <button type="button" onclick="setBottomNavFilter('all')" id="bNavCollection" class="tactile-btn py-1 flex flex-col items-center justify-center font-bold" style="color: var(--accent);">
         <span class="text-base leading-none">📚</span>
         <span class="text-[10px] mt-1">စာအုပ်စင်</span>
       </button>
-
       <button type="button" onclick="focusSearchInput()" id="bNavSearch" class="tactile-btn py-1 flex flex-col items-center justify-center opacity-70">
         <span class="text-base leading-none">🔍</span>
         <span class="text-[10px] mt-1">ရှာဖွေရန်</span>
       </button>
-
       <button type="button" onclick="setBottomNavFilter('bookmarks')" id="bNavBookmarks" class="tactile-btn py-1 flex flex-col items-center justify-center opacity-70">
         <span class="text-base leading-none">🔖</span>
         <span class="text-[10px] mt-1">မှတ်သားထားသော</span>
       </button>
-
       <button type="button" onclick="setBottomNavFilter('progress')" id="bNavMyBooks" class="tactile-btn py-1 flex flex-col items-center justify-center opacity-70">
         <span class="text-base leading-none">📖</span>
         <span class="text-[10px] mt-1">ဖတ်လက်စ</span>
@@ -527,9 +430,7 @@
     </nav>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 6. BOOK DETAIL MODAL (z-40)                                           -->
-  <!-- ===================================================================== -->
+  <!-- BOOK DETAIL MODAL -->
   <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 flex-col overflow-y-auto" style="background-color: var(--bg-main); color: var(--text-primary);">
     <div class="max-w-xl w-full mx-auto px-4 py-4 space-y-5 flex-1">
       <div class="flex items-center justify-between">
@@ -537,44 +438,31 @@
           <span>‹</span>
           <span>စင်သို့ ပြန်သွားမည်</span>
         </button>
-        <button type="button" onclick="shareCurrentBook()" class="tactile-btn w-9 h-9 rounded-full theme-card flex items-center justify-center text-sm" title="Share Book">
-          📤
-        </button>
+        <button type="button" onclick="shareCurrentBook()" class="tactile-btn w-9 h-9 rounded-full theme-card flex items-center justify-center text-sm" title="Share Book">📤</button>
       </div>
 
       <div class="theme-card rounded-3xl p-6 flex flex-col items-center text-center space-y-3 shadow-sm">
         <div class="w-36 sm:w-44 book-cover-3d shadow-2xl" id="detailCoverBox"></div>
-
         <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-black/10 text-[11px] font-bold">
           <span id="detailReads">👁 0 ကြိမ် ဖတ်ရှုပြီး</span>
           <span>•</span>
           <span id="detailPages">📄 0 မျက်နှာ</span>
         </div>
-
         <div>
           <h2 id="detailTitle" class="font-serif-display font-bold text-xl sm:text-2xl leading-snug"></h2>
           <p id="detailAuthor" class="text-xs font-bold opacity-75 mt-1"></p>
         </div>
-
         <div class="flex items-center justify-center gap-6 pt-2">
           <button type="button" onclick="toggleFavoriteCurrentBook()" class="tactile-btn flex flex-col items-center gap-1 text-xs font-bold">
-            <div class="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center text-lg shadow-sm" id="detailFavIcon">
-              🔖
-            </div>
+            <div class="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center text-lg shadow-sm" id="detailFavIcon">🔖</div>
             <span id="detailFavLabel" class="text-[11px] opacity-75">သိမ်းမည်</span>
           </button>
-
           <button type="button" id="detailReadCircleBtn" class="tactile-btn flex flex-col items-center gap-1 text-xs font-bold">
-            <div class="w-16 h-16 rounded-full theme-accent-btn flex items-center justify-center text-xl shadow-lg">
-              📖
-            </div>
+            <div class="w-16 h-16 rounded-full theme-accent-btn flex items-center justify-center text-xl shadow-lg">📖</div>
             <span id="detailReadLabel" class="text-xs font-bold">ဖတ်ရှုမည်</span>
           </button>
-
           <button type="button" onclick="shareCurrentBook()" class="tactile-btn flex flex-col items-center gap-1 text-xs font-bold">
-            <div class="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center text-lg shadow-sm">
-              🔗
-            </div>
+            <div class="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center text-lg shadow-sm">🔗</div>
             <span class="text-[11px] opacity-75">မျှဝေမည်</span>
           </button>
         </div>
@@ -590,9 +478,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 7. THEME SELECTOR MODAL (AUTO SEASONAL + 5 MANUAL THEMES, z-80)       -->
-  <!-- ===================================================================== -->
+  <!-- THEME SELECTOR MODAL -->
   <div id="themeSelectorModal" style="display: none;" class="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -602,38 +488,32 @@
         </div>
         <button type="button" onclick="closeThemeSelectorModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">✕</button>
       </div>
-
       <div class="grid grid-cols-2 gap-2.5 text-xs">
         <button type="button" onclick="selectAppTheme('auto')" id="tBtn_auto" class="tactile-btn p-3 rounded-2xl border border-white/15 bg-stone-800 text-left space-y-1">
           <span class="text-lg">🔄</span>
           <p class="font-bold text-white">Auto (ရာသီအလိုက်)</p>
           <p class="text-[10px] text-stone-400">ဆောင်း/နွေ/မိုး အလိုအလျောက်</p>
         </button>
-
         <button type="button" onclick="selectAppTheme('winter')" id="tBtn_winter" class="tactile-btn p-3 rounded-2xl border border-sky-400/30 bg-[#123146] text-left space-y-1">
           <span class="text-lg">❄️</span>
           <p class="font-bold text-sky-100">Winter Frost</p>
           <p class="text-[10px] text-sky-300">ဆောင်းရာသီ နှင်းပွင့်</p>
         </button>
-
         <button type="button" onclick="selectAppTheme('crimson')" id="tBtn_crimson" class="tactile-btn p-3 rounded-2xl border border-red-400/30 bg-[#581015] text-left space-y-1">
           <span class="text-lg">🍷</span>
           <p class="font-bold text-amber-50">Royal Crimson</p>
           <p class="text-[10px] text-red-200">အနီရင့် ပရီမီယံ</p>
         </button>
-
         <button type="button" onclick="selectAppTheme('walnut')" id="tBtn_walnut" class="tactile-btn p-3 rounded-2xl border border-amber-500/30 bg-[#2C1B10] text-left space-y-1">
           <span class="text-lg">🪵</span>
           <p class="font-bold text-amber-100">Warm Walnut</p>
           <p class="text-[10px] text-amber-300/70">သစ်သားစင် အရင့်</p>
         </button>
-
         <button type="button" onclick="selectAppTheme('oak')" id="tBtn_oak" class="tactile-btn p-3 rounded-2xl border border-amber-200/40 bg-[#D8BC98] text-left space-y-1">
           <span class="text-lg">✨</span>
           <p class="font-bold text-stone-950">Modern Oak</p>
           <p class="text-[10px] text-stone-800">သစ်သားစင် အလင်း</p>
         </button>
-
         <button type="button" onclick="selectAppTheme('midnight')" id="tBtn_midnight" class="tactile-btn p-3 rounded-2xl border border-slate-600 bg-[#0F1319] text-left space-y-1">
           <span class="text-lg">🌑</span>
           <p class="font-bold text-amber-400">Midnight Gold</p>
@@ -643,9 +523,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 8. IN-APP NOTIFICATIONS DRAWER MODAL (NEW BOOKS LIST, z-80)           -->
-  <!-- ===================================================================== -->
+  <!-- NOTIFICATIONS DRAWER -->
   <div id="notificationsModal" style="display: none;" class="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -658,50 +536,30 @@
         </div>
         <button type="button" onclick="closeNotificationsModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">✕</button>
       </div>
-
       <div id="notiListContainer" class="space-y-2.5"></div>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 9. FULLSCREEN PDF READER MODAL (100% PRESERVED, z-50)                 -->
-  <!-- ===================================================================== -->
+  <!-- FULLSCREEN PDF READER -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 bg-[#FBF8F3] flex-col">
     <div class="px-3 sm:px-4 py-2 bg-stone-950 text-white flex flex-wrap items-center justify-between gap-2 text-xs border-b border-white/10 shrink-0">
       <div class="flex items-center gap-2 truncate max-w-[46%] sm:max-w-md">
-        <button type="button" onclick="closePdfReader()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 font-bold shrink-0">
-          ← စင်သို့
-        </button>
+        <button type="button" onclick="closePdfReader()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 font-bold shrink-0">← စင်သို့</button>
         <span id="readerBookTitle" class="font-bold truncate text-amber-100"></span>
       </div>
-
       <div class="flex items-center gap-1.5">
-        <button
-          type="button"
-          onclick="toggleSplitSpreadMode()"
-          id="splitModeBtn"
-          class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1"
-        >
+        <button type="button" onclick="toggleSplitSpreadMode()" id="splitModeBtn" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1">
           <span>📖</span>
           <span id="splitModeLabel">စာရွက်အပြည့်</span>
         </button>
-
         <div class="flex items-center bg-stone-800 rounded-lg p-0.5 border border-stone-700">
           <button type="button" onclick="changeZoom(-0.25)" class="tactile-btn px-2.5 py-1 hover:bg-stone-700 rounded font-bold text-sm">−</button>
           <button type="button" onclick="resetZoom()" id="zoomLabel" class="px-1.5 text-[11px] font-mono text-amber-300">100%</button>
           <button type="button" onclick="changeZoom(0.25)" class="tactile-btn px-2.5 py-1 hover:bg-stone-700 rounded font-bold text-sm">+</button>
         </div>
-
-        <button
-          type="button"
-          onclick="openSettingsModal()"
-          class="tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold"
-        >
-          ⚙️
-        </button>
+        <button type="button" onclick="openSettingsModal()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⚙️</button>
       </div>
     </div>
-
     <div id="pdfCanvasWrapper" class="relative flex-1 overflow-auto p-2 sm:p-5 pdf-theme-sepia select-none">
       <div id="leftEdgeZone" onclick="handleEdgeTap(-1)" class="fixed left-0 top-14 bottom-20 w-10 sm:w-16 z-20 cursor-pointer"></div>
       <div class="min-h-full flex items-center justify-center">
@@ -709,18 +567,12 @@
       </div>
       <div id="rightEdgeZone" onclick="handleEdgeTap(1)" class="fixed right-0 top-14 bottom-20 w-10 sm:w-16 z-20 cursor-pointer"></div>
     </div>
-
     <div class="px-4 py-2.5 bg-stone-950 text-white flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs border-t border-white/10 shrink-0">
       <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-center">
-        <button type="button" onclick="changePdfPage(-1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 font-bold">
-          ◀ ရှေ့သို့
-        </button>
+        <button type="button" onclick="changePdfPage(-1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 font-bold">◀ ရှေ့သို့</button>
         <span id="pdfPageIndicator" class="font-mono text-amber-200 text-center">Page 1 / 1</span>
-        <button type="button" onclick="changePdfPage(1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold">
-          နောက်သို့ ▶
-        </button>
+        <button type="button" onclick="changePdfPage(1)" class="tactile-btn px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold">နောက်သို့ ▶</button>
       </div>
-
       <div class="flex items-center gap-2 w-full sm:w-64">
         <span class="text-[10px] text-stone-400 shrink-0">စာမျက်နှာရွေးရန်</span>
         <input id="pageJumpSlider" type="range" min="1" max="1" value="1" onchange="jumpToPdfPage(this.value)" class="w-full accent-amber-500 cursor-pointer" />
@@ -728,9 +580,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 10. REQUEST A BOOK MODAL (z-70)                                       -->
-  <!-- ===================================================================== -->
+  <!-- REQUEST A BOOK MODAL -->
   <div id="requestBookModal" style="display: none;" class="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -740,7 +590,6 @@
         </div>
         <button type="button" onclick="closeRequestBookModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">✕</button>
       </div>
-
       <form id="requestBookForm" onsubmit="submitBookRequest(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-bold text-stone-300 mb-1">စာအုပ်အမည် *</label>
@@ -750,11 +599,8 @@
           <label class="block font-bold text-stone-300 mb-1">စာရေးဆရာအမည်</label>
           <input id="reqBookAuthor" type="text" placeholder="ဥပမာ - ဂျာနယ်ကျော် မမလေး" class="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-white focus:outline-none focus:border-amber-500" />
         </div>
-        <button type="submit" class="tactile-btn w-full py-3 rounded-full bg-amber-500 text-stone-950 font-bold text-xs shadow-md">
-          🚀 စာအုပ်တောင်းဆိုမှု ပေးပို့မည်
-        </button>
+        <button type="submit" class="tactile-btn w-full py-3 rounded-full bg-amber-500 text-stone-950 font-bold text-xs shadow-md">🚀 စာအုပ်တောင်းဆိုမှု ပေးပို့မည်</button>
       </form>
-
       <div class="space-y-2 pt-2 border-t border-white/10">
         <p class="text-xs font-bold text-amber-300">🔥 စာဖတ်သူများ တောင်းဆိုထားသော စာအုပ်များ</p>
         <div id="requestedBooksList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
@@ -762,9 +608,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 11. READER SETTINGS MODAL (z-[90])                                    -->
-  <!-- ===================================================================== -->
+  <!-- SETTINGS MODAL -->
   <div id="settingsModal" style="display: none;" class="fixed inset-0 z-[90] bg-black/75 backdrop-blur-md items-center justify-center p-4">
     <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -780,7 +624,6 @@
 
       <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
         <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">🔊 အသံနှင့် ထိတွေ့တုန်ခါမှု</p>
-
         <div class="flex items-center justify-between pt-1">
           <div>
             <p class="text-xs font-bold text-white">စာရွက်လှန်သံ (Page Flip Sound)</p>
@@ -790,7 +633,6 @@
             <div id="toggleFlipSoundDot" class="w-5 h-5 rounded-full bg-stone-950 shadow transform translate-x-6 transition-transform"></div>
           </button>
         </div>
-
         <div class="space-y-1 pt-1">
           <div class="flex justify-between text-[11px] text-stone-300">
             <span>စာရွက်လှန်သံ အတိုး/အကျယ်</span>
@@ -798,7 +640,6 @@
           </div>
           <input id="volumeSlider" type="range" min="10" max="100" value="75" oninput="updateVolumeSetting(this.value)" class="w-full accent-amber-500 cursor-pointer" />
         </div>
-
         <div class="flex items-center justify-between pt-2 border-t border-white/5">
           <div>
             <p class="text-xs font-bold text-white">ထိတွေ့တုန်ခါမှု (One-Touch Vibrate)</p>
@@ -812,7 +653,6 @@
 
       <div class="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-white/5">
         <p class="text-xs font-bold text-amber-400 uppercase tracking-wider">📖 စာဖတ်ခြင်းနှင့် မျက်စိကာကွယ်ရေး</p>
-
         <div class="space-y-1">
           <div class="flex justify-between text-xs">
             <span class="font-bold text-white">🔆 မျက်နှာပြင် အလင်းအမှောင် (Brightness)</span>
@@ -820,58 +660,39 @@
           </div>
           <input id="brightnessSlider" type="range" min="35" max="100" value="100" oninput="updateBrightnessSetting(this.value)" class="w-full accent-amber-500 cursor-pointer" />
         </div>
-
         <div class="pt-2 border-t border-white/5 space-y-1.5">
           <p class="text-xs font-bold text-white">စာဖတ်သည့် စာရွက်အရောင် (Paper Mode)</p>
           <div class="grid grid-cols-3 gap-2 text-xs">
-            <button type="button" onclick="setDefaultPaperTheme('sepia')" id="btnPaperSepia" class="tactile-btn py-2 rounded-xl font-bold bg-[#FBF8F3] text-amber-950 border-2 border-amber-500">
-              📜 Sepia
-            </button>
-            <button type="button" onclick="setDefaultPaperTheme('day')" id="btnPaperDay" class="tactile-btn py-2 rounded-xl font-bold bg-white text-slate-900">
-              ☀️ Day
-            </button>
-            <button type="button" onclick="setDefaultPaperTheme('dark')" id="btnPaperDark" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-200">
-              🌙 Night
-            </button>
+            <button type="button" onclick="setDefaultPaperTheme('sepia')" id="btnPaperSepia" class="tactile-btn py-2 rounded-xl font-bold bg-[#FBF8F3] text-amber-950 border-2 border-amber-500">📜 Sepia</button>
+            <button type="button" onclick="setDefaultPaperTheme('day')" id="btnPaperDay" class="tactile-btn py-2 rounded-xl font-bold bg-white text-slate-900">☀️ Day</button>
+            <button type="button" onclick="setDefaultPaperTheme('dark')" id="btnPaperDark" class="tactile-btn py-2 rounded-xl font-bold bg-stone-800 text-stone-200">🌙 Night</button>
           </div>
         </div>
       </div>
 
       <div class="flex items-center justify-between pt-1">
-        <button type="button" onclick="closeSettingsModal(); openThemeSelectorModal();" class="tactile-btn text-xs text-amber-400 font-bold">
-          🎨 App Theme ပြောင်းရန်
-        </button>
-        <button type="button" onclick="closeSettingsModal()" class="tactile-btn px-5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs">
-          ပြီးပြီ
-        </button>
+        <button type="button" onclick="closeSettingsModal(); openThemeSelectorModal();" class="tactile-btn text-xs text-amber-400 font-bold">🎨 App Theme ပြောင်းရန်</button>
+        <button type="button" onclick="closeSettingsModal()" class="tactile-btn px-5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs">ပြီးပြီ</button>
       </div>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- 12. EXIT APP CONFIRMATION MODAL (z-[94])                              -->
-  <!-- ===================================================================== -->
+  <!-- EXIT CONFIRMATION MODAL -->
   <div id="exitConfirmModal" style="display: none;" class="fixed inset-0 z-[94] bg-black/75 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-stone-900 text-stone-100 border border-amber-500/30 rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center space-y-4">
-      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl mx-auto">
-        🚪
-      </div>
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl mx-auto">🚪</div>
       <div class="space-y-1">
         <h3 class="font-bold text-base text-white">App မှ ထွက်မည်လား?</h3>
         <p class="text-xs text-stone-400">"စာ" App မှ ထွက်ခွာရန် သေချာပါသလား?</p>
       </div>
       <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
-        <button type="button" onclick="cancelExitApp()" class="tactile-btn py-2.5 rounded-full bg-stone-800 text-stone-200 font-bold">
-          မထွက်သေးပါ
-        </button>
-        <button type="button" onclick="confirmExitApp()" class="tactile-btn py-2.5 rounded-full bg-red-600 text-white font-bold shadow-lg">
-          ထွက်မည်
-        </button>
+        <button type="button" onclick="cancelExitApp()" class="tactile-btn py-2.5 rounded-full bg-stone-800 text-stone-200 font-bold">မထွက်သေးပါ</button>
+        <button type="button" onclick="confirmExitApp()" class="tactile-btn py-2.5 rounded-full bg-red-600 text-white font-bold shadow-lg">ထွက်မည်</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= APPLICATION JAVASCRIPT ================= -->
+  <!-- APPLICATION JAVASCRIPT -->
   <script>
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -890,7 +711,6 @@
     let searchTimeout = null;
     let currentDetailBookId = null;
 
-    // PDF Reader State
     let currentPdfDoc = null;
     let currentPageNum = 1;
     let zoomPercent = 100;
@@ -898,7 +718,6 @@
     let currentSpreadHalf = 'left';
     let currentReadingBookId = null;
 
-    // User Settings
     const userSettings = {
       flipSound: JSON.parse(localStorage.getItem('SET_FLIP_SOUND') ?? 'true'),
       clickSound: JSON.parse(localStorage.getItem('SET_CLICK_SOUND') ?? 'true'),
@@ -910,7 +729,6 @@
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
 
-    // ================= 1. AUTO SEASONAL & MULTI-THEME ENGINE =================
     function getSeasonalThemeForCurrentMonth() {
       const month = new Date().getMonth() + 1;
       if (month === 11 || month === 12 || month === 1 || month === 2) {
@@ -962,9 +780,7 @@
 
       ['auto', 'winter', 'crimson', 'walnut', 'oak', 'midnight'].forEach((k) => {
         const btn = document.getElementById('tBtn_' + k);
-        if (btn) {
-          btn.style.outline = k === mode ? '2px solid #fbbf24' : 'none';
-        }
+        if (btn) btn.style.outline = k === mode ? '2px solid #fbbf24' : 'none';
       });
     }
 
@@ -998,7 +814,6 @@
       document.getElementById('themeSelectorModal').style.display = 'none';
     }
 
-    // ================= 2. 3-SECOND SMART PRELOADER SPLASH SCREEN =================
     async function runThreeSecondSplashAndPreload() {
       const splash = document.getElementById('smartSplashLoader');
       const bar = document.getElementById('splashProgressBar');
@@ -1023,16 +838,11 @@
 
         const coverUrls = allPublishedBooks.slice(0, 8).map((b) => b.cover_url).filter(Boolean);
         await Promise.race([
-          Promise.all(
-            coverUrls.map(
-              (src) =>
-                new Promise((res) => {
-                  const img = new Image();
-                  img.onload = img.onerror = res;
-                  img.src = src;
-                })
-            )
-          ),
+          Promise.all(coverUrls.map((src) => new Promise((res) => {
+            const img = new Image();
+            img.onload = img.onerror = res;
+            img.src = src;
+          }))),
           new Promise((res) => setTimeout(res, 1800))
         ]);
       } catch (e) {}
@@ -1047,11 +857,21 @@
 
       setTimeout(() => {
         splash.style.opacity = '0';
-        setTimeout(() => {
-          splash.style.display = 'none';
-        }, 450);
+        setTimeout(() => { splash.style.display = 'none'; }, 450);
       }, 150);
     }
+
+    // Failsafe: Hide splash automatically if loading takes more than 6.5 seconds
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        const splash = document.getElementById('smartSplashLoader');
+        if (splash && getComputedStyle(splash).display !== 'none') {
+          splash.style.transition = 'opacity 0.4s ease';
+          splash.style.opacity = '0';
+          setTimeout(() => { splash.style.display = 'none'; }, 400);
+        }
+      }, 6500);
+    });
 
     function populateWelcomeOrbitCovers(books) {
       for (let i = 0; i < 6; i++) {
@@ -1063,10 +883,8 @@
       }
     }
 
-    // ================= 3. REALTIME IN-APP NOTIFICATION WHEN ADMIN UPLOADS =================
     function initRealtimeBookNotifications() {
       if (!supabaseClient) return;
-
       try {
         const room = supabaseClient.channel('online-library-readers', {
           config: { presence: { key: 'reader_' + Math.random().toString(36).slice(2, 8) } }
@@ -1081,20 +899,17 @@
       } catch (e) {}
 
       try {
-        supabaseClient
-          .channel('public:books:noti')
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'books' },
-            async (payload) => {
-              const newBook = payload.new;
-              if (newBook && newBook.status === 'published') {
-                await loadBooks();
-                triggerNewBookInAppNotification(newBook);
-              }
+        supabaseClient.channel('public:books:noti').on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'books' },
+          async (payload) => {
+            const newBook = payload.new;
+            if (newBook && newBook.status === 'published') {
+              await loadBooks();
+              triggerNewBookInAppNotification(newBook);
             }
-          )
-          .subscribe();
+          }
+        ).subscribe();
       } catch (e) {}
     }
 
@@ -1167,9 +982,7 @@
 
       document.getElementById('notiToastTitle').textContent = book.title;
       document.getElementById('notiToastAuthor').textContent = `✍️ ${book.author}`;
-      document.getElementById('notiToastCover').innerHTML = book.cover_url
-        ? `<img src="${book.cover_url}" class="w-full h-full object-cover" />`
-        : '';
+      document.getElementById('notiToastCover').innerHTML = book.cover_url ? `<img src="${book.cover_url}" class="w-full h-full object-cover" />` : '';
       document.getElementById('notiToastReadBtn').onclick = () => {
         hideInAppNotiToast();
         openBookDetail(book.id);
@@ -1205,7 +1018,6 @@
       document.getElementById('notificationsModal').style.display = 'none';
     }
 
-    // ================= 4. STEP-BY-STEP BACK BUTTON & EXIT CONFIRM =================
     let allowExitNow = false;
 
     function initBackNavigationGuard() {
@@ -1214,17 +1026,7 @@
 
       window.addEventListener('popstate', () => {
         if (allowExitNow) return;
-
-        const modalsOrder = [
-          'exitConfirmModal',
-          'settingsModal',
-          'themeSelectorModal',
-          'notificationsModal',
-          'requestBookModal',
-          'pdfReaderModal',
-          'bookDetailModal'
-        ];
-
+        const modalsOrder = ['exitConfirmModal', 'settingsModal', 'themeSelectorModal', 'notificationsModal', 'requestBookModal', 'pdfReaderModal', 'bookDetailModal'];
         for (const id of modalsOrder) {
           if (isModalVisible(id)) {
             document.getElementById(id).style.display = 'none';
@@ -1233,7 +1035,6 @@
             return;
           }
         }
-
         triggerHaptic(18);
         document.getElementById('exitConfirmModal').style.display = 'flex';
         history.pushState({ view: 'exit_prompt' }, '');
@@ -1245,10 +1046,7 @@
       return el && el.style.display !== 'none' && el.style.display !== '';
     }
 
-    function cancelExitApp() {
-      document.getElementById('exitConfirmModal').style.display = 'none';
-    }
-
+    function cancelExitApp() { document.getElementById('exitConfirmModal').style.display = 'none'; }
     function confirmExitApp() {
       allowExitNow = true;
       document.getElementById('exitConfirmModal').style.display = 'none';
@@ -1256,9 +1054,7 @@
       history.go(-2);
     }
 
-    // ================= 5. SOUND & HAPTICS ENGINE =================
     let audioCtx = null;
-
     function getAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -1280,10 +1076,8 @@
         osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
         gain.gain.setValueAtTime(0.15, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.36);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.36);
       } catch (e) {}
     }
 
@@ -1306,16 +1100,12 @@
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(900, ctx.currentTime);
         filter.frequency.exponentialRampToValueAtTime(2600, ctx.currentTime + 0.11);
-        filter.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + duration);
         filter.Q.value = 1.6;
         const gainNode = ctx.createGain();
         const vol = (userSettings.volume / 100) * 0.45;
-        gainNode.gain.setValueAtTime(0.01, ctx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.04);
+        gainNode.gain.setValueAtTime(vol, ctx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-        noise.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        noise.connect(filter); filter.connect(gainNode); gainNode.connect(ctx.destination);
         noise.start();
       } catch (e) {}
     }
@@ -1333,10 +1123,8 @@
         const vol = (userSettings.volume / 100) * 0.12;
         gain.gain.setValueAtTime(vol, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.025);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.026);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.026);
       } catch (e) {}
     }
 
@@ -1347,14 +1135,12 @@
     }
 
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.tactile-btn');
-      if (btn) {
+      if (e.target.closest('.tactile-btn')) {
         triggerHaptic(12);
         playTouchClickSound();
       }
     });
 
-    // ================= 6. INITIALIZATION & SETTINGS =================
     window.addEventListener('DOMContentLoaded', async () => {
       initBackNavigationGuard();
       applyThemeMode(userSettings.themeMode, false);
@@ -1367,7 +1153,6 @@
       updateBrightnessSetting(userSettings.brightness, false);
       document.getElementById('volumeSlider').value = userSettings.volume;
       document.getElementById('brightnessSlider').value = userSettings.brightness;
-
       updateToggleUI('toggleFlipSoundBtn', 'toggleFlipSoundDot', userSettings.flipSound);
       updateToggleUI('toggleHapticBtn', 'toggleHapticDot', userSettings.haptic);
     }
@@ -1388,17 +1173,12 @@
       if (key === 'flipSound' && userSettings.flipSound) playPageFlipSound();
     }
 
-    function updateVolumeSetting(val) {
-      userSettings.volume = parseInt(val, 10);
-      localStorage.setItem('SET_VOLUME', userSettings.volume);
-    }
-
+    function updateVolumeSetting(val) { userSettings.volume = parseInt(val, 10); localStorage.setItem('SET_VOLUME', userSettings.volume); }
     function updateBrightnessSetting(val, save = true) {
       userSettings.brightness = parseInt(val, 10);
       if (save) localStorage.setItem('SET_BRIGHTNESS', userSettings.brightness);
       document.getElementById('brightnessValText').textContent = `${userSettings.brightness}%`;
-      const darkness = (100 - userSettings.brightness) / 100;
-      document.getElementById('brightnessOverlay').style.opacity = darkness.toFixed(2);
+      document.getElementById('brightnessOverlay').style.opacity = ((100 - userSettings.brightness) / 100).toFixed(2);
     }
 
     function setDefaultPaperTheme(mode, save = true) {
@@ -1411,16 +1191,9 @@
       });
     }
 
-    function openSettingsModal() {
-      history.pushState({ modal: 'settings' }, '');
-      document.getElementById('settingsModal').style.display = 'flex';
-    }
+    function openSettingsModal() { history.pushState({ modal: 'settings' }, ''); document.getElementById('settingsModal').style.display = 'flex'; }
+    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
 
-    function closeSettingsModal() {
-      document.getElementById('settingsModal').style.display = 'none';
-    }
-
-    // ================= 7. SUPABASE DATA & CLEAN 3D SHELF RENDERING =================
     async function startReaderApp(url, key) {
       supabaseClient = window.supabase.createClient(url.trim(), key.trim());
       initRealtimeBookNotifications();
@@ -1446,12 +1219,7 @@
     function setBottomNavFilter(filterType) {
       activeBottomFilter = filterType;
       selectedCategoryId = null;
-
-      const navMap = {
-        all: 'bNavCollection',
-        bookmarks: 'bNavBookmarks',
-        progress: 'bNavMyBooks'
-      };
+      const navMap = { all: 'bNavCollection', bookmarks: 'bNavBookmarks', progress: 'bNavMyBooks' };
       ['bNavCollection', 'bNavSearch', 'bNavBookmarks', 'bNavMyBooks'].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1463,14 +1231,7 @@
           el.style.color = '';
         }
       });
-
-      const titleMap = {
-        all: 'စာအုပ်စင်',
-        bookmarks: '🔖 မှတ်သားထားသော စာအုပ်များ',
-        progress: '📖 ဖတ်လက်စ စာအုပ်များ'
-      };
-      document.getElementById('catalogSectionTitle').textContent = titleMap[filterType] || 'စာအုပ်စင်';
-
+      document.getElementById('catalogSectionTitle').textContent = { all: 'စာအုပ်စင်', bookmarks: '🔖 မှတ်သားထားသော စာအုပ်များ', progress: '📖 ဖတ်လက်စ စာအုပ်များ' }[filterType];
       renderCategoryTabs();
       loadBooks();
     }
@@ -1483,24 +1244,10 @@
 
     function renderCategoryTabs() {
       const box = document.getElementById('categoryTabsRow');
-      const tabStyle = (active) =>
-        active
-          ? 'border-bottom: 2px solid var(--accent); color: var(--accent); font-weight: 700;'
-          : 'border-bottom: 2px solid transparent; opacity: 0.7;';
-
-      box.innerHTML = `
-        <button type="button" onclick="selectCategory(null)" class="pb-2.5 shrink-0 transition" style="${tabStyle(selectedCategoryId === null && activeBottomFilter === 'all')}">
-          အားလုံး
-        </button>
-      `;
-
+      const tabStyle = (active) => active ? 'border-bottom: 2px solid var(--accent); color: var(--accent); font-weight: 700;' : 'border-bottom: 2px solid transparent; opacity: 0.7;';
+      box.innerHTML = `<button type="button" onclick="selectCategory(null)" class="pb-2.5 shrink-0 transition" style="${tabStyle(selectedCategoryId === null && activeBottomFilter === 'all')}">အားလုံး</button>`;
       categoriesList.forEach((c) => {
-        const active = selectedCategoryId === c.id;
-        box.innerHTML += `
-          <button type="button" onclick="selectCategory('${c.id}')" class="pb-2.5 shrink-0 transition" style="${tabStyle(active)}">
-            ${c.name}
-          </button>
-        `;
+        box.innerHTML += `<button type="button" onclick="selectCategory('${c.id}')" class="pb-2.5 shrink-0 transition" style="${tabStyle(selectedCategoryId === c.id)}">${c.name}</button>`;
       });
     }
 
@@ -1562,11 +1309,7 @@
       const top3 = books.slice(0, 3);
       fanBox.innerHTML = top3.map((b, i) => {
         const rot = i === 0 ? '-rotate-12 translate-x-6' : i === 1 ? '-rotate-3 translate-x-3 z-10' : 'rotate-6 z-20';
-        return `
-          <div class="w-16 sm:w-20 aspect-[2/3] rounded shadow-2xl overflow-hidden border border-white/30 transform ${rot}">
-            ${b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : `<div class="w-full h-full bg-amber-900"></div>`}
-          </div>
-        `;
+        return `<div class="w-16 sm:w-20 aspect-[2/3] rounded shadow-2xl overflow-hidden border border-white/30 transform ${rot}">${b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : `<div class="w-full h-full bg-amber-900"></div>`}</div>`;
       }).join('');
 
       const lastRaw = localStorage.getItem('LAST_READ_BOOK');
@@ -1589,19 +1332,13 @@
           return;
         } catch (e) {}
       }
-      if (currentBooksList.length > 0) {
-        openBookDetail(currentBooksList[0].id);
-      }
+      if (currentBooksList.length > 0) openBookDetail(currentBooksList[0].id);
     }
 
     function renderRecommendationsHorizontal(books) {
       const row = document.getElementById('recommendationsRow');
       const topBooks = [...books].sort((a, b) => (b.read_count || 0) - (a.read_count || 0)).slice(0, 6);
-
-      if (topBooks.length === 0) {
-        row.innerHTML = `<div class="text-xs opacity-60 py-4">စာအုပ်များ မရှိသေးပါ။</div>`;
-        return;
-      }
+      if (topBooks.length === 0) { row.innerHTML = `<div class="text-xs opacity-60 py-4">စာအုပ်များ မရှိသေးပါ။</div>`; return; }
 
       row.innerHTML = topBooks.map((b) => {
         const isFav = getFavoritesIds().includes(b.id);
@@ -1609,37 +1346,15 @@
         return `
           <div class="w-[280px] sm:w-[320px] shrink-0 theme-card rounded-3xl p-3.5 flex gap-3.5 items-center shadow-sm">
             <div onclick="onBookTap('${b.id}')" class="w-20 sm:w-24 shrink-0 book-cover-3d">
-              ${
-                b.cover_url
-                  ? `<img src="${b.cover_url}" alt="${b.title}" class="w-full h-full object-cover" loading="lazy" />`
-                  : `<div class="w-full h-full p-2 flex items-center justify-center text-center text-[10px] text-amber-100 font-bold">${b.title}</div>`
-              }
+              ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" class="w-full h-full object-cover" loading="lazy" />` : `<div class="w-full h-full p-2 flex items-center justify-center text-center text-[10px] text-amber-100 font-bold">${b.title}</div>`}
             </div>
-
             <div class="flex-1 min-w-0 space-y-1.5">
-              <span class="text-[10px] font-bold uppercase tracking-wider opacity-75">
-                ${b.categories?.name || 'အထွေထွေ'} • 👁 ${b.read_count || 0}
-              </span>
-              <h4 onclick="onBookTap('${b.id}')" class="font-serif-display font-bold text-sm line-clamp-1 cursor-pointer">
-                ${b.title}
-              </h4>
+              <span class="text-[10px] font-bold uppercase tracking-wider opacity-75">${b.categories?.name || 'အထွေထွေ'} • 👁 ${b.read_count || 0}</span>
+              <h4 onclick="onBookTap('${b.id}')" class="font-serif-display font-bold text-sm line-clamp-1 cursor-pointer">${b.title}</h4>
               <p class="text-[11px] opacity-75 truncate">${b.author}</p>
-
               <div class="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onclick="openPdfReader('${b.id}', '${b.title.replace(/'/g, "\\'")}', '${b.pdf_url}', ${b.page_count || 1})"
-                  class="tactile-btn px-3.5 py-1.5 rounded-full theme-accent-btn text-[11px] font-bold shadow-sm"
-                >
-                  ${savedPage ? `p.${savedPage} ဆက်ဖတ်မည်` : 'စတင်ဖတ်မည်'}
-                </button>
-                <button
-                  type="button"
-                  onclick="quickToggleFav('${b.id}', event)"
-                  class="tactile-btn w-7 h-7 rounded-full bg-black/10 flex items-center justify-center text-xs"
-                >
-                  ${isFav ? '❤️' : '🔖'}
-                </button>
+                <button type="button" onclick="openPdfReader('${b.id}', '${b.title.replace(/'/g, "\\'")}', '${b.pdf_url}', ${b.page_count || 1})" class="tactile-btn px-3.5 py-1.5 rounded-full theme-accent-btn text-[11px] font-bold shadow-sm">${savedPage ? `p.${savedPage} ဆက်ဖတ်မည်` : 'စတင်ဖတ်မည်'}</button>
+                <button type="button" onclick="quickToggleFav('${b.id}', event)" class="tactile-btn w-7 h-7 rounded-full bg-black/10 flex items-center justify-center text-xs">${isFav ? '❤️' : '🔖'}</button>
               </div>
             </div>
           </div>
@@ -1649,16 +1364,11 @@
 
     function renderCleanShelfRows(books) {
       const container = document.getElementById('cleanShelfRows');
-      if (books.length === 0) {
-        container.innerHTML = `<div class="py-12 text-center text-xs opacity-60">စာအုပ် မတွေ့ရှိသေးပါ။</div>`;
-        return;
-      }
+      if (books.length === 0) { container.innerHTML = `<div class="py-12 text-center text-xs opacity-60">စာအုပ် မတွေ့ရှိသေးပါ။</div>`; return; }
 
       const booksPerRow = window.innerWidth >= 640 ? 4 : 3;
       const rows = [];
-      for (let i = 0; i < books.length; i += booksPerRow) {
-        rows.push(books.slice(i, i + booksPerRow));
-      }
+      for (let i = 0; i < books.length; i += booksPerRow) rows.push(books.slice(i, i + booksPerRow));
 
       container.innerHTML = rows.map((rowBooks) => `
         <div>
@@ -1669,27 +1379,9 @@
               return `
                 <div onclick="onBookTap('${b.id}')" class="flex flex-col items-center cursor-pointer group">
                   <div class="book-cover-3d w-full">
-                    ${
-                      b.cover_url
-                        ? `<img src="${b.cover_url}" alt="${b.title}" class="w-full h-full object-cover" loading="lazy" />`
-                        : `<div class="w-full h-full p-3 flex flex-col justify-between text-amber-100">
-                            <span class="text-[9px] opacity-70">${b.author}</span>
-                            <span class="font-bold text-xs">${b.title}</span>
-                            <span class="text-[9px] opacity-50">${b.page_count} p</span>
-                          </div>`
-                    }
-                    <div class="absolute top-1.5 right-1.5 bg-black/65 backdrop-blur-xs text-amber-200 text-[9px] font-bold px-1.5 py-0.5 rounded">
-                      👁 ${b.read_count || 0}
-                    </div>
-                    ${
-                      savedPage
-                        ? `<div class="absolute bottom-0 inset-x-0 bg-black/75 px-1.5 py-0.5">
-                            <div class="w-full bg-white/30 h-1 rounded-full overflow-hidden">
-                              <div class="bg-amber-400 h-full" style="width:${pct}%"></div>
-                            </div>
-                          </div>`
-                        : ''
-                    }
+                    ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" class="w-full h-full object-cover" loading="lazy" />` : `<div class="w-full h-full p-3 flex flex-col justify-between text-amber-100"><span class="text-[9px] opacity-70">${b.author}</span><span class="font-bold text-xs">${b.title}</span></div>`}
+                    <div class="absolute top-1.5 right-1.5 bg-black/65 backdrop-blur-xs text-amber-200 text-[9px] font-bold px-1.5 py-0.5 rounded">👁 ${b.read_count || 0}</div>
+                    ${savedPage ? `<div class="absolute bottom-0 inset-x-0 bg-black/75 px-1.5 py-0.5"><div class="w-full bg-white/30 h-1 rounded-full overflow-hidden"><div class="bg-amber-400 h-full" style="width:${pct}%"></div></div></div>` : ''}
                   </div>
                 </div>
               `;
@@ -1704,25 +1396,18 @@
       if (e) e.stopPropagation();
       const favs = getFavoritesIds();
       const idx = favs.indexOf(bookId);
-      if (idx >= 0) favs.splice(idx, 1);
-      else favs.push(bookId);
+      if (idx >= 0) favs.splice(idx, 1); else favs.push(bookId);
       localStorage.setItem('FAV_BOOKS', JSON.stringify(favs));
       triggerHaptic(14);
       loadBooks();
     }
 
-    // ================= 8. BOOK DETAIL SCREEN =================
-    function onBookTap(bookId) {
-      triggerHaptic(16);
-      playTouchClickSound();
-      openBookDetail(bookId);
-    }
+    function onBookTap(bookId) { triggerHaptic(16); playTouchClickSound(); openBookDetail(bookId); }
 
     function openBookDetail(bookId) {
       const book = allPublishedBooks.find((x) => x.id === bookId) || currentBooksList.find((x) => x.id === bookId);
       if (!book) return;
       currentDetailBookId = book.id;
-
       const savedPage = localStorage.getItem('BOOK_PAGE_' + book.id);
       const isFav = getFavoritesIds().includes(book.id);
 
@@ -1732,29 +1417,17 @@
       document.getElementById('detailPages').textContent = `📄 ${book.page_count} မျက်နှာ`;
       document.getElementById('detailReads').textContent = `👁 ${book.read_count || 0} ကြိမ် ဖတ်ရှုပြီး`;
       document.getElementById('detailDesc').textContent = book.description || 'ဤစာအုပ်အတွက် အညွှန်းဖော်ပြချက် မပါရှိသေးပါ။';
-
       document.getElementById('detailFavIcon').textContent = isFav ? '❤️' : '🔖';
       document.getElementById('detailFavLabel').textContent = isFav ? 'သိမ်းပြီး' : 'သိမ်းမည်';
-
-      const coverBox = document.getElementById('detailCoverBox');
-      coverBox.innerHTML = book.cover_url
-        ? `<img src="${book.cover_url}" class="w-full h-full object-cover" />`
-        : `<div class="w-full h-full flex items-center justify-center p-4 text-xs text-center text-amber-100">${book.title}</div>`;
-
+      document.getElementById('detailCoverBox').innerHTML = book.cover_url ? `<img src="${book.cover_url}" class="w-full h-full object-cover" />` : '';
       document.getElementById('detailReadLabel').textContent = savedPage ? `p.${savedPage} ဆက်ဖတ်မည်` : 'ဖတ်ရှုမည်';
-      document.getElementById('detailReadCircleBtn').onclick = () => {
-        closeBookDetail();
-        openPdfReader(book.id, book.title, book.pdf_url, book.page_count);
-      };
+      document.getElementById('detailReadCircleBtn').onclick = () => { closeBookDetail(); openPdfReader(book.id, book.title, book.pdf_url, book.page_count); };
 
       history.pushState({ modal: 'detail' }, '');
       document.getElementById('bookDetailModal').style.display = 'flex';
     }
 
-    function closeBookDetail() {
-      document.getElementById('bookDetailModal').style.display = 'none';
-    }
-
+    function closeBookDetail() { document.getElementById('bookDetailModal').style.display = 'none'; }
     function toggleFavoriteCurrentBook() {
       if (!currentDetailBookId) return;
       quickToggleFav(currentDetailBookId);
@@ -1768,56 +1441,28 @@
       if (!book) return;
       const shareUrl = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
       if (navigator.share) {
-        try {
-          await navigator.share({ title: book.title, text: `📖 "${book.title}" (${book.author})`, url: shareUrl });
-        } catch (e) {}
+        try { await navigator.share({ title: book.title, text: `📖 "${book.title}" (${book.author})`, url: shareUrl }); } catch (e) {}
       } else {
         navigator.clipboard.writeText(shareUrl);
         alert('🔗 စာအုပ် Link ကို Copy ကူးပြီးပါပြီ!\n' + shareUrl);
       }
     }
 
-    // ================= 9. REQUEST A BOOK =================
-    async function openRequestBookModal() {
-      history.pushState({ modal: 'request' }, '');
-      document.getElementById('requestBookModal').style.display = 'flex';
-      await loadRequestedBooks();
-    }
-
-    function closeRequestBookModal() {
-      document.getElementById('requestBookModal').style.display = 'none';
-    }
+    async function openRequestBookModal() { history.pushState({ modal: 'request' }, ''); document.getElementById('requestBookModal').style.display = 'flex'; await loadRequestedBooks(); }
+    function closeRequestBookModal() { document.getElementById('requestBookModal').style.display = 'none'; }
 
     async function submitBookRequest(e) {
       e.preventDefault();
       const title = document.getElementById('reqBookTitle').value.trim();
       const author = document.getElementById('reqBookAuthor').value.trim();
       if (!title) return;
-
-      const newReq = {
-        id: 'req_' + Date.now(),
-        user_name: 'Reader',
-        book_title: title,
-        author_name: author || 'မသိရှိပါ',
-        upvotes: 1,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      };
-
+      const newReq = { id: 'req_' + Date.now(), user_name: 'Reader', book_title: title, author_name: author || 'မသိရှိပါ', upvotes: 1, status: 'pending', created_at: new Date().toISOString() };
       const localList = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]');
       localList.unshift(newReq);
       localStorage.setItem('BOOK_REQUESTS_LIST', JSON.stringify(localList));
-
       if (supabaseClient) {
-        try {
-          await supabaseClient.from('book_requests').insert([{
-            user_name: newReq.user_name,
-            book_title: newReq.book_title,
-            author_name: newReq.author_name
-          }]);
-        } catch (err) {}
+        try { await supabaseClient.from('book_requests').insert([{ user_name: newReq.user_name, book_title: newReq.book_title, author_name: newReq.author_name }]); } catch (err) {}
       }
-
       document.getElementById('requestBookForm').reset();
       triggerHaptic(18);
       await loadRequestedBooks();
@@ -1826,111 +1471,67 @@
     async function loadRequestedBooks() {
       const box = document.getElementById('requestedBooksList');
       let list = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]');
-
       if (supabaseClient) {
         try {
-          const { data, error } = await supabaseClient
-            .from('book_requests')
-            .select('*')
-            .order('upvotes', { ascending: false })
-            .limit(25);
+          const { data, error } = await supabaseClient.from('book_requests').select('*').order('upvotes', { ascending: false }).limit(25);
           if (!error && data && data.length > 0) list = data;
         } catch (err) {}
       }
-
-      if (list.length === 0) {
-        box.innerHTML = `<p class="text-xs text-stone-400 py-4 text-center">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`;
-        return;
-      }
-
-      box.innerHTML = list.map((r) => {
-        const isDone = r.status === 'uploaded';
-        return `
-          <div class="bg-stone-950 border border-white/10 p-3 rounded-2xl flex items-center justify-between gap-2 text-xs">
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <p class="font-bold text-white truncate">${r.book_title}</p>
-                ${isDone ? `<span class="px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">✅ တင်ပေးပြီး</span>` : ''}
-              </div>
-              <p class="text-[11px] text-stone-400 truncate">✍️ ${r.author_name || ''}</p>
-            </div>
-            <button
-              type="button"
-              onclick="upvoteRequest('${r.id}')"
-              class="tactile-btn px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-300 font-bold text-[11px] shrink-0"
-            >
-              👍 ${r.upvotes || 1}
-            </button>
+      if (list.length === 0) { box.innerHTML = `<p class="text-xs text-stone-400 py-4 text-center">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`; return; }
+      box.innerHTML = list.map((r) => `
+        <div class="bg-stone-950 border border-white/10 p-3 rounded-2xl flex items-center justify-between gap-2 text-xs">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5"><p class="font-bold text-white truncate">${r.book_title}</p>${r.status === 'uploaded' ? `<span class="px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">✅ တင်ပေးပြီး</span>` : ''}</div>
+            <p class="text-[11px] text-stone-400 truncate">✍️ ${r.author_name || ''}</p>
           </div>
-        `;
-      }).join('');
+          <button type="button" onclick="upvoteRequest('${r.id}')" class="tactile-btn px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-300 font-bold text-[11px] shrink-0">👍 ${r.upvotes || 1}</button>
+        </div>
+      `).join('');
     }
 
     async function upvoteRequest(reqId) {
       triggerHaptic(14);
       const localList = JSON.parse(localStorage.getItem('BOOK_REQUESTS_LIST') || '[]');
       const item = localList.find((x) => String(x.id) === String(reqId));
-      if (item) {
-        item.upvotes = (item.upvotes || 1) + 1;
-        localStorage.setItem('BOOK_REQUESTS_LIST', JSON.stringify(localList));
-      }
-      if (supabaseClient) {
-        try { await supabaseClient.rpc('upvote_book_request', { req_uuid: reqId }); } catch (e) {}
-      }
+      if (item) { item.upvotes = (item.upvotes || 1) + 1; localStorage.setItem('BOOK_REQUESTS_LIST', JSON.stringify(localList)); }
+      if (supabaseClient) { try { await supabaseClient.rpc('upvote_book_request', { req_uuid: reqId }); } catch (e) {} }
       await loadRequestedBooks();
     }
 
-    // ================= 10. FULLSCREEN PDF READER (100% PRESERVED) =================
     window.addEventListener('resize', () => {
       if (currentBooksList) renderCleanShelfRows(currentBooksList);
-      if (isModalVisible('pdfReaderModal') && currentPdfDoc) {
-        renderPdfPage(currentPageNum, 0);
-      }
+      if (isModalVisible('pdfReaderModal') && currentPdfDoc) renderPdfPage(currentPageNum, 0);
     });
 
     async function openPdfReader(bookId, title, pdfUrl, totalPages = 1) {
-      currentReadingBookId = bookId;
-      zoomPercent = 100;
-      currentSpreadHalf = 'left';
-
+      currentReadingBookId = bookId; zoomPercent = 100; currentSpreadHalf = 'left';
       document.getElementById('readerBookTitle').textContent = title;
       history.pushState({ modal: 'reader' }, '');
       document.getElementById('pdfReaderModal').style.display = 'flex';
       setReaderTheme(userSettings.paperTheme);
 
       localStorage.setItem('LAST_READ_BOOK', JSON.stringify({ id: bookId, title, pdfUrl, totalPages }));
-      if (supabaseClient) {
-        supabaseClient.rpc('increment_read_count', { book_uuid: bookId });
-      }
+      if (supabaseClient) supabaseClient.rpc('increment_read_count', { book_uuid: bookId });
 
       currentPdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       document.getElementById('pageJumpSlider').max = currentPdfDoc.numPages;
 
       const firstPage = await currentPdfDoc.getPage(1);
       const vp1 = firstPage.getViewport({ scale: 1 });
-      if (vp1.width > vp1.height * 1.15 && window.innerWidth < 768) {
-        splitSpreadMode = JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'true');
-      } else {
-        splitSpreadMode = JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'false');
-      }
+      splitSpreadMode = vp1.width > vp1.height * 1.15 && window.innerWidth < 768 ? JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'true') : JSON.parse(localStorage.getItem('SPLIT_MODE_' + bookId) ?? 'false');
       updateSplitModeUI();
 
       const savedPage = parseInt(localStorage.getItem('BOOK_PAGE_' + bookId) || '1', 10);
       currentPageNum = savedPage <= currentPdfDoc.numPages ? savedPage : 1;
-
       playPageFlipSound();
       await renderPdfPage(currentPageNum, 0);
     }
 
     function toggleSplitSpreadMode() {
       if (!currentPdfDoc) return;
-      splitSpreadMode = !splitSpreadMode;
-      currentSpreadHalf = 'left';
-      if (currentReadingBookId) {
-        localStorage.setItem('SPLIT_MODE_' + currentReadingBookId, JSON.stringify(splitSpreadMode));
-      }
-      updateSplitModeUI();
-      renderPdfPage(currentPageNum, 0);
+      splitSpreadMode = !splitSpreadMode; currentSpreadHalf = 'left';
+      if (currentReadingBookId) localStorage.setItem('SPLIT_MODE_' + currentReadingBookId, JSON.stringify(splitSpreadMode));
+      updateSplitModeUI(); renderPdfPage(currentPageNum, 0);
     }
 
     function updateSplitModeUI() {
@@ -1968,16 +1569,13 @@
 
       let fitWidth = availableWidth;
       let fitHeight = fitWidth * pageAspectRatio;
-
       if (fitHeight > availableHeight && !splitSpreadMode && baseVp.width < baseVp.height) {
-        fitHeight = availableHeight;
-        fitWidth = fitHeight / pageAspectRatio;
+        fitHeight = availableHeight; fitWidth = fitHeight / pageAspectRatio;
       }
 
       const scaleMultiplier = zoomPercent / 100;
       const displayWidth = Math.round(fitWidth * scaleMultiplier);
       const displayHeight = Math.round(fitHeight * scaleMultiplier);
-
       canvas.style.width = `${displayWidth}px`;
       canvas.style.height = `${displayHeight}px`;
 
@@ -1988,17 +1586,14 @@
       const dpr = Math.min(window.devicePixelRatio || 1.5, 2.5);
       const renderScale = (displayWidth / srcWidth) * dpr;
       const renderVp = page.getViewport({ scale: renderScale });
-
       canvas.width = Math.round(srcWidth * renderScale);
       canvas.height = Math.round(srcHeight * renderScale);
 
       ctx.save();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       if (splitSpreadMode && currentSpreadHalf === 'right') {
         ctx.translate(-Math.round((baseVp.width / 2) * renderScale), 0);
       }
-
       await page.render({ canvasContext: ctx, viewport: renderVp }).promise;
       ctx.restore();
 
@@ -2011,89 +1606,40 @@
 
     function changeZoom(deltaPct) {
       if (!currentPdfDoc) return;
-      const nextZoom = Math.min(Math.max(zoomPercent + Math.round(deltaPct * 100), 60), 300);
-      if (nextZoom !== zoomPercent) {
-        zoomPercent = nextZoom;
-        renderPdfPage(currentPageNum, 0);
-      }
-    }
-
-    function resetZoom() {
-      if (!currentPdfDoc) return;
-      zoomPercent = 100;
+      zoomPercent = Math.min(Math.max(zoomPercent + Math.round(deltaPct * 100), 60), 300);
       renderPdfPage(currentPageNum, 0);
     }
+    function resetZoom() { if (!currentPdfDoc) return; zoomPercent = 100; renderPdfPage(currentPageNum, 0); }
 
     function changePdfPage(delta) {
       if (!currentPdfDoc) return;
-
       if (splitSpreadMode) {
         if (delta > 0) {
-          if (currentSpreadHalf === 'left') {
-            currentSpreadHalf = 'right';
-            triggerHaptic(16);
-            playPageFlipSound();
-            renderPdfPage(currentPageNum, 1);
-            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
-            return;
-          } else if (currentPageNum < currentPdfDoc.numPages) {
-            currentPageNum++;
-            currentSpreadHalf = 'left';
-            triggerHaptic(18);
-            playPageFlipSound();
-            renderPdfPage(currentPageNum, 1);
-            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
-            return;
-          }
+          if (currentSpreadHalf === 'left') { currentSpreadHalf = 'right'; triggerHaptic(16); playPageFlipSound(); renderPdfPage(currentPageNum, 1); wrapperScrollTop(); return; }
+          else if (currentPageNum < currentPdfDoc.numPages) { currentPageNum++; currentSpreadHalf = 'left'; triggerHaptic(18); playPageFlipSound(); renderPdfPage(currentPageNum, 1); wrapperScrollTop(); return; }
         } else if (delta < 0) {
-          if (currentSpreadHalf === 'right') {
-            currentSpreadHalf = 'left';
-            triggerHaptic(16);
-            playPageFlipSound();
-            renderPdfPage(currentPageNum, -1);
-            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
-            return;
-          } else if (currentPageNum > 1) {
-            currentPageNum--;
-            currentSpreadHalf = 'right';
-            triggerHaptic(18);
-            playPageFlipSound();
-            renderPdfPage(currentPageNum, -1);
-            document.getElementById('pdfCanvasWrapper').scrollTop = 0;
-            return;
-          }
+          if (currentSpreadHalf === 'right') { currentSpreadHalf = 'left'; triggerHaptic(16); playPageFlipSound(); renderPdfPage(currentPageNum, -1); wrapperScrollTop(); return; }
+          else if (currentPageNum > 1) { currentPageNum--; currentSpreadHalf = 'right'; triggerHaptic(18); playPageFlipSound(); renderPdfPage(currentPageNum, -1); wrapperScrollTop(); return; }
         }
         return;
       }
-
       const next = currentPageNum + delta;
       if (next >= 1 && next <= currentPdfDoc.numPages) {
-        currentPageNum = next;
-        triggerHaptic(18);
-        playPageFlipSound();
-        renderPdfPage(currentPageNum, delta);
-        document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+        currentPageNum = next; triggerHaptic(18); playPageFlipSound(); renderPdfPage(currentPageNum, delta); wrapperScrollTop();
       }
     }
+    function wrapperScrollTop() { document.getElementById('pdfCanvasWrapper').scrollTop = 0; }
 
     function jumpToPdfPage(pageVal) {
       if (!currentPdfDoc) return;
       const target = parseInt(pageVal, 10);
       if (target >= 1 && target <= currentPdfDoc.numPages && target !== currentPageNum) {
         const dir = target > currentPageNum ? 1 : -1;
-        currentPageNum = target;
-        currentSpreadHalf = 'left';
-        triggerHaptic(18);
-        playPageFlipSound();
-        renderPdfPage(currentPageNum, dir);
-        document.getElementById('pdfCanvasWrapper').scrollTop = 0;
+        currentPageNum = target; currentSpreadHalf = 'left'; triggerHaptic(18); playPageFlipSound(); renderPdfPage(currentPageNum, dir); wrapperScrollTop();
       }
     }
 
-    function handleEdgeTap(delta) {
-      if (!userSettings.edgeTap || zoomPercent > 105) return;
-      changePdfPage(delta);
-    }
+    function handleEdgeTap(delta) { if (!userSettings.edgeTap || zoomPercent > 105) return; changePdfPage(delta); }
 
     function setReaderTheme(mode) {
       const wrapper = document.getElementById('pdfCanvasWrapper');
@@ -2104,44 +1650,23 @@
       else wrapper.classList.add('bg-stone-200');
     }
 
-    function closePdfReader() {
-      triggerHaptic(12);
-      document.getElementById('pdfReaderModal').style.display = 'none';
-      loadBooks();
-    }
+    function closePdfReader() { triggerHaptic(12); document.getElementById('pdfReaderModal').style.display = 'none'; loadBooks(); }
 
-    // ================= 11. NATIVE APK DETECTION & DIRECT APK DOWNLOAD =================
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/myBooks/sw.js').catch((err) => console.log('SW Error:', err));
-      });
+      window.addEventListener('load', () => { navigator.serviceWorker.register('/myBooks/sw.js').catch((e) => {}); });
     }
 
     function hideInstallBtnIfNativeApp() {
-      const isStandalonePwa =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.navigator.standalone === true;
-
-      const isAndroidWebView =
-        Boolean(window.AndroidNative) ||
-        /; wv\)|Version\/[\d.]+.*Chrome\/[\d.]+ Mobile/i.test(navigator.userAgent);
-
+      const isStandalonePwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isAndroidWebView = Boolean(window.AndroidNative) || /; wv\)|Version\/[\d.]+.*Chrome\/[\d.]+ Mobile/i.test(navigator.userAgent);
       if (isStandalonePwa || isAndroidWebView) {
         const btn = document.getElementById('installAppBtn');
         if (btn) btn.style.display = 'none';
       }
     }
-
     hideInstallBtnIfNativeApp();
-    window.addEventListener('DOMContentLoaded', hideInstallBtnIfNativeApp);
-    setTimeout(hideInstallBtnIfNativeApp, 500);
 
-    function installPwaApp() {
-      triggerHaptic(15);
-      window.location.href = 'https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-app.apk';
-    }
-
-    // ================= 12. ANIMATED 16:9 SPONSOR BANNER & VIP SYSTEM =================
+    // ================= ANIMATED 16:9 SPONSOR BANNER & VIP SYSTEM =================
     let activeSponsorAds = [];
     let currentAdIndex = 0;
     let adSlideTimer = null;
@@ -2151,86 +1676,22 @@
     (function injectBannerAnimationStyles() {
       const style = document.createElement('style');
       style.textContent = `
-        #sarSponsorBannerSlot {
-          width: 100%; max-width: 768px; margin: 10px auto 6px;
-          padding: 0 16px; box-sizing: border-box; display: none;
-        }
-        .sar-ad-viewport {
-          position: relative; width: 100%; aspect-ratio: 16 / 9;
-          border-radius: 18px; overflow: hidden;
-          background: #1E120A;
-          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
-          border: 1px solid rgba(107, 20, 26, 0.25);
-          transform: translateZ(0);
-        }
-        .sar-ad-slide {
-          position: absolute; inset: 0; width: 100%; height: 100%;
-          opacity: 0; pointer-events: none; cursor: pointer;
-          transform: translateX(6%) scale(1.04);
-          transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                      transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .sar-ad-slide.active {
-          opacity: 1; pointer-events: auto;
-          transform: translateX(0) scale(1);
-          z-index: 2;
-        }
-        .sar-ad-slide.prev {
-          opacity: 0;
-          transform: translateX(-6%) scale(0.98);
-          z-index: 1;
-        }
-        .sar-ad-slide img {
-          width: 100%; height: 100%; object-fit: cover; display: block;
-          transition: transform 5.5s ease-out;
-        }
-        .sar-ad-slide.active img {
-          transform: scale(1.05);
-        }
-        .sar-ad-viewport::after {
-          content: ""; position: absolute; top: 0; left: -120%;
-          width: 65%; height: 100%; z-index: 3; pointer-events: none;
-          background: linear-gradient(100deg, transparent, rgba(255,255,255,0.18), transparent);
-          transform: skewX(-20deg);
-          animation: sarAdShimmer 6s infinite;
-        }
-        @keyframes sarAdShimmer {
-          0%, 70% { left: -120%; }
-          100% { left: 160%; }
-        }
-        .sar-ad-badge {
-          position: absolute; top: 9px; right: 10px; z-index: 4;
-          background: rgba(15, 10, 7, 0.72); backdrop-filter: blur(6px);
-          color: #FEF3C7; font-size: 11px; padding: 3px 10px;
-          border-radius: 999px; font-family: 'Padauk', sans-serif;
-          border: 1px solid rgba(254, 243, 199, 0.2);
-        }
-        .sar-ad-dots {
-          position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%);
-          z-index: 4; display: flex; align-items: center; gap: 6px;
-          padding: 4px 10px; border-radius: 999px;
-          background: rgba(15, 10, 7, 0.5); backdrop-filter: blur(4px);
-        }
-        .sar-ad-dot {
-          width: 6px; height: 6px; border-radius: 999px;
-          background: rgba(255, 255, 255, 0.45);
-          transition: all 0.35s ease; cursor: pointer;
-        }
-        .sar-ad-dot.active {
-          width: 20px; background: #FEF3C7;
-        }
-        .sar-ad-progress {
-          position: absolute; bottom: 0; left: 0; height: 3px;
-          background: linear-gradient(90deg, #f59e0b, #fef3c7);
-          z-index: 4; width: 0%;
-        }
-        .sar-ad-progress.run {
-          animation: sarAdProgressAnim 5.5s linear forwards;
-        }
-        @keyframes sarAdProgressAnim {
-          from { width: 0%; }
-          to { width: 100%; }
-        }
+        #sarSponsorBannerSlot { width: 100%; max-width: 768px; margin: 10px auto 6px; padding: 0 16px; box-sizing: border-box; display: none; }
+        .sar-ad-viewport { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #1E120A; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22); border: 1px solid rgba(107, 20, 26, 0.25); transform: translateZ(0); }
+        .sar-ad-slide { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; cursor: pointer; transform: translateX(6%) scale(1.04); transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), transform 0.75s cubic-bezier(0.22, 1, 0.36, 1); }
+        .sar-ad-slide.active { opacity: 1; pointer-events: auto; transform: translateX(0) scale(1); z-index: 2; }
+        .sar-ad-slide.prev { opacity: 0; transform: translateX(-6%) scale(0.98); z-index: 1; }
+        .sar-ad-slide img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 5.5s ease-out; }
+        .sar-ad-slide.active img { transform: scale(1.05); }
+        .sar-ad-viewport::after { content: ""; position: absolute; top: 0; left: -120%; width: 65%; height: 100%; z-index: 3; pointer-events: none; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.18), transparent); transform: skewX(-20deg); animation: sarAdShimmer 6s infinite; }
+        @keyframes sarAdShimmer { 0%, 70% { left: -120%; } 100% { left: 160%; } }
+        .sar-ad-badge { position: absolute; top: 9px; right: 10px; z-index: 4; background: rgba(15, 10, 7, 0.72); backdrop-filter: blur(6px); color: #FEF3C7; font-size: 11px; padding: 3px 10px; border-radius: 999px; font-family: 'Padauk', sans-serif; border: 1px solid rgba(254, 243, 199, 0.2); }
+        .sar-ad-dots { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(15, 10, 7, 0.5); backdrop-filter: blur(4px); }
+        .sar-ad-dot { width: 6px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.45); transition: all 0.35s ease; cursor: pointer; }
+        .sar-ad-dot.active { width: 20px; background: #FEF3C7; }
+        .sar-ad-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: linear-gradient(90deg, #f59e0b, #fef3c7); z-index: 4; width: 0%; }
+        .sar-ad-progress.run { animation: sarAdProgressAnim 5.5s linear forwards; }
+        @keyframes sarAdProgressAnim { from { width: 0%; } to { width: 100%; } }
       `;
       document.head.appendChild(style);
     })();
@@ -2241,38 +1702,23 @@
         if (!raw) return false;
         const vip = JSON.parse(raw);
         if (!vip || !vip.code || !vip.expires_at) return false;
-        if (new Date(vip.expires_at).getTime() < Date.now()) {
-          localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-          return false;
-        }
+        if (new Date(vip.expires_at).getTime() < Date.now()) { localStorage.removeItem(SAR_VIP_STORAGE_KEY); return false; }
         return true;
-      } catch (e) {
-        return false;
-      }
+      } catch (e) { return false; }
     }
 
     async function initReaderSponsorBanner() {
       if (!supabaseClient) return;
-
       if (!document.getElementById('sarSponsorBannerSlot')) {
         const slot = document.createElement('div');
         slot.id = 'sarSponsorBannerSlot';
         const headerEl = document.querySelector('header');
         const mainEl = document.querySelector('main') || document.body;
-        if (headerEl && headerEl.parentNode) {
-          headerEl.insertAdjacentElement('afterend', slot);
-        } else {
-          mainEl.insertBefore(slot, mainEl.firstChild);
-        }
+        if (headerEl && headerEl.parentNode) headerEl.insertAdjacentElement('afterend', slot);
+        else mainEl.insertBefore(slot, mainEl.firstChild);
       }
-
       try {
-        const { data } = await supabaseClient
-          .from('ads')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
-
+        const { data } = await supabaseClient.from('ads').select('*').eq('is_active', true).order('created_at', { ascending: false });
         activeSponsorAds = data || [];
         buildSponsorBannerCarousel();
         startSponsorBannerAutoPlay();
@@ -2282,12 +1728,7 @@
     function buildSponsorBannerCarousel() {
       const slot = document.getElementById('sarSponsorBannerSlot');
       if (!slot) return;
-
-      if (!activeSponsorAds.length || isReaderVipActive()) {
-        slot.style.display = 'none';
-        return;
-      }
-
+      if (!activeSponsorAds.length || isReaderVipActive()) { slot.style.display = 'none'; return; }
       slot.style.display = 'block';
       const slidesHtml = activeSponsorAds.map((ad, idx) => `
         <div class="sar-ad-slide ${idx === currentAdIndex ? 'active' : ''}" onclick="openSponsorAdLink(${ad.id}, '${(ad.target_url || '').replace(/'/g, "\\'")}')">
@@ -2295,29 +1736,17 @@
           <span class="sar-ad-badge">ကြော်ငြာ • ${ad.title || 'Sponsor'}</span>
         </div>
       `).join('');
-
       const dotsHtml = activeSponsorAds.length > 1 ? `
-        <div class="sar-ad-dots">
-          ${activeSponsorAds.map((_, idx) => `<span class="sar-ad-dot ${idx === currentAdIndex ? 'active' : ''}" onclick="goToSponsorSlide(${idx})"></span>`).join('')}
-        </div>
+        <div class="sar-ad-dots">${activeSponsorAds.map((_, idx) => `<span class="sar-ad-dot ${idx === currentAdIndex ? 'active' : ''}" onclick="goToSponsorSlide(${idx})"></span>`).join('')}</div>
         <div id="sarAdProgressBar" class="sar-ad-progress run"></div>
       ` : '';
-
-      slot.innerHTML = `
-        <div class="sar-ad-viewport" id="sarAdViewport">
-          ${slidesHtml}
-          ${dotsHtml}
-        </div>
-      `;
-
+      slot.innerHTML = `<div class="sar-ad-viewport" id="sarAdViewport">${slidesHtml}${dotsHtml}</div>`;
       const vp = document.getElementById('sarAdViewport');
       if (vp && activeSponsorAds.length > 1) {
         vp.addEventListener('touchstart', e => { adTouchStartX = e.changedTouches[0].screenX; }, { passive: true });
         vp.addEventListener('touchend', e => {
           const diff = e.changedTouches[0].screenX - adTouchStartX;
-          if (Math.abs(diff) > 40) {
-            goToSponsorSlide(diff < 0 ? currentAdIndex + 1 : currentAdIndex - 1);
-          }
+          if (Math.abs(diff) > 40) goToSponsorSlide(diff < 0 ? currentAdIndex + 1 : currentAdIndex - 1);
         }, { passive: true });
       }
     }
@@ -2325,32 +1754,19 @@
     function renderSponsorBannerSlide() {
       const slot = document.getElementById('sarSponsorBannerSlot');
       if (!slot) return;
-      if (!activeSponsorAds.length || isReaderVipActive()) {
-        slot.style.display = 'none';
-        return;
-      }
+      if (!activeSponsorAds.length || isReaderVipActive()) { slot.style.display = 'none'; return; }
       slot.style.display = 'block';
       const slides = slot.querySelectorAll('.sar-ad-slide');
       const dots = slot.querySelectorAll('.sar-ad-dot');
-      if (!slides.length) {
-        buildSponsorBannerCarousel();
-        return;
-      }
-
+      if (!slides.length) { buildSponsorBannerCarousel(); return; }
       slides.forEach((el, idx) => {
         el.classList.remove('active', 'prev');
         if (idx === currentAdIndex) el.classList.add('active');
         else if (idx === (currentAdIndex - 1 + activeSponsorAds.length) % activeSponsorAds.length) el.classList.add('prev');
       });
-
       dots.forEach((dot, idx) => dot.classList.toggle('active', idx === currentAdIndex));
-
       const bar = document.getElementById('sarAdProgressBar');
-      if (bar) {
-        bar.classList.remove('run');
-        void bar.offsetWidth;
-        bar.classList.add('run');
-      }
+      if (bar) { bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run'); }
     }
 
     function goToSponsorSlide(index) {
@@ -2387,17 +1803,9 @@
       if (isReaderVipActive()) {
         if (slot) slot.style.display = 'none';
         if (adSlideTimer) clearInterval(adSlideTimer);
-        if (headerBtn) {
-          headerBtn.innerHTML = '👑 VIP';
-          headerBtn.style.background = 'linear-gradient(135deg, #f59e0b, #b45309)';
-          headerBtn.style.color = '#FFFBEB';
-        }
+        if (headerBtn) { headerBtn.innerHTML = '👑 VIP'; headerBtn.style.background = 'linear-gradient(135deg, #f59e0b, #b45309)'; headerBtn.style.color = '#FFFBEB'; }
       } else {
-        if (headerBtn) {
-          headerBtn.innerHTML = '👑 VIP';
-          headerBtn.style.background = 'rgba(217, 119, 6, 0.14)';
-          headerBtn.style.color = '#b45309';
-        }
+        if (headerBtn) { headerBtn.innerHTML = '👑 VIP'; headerBtn.style.background = 'rgba(217, 119, 6, 0.14)'; headerBtn.style.color = '#b45309'; }
         buildSponsorBannerCarousel();
         startSponsorBannerAutoPlay();
       }
@@ -2416,18 +1824,12 @@
         </div>
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
-
       const targetBtn = document.getElementById('installAppBtn') || document.getElementById('settingsBtn');
       const vipBtn = document.createElement('button');
-      vipBtn.id = 'sarVipHeaderBtn';
-      vipBtn.type = 'button';
-      vipBtn.className = 'tactile-btn';
+      vipBtn.id = 'sarVipHeaderBtn'; vipBtn.type = 'button'; vipBtn.className = 'tactile-btn';
       vipBtn.style.cssText = 'padding:5px 11px; border-radius:999px; border:1px solid rgba(217,119,6,0.4); font-family:Padauk,sans-serif; font-size:12px; font-weight:700; cursor:pointer;';
       vipBtn.onclick = openSarVipModal;
-      if (targetBtn && targetBtn.parentNode) {
-        targetBtn.parentNode.insertBefore(vipBtn, targetBtn);
-      }
-
+      if (targetBtn && targetBtn.parentNode) targetBtn.parentNode.insertBefore(vipBtn, targetBtn);
       applyVipAdFreeState();
     })();
 
@@ -2436,7 +1838,6 @@
       const modal = document.getElementById('sarVipModal');
       const body = document.getElementById('sarVipModalBody');
       modal.style.display = 'flex';
-
       if (isReaderVipActive()) {
         const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
         const expDate = new Date(vip.expires_at).toLocaleDateString();
@@ -2446,23 +1847,15 @@
             <div style="font-weight:700; font-size:17px; color:#b45309;">${vip.member_name} (${vip.plan_name})</div>
             <div style="font-size:13px; opacity:0.8; margin:6px 0 14px;">ကြော်ငြာကင်းစင်သော VIP စနစ် အသက်ဝင်နေပါသည်။<br/>သက်တမ်းကုန်ဆုံးရက်: <b>${expDate}</b></div>
             <div style="font-family:monospace; padding:8px; background:rgba(217,119,6,0.1); border-radius:8px; font-weight:700; color:#92400e; margin-bottom:14px;">Code: ${vip.code}</div>
-            <button onclick="localStorage.removeItem('${SAR_VIP_STORAGE_KEY}'); applyVipAdFreeState(); openSarVipModal();" style="padding:8px 14px; border-radius:10px; border:1px solid #dc2626; background:transparent; color:#dc2626; font-family:'Padauk',sans-serif; cursor:pointer; font-size:12px;">
-              VIP Code ဖြုတ်မည်
-            </button>
+            <button onclick="localStorage.removeItem('${SAR_VIP_STORAGE_KEY}'); applyVipAdFreeState(); openSarVipModal();" style="padding:8px 14px; border-radius:10px; border:1px solid #dc2626; background:transparent; color:#dc2626; font-family:'Padauk',sans-serif; cursor:pointer; font-size:12px;">VIP Code ဖြုတ်မည်</button>
           </div>
         `;
       } else {
         body.innerHTML = `
-          <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px;">
-            ✨ <b>VIP အဖွဲ့ဝင် အခွင့်အရေးများ</b><br/>
-            • App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>
-            • စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်
-          </div>
-          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (ဥပမာ - SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); background:#fff; color:#111; font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
+          <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px;">✨ <b>VIP အဖွဲ့ဝင် အခွင့်အရေးများ</b><br/>• App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>• စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်</div>
+          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); background:#fff; color:#111; font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
           <div id="sarVipStatusMsg" style="font-size:13px; margin-bottom:8px; display:none;"></div>
-          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">
-            🔓 VIP Code အသက်သွင်းမည်
-          </button>
+          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">🔓 VIP Code အသက်သွင်းမည်</button>
         `;
       }
     }
@@ -2472,39 +1865,19 @@
       const msg = document.getElementById('sarVipStatusMsg');
       const code = (input.value || '').trim().toUpperCase();
       if (!code || !supabaseClient) return;
-
-      msg.style.display = 'block';
-      msg.style.color = '#b45309';
-      msg.textContent = 'စစ်ဆေးနေပါသည်...';
-
+      msg.style.display = 'block'; msg.style.color = '#b45309'; msg.textContent = 'စစ်ဆေးနေပါသည်...';
       const { data, error } = await supabaseClient.from('vip_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
-      if (error || !data) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
-      }
-
+      if (error || !data) { msg.style.color = '#dc2626'; msg.textContent = '❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။'; return; }
       let expiresAt = data.expires_at;
       if (!expiresAt) {
         const now = new Date();
-        const exp = new Date(now.getTime() + (data.duration_days || 30) * 86400000);
-        expiresAt = exp.toISOString();
+        expiresAt = new Date(now.getTime() + (data.duration_days || 30) * 86400000).toISOString();
         await supabaseClient.from('vip_codes').update({ activated_at: now.toISOString(), expires_at: expiresAt }).eq('id', data.id);
       } else if (new Date(expiresAt).getTime() < Date.now()) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ ဤ VIP Code သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
+        msg.style.color = '#dc2626'; msg.textContent = '❌ ဤ VIP Code သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ။'; return;
       }
-
-      localStorage.setItem(SAR_VIP_STORAGE_KEY, JSON.stringify({
-        code: data.code,
-        member_name: data.member_name,
-        plan_name: data.plan_name,
-        expires_at: expiresAt
-      }));
-
-      applyVipAdFreeState();
-      openSarVipModal();
+      localStorage.setItem(SAR_VIP_STORAGE_KEY, JSON.stringify({ code: data.code, member_name: data.member_name, plan_name: data.plan_name, expires_at: expiresAt }));
+      applyVipAdFreeState(); openSarVipModal();
     }
 
     async function verifyVipWithServer() {
@@ -2513,60 +1886,33 @@
         const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
         const { data } = await supabaseClient.from('vip_codes').select('is_active, expires_at').eq('code', vip.code).maybeSingle();
         if (!data || !data.is_active || (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
-          localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-          applyVipAdFreeState();
+          localStorage.removeItem(SAR_VIP_STORAGE_KEY); applyVipAdFreeState();
         }
       } catch (e) {}
     }
 
-    // ================= 13. PREMIUM UI ANIMATIONS (CASCADE & FLOATING PARTICLES) =================
+    // ================= 13. UI ANIMATIONS & PARTICLES =================
     (function initSarPremiumAnimations() {
       const animStyle = document.createElement('style');
       animStyle.textContent = `
         @keyframes sarBookCascadeIn {
-          0% {
-            opacity: 0;
-            transform: translateY(20px) scale(0.92) rotateY(-10deg);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1) rotateY(0deg);
-          }
+          0% { opacity: 0; transform: translateY(20px) scale(0.92) rotateY(-10deg); }
+          100% { opacity: 1; transform: translateY(0) scale(1) rotateY(0deg); }
         }
-        .sar-cascade-item {
-          opacity: 0;
-          transform-origin: left bottom;
-          animation: sarBookCascadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
+        .sar-cascade-item { opacity: 0; transform-origin: left bottom; animation: sarBookCascadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         @keyframes sarFloatParticle {
-          0% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(0.6);
-          }
-          60% {
-            opacity: 1;
-            transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.25);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) - 18px)) scale(0.8);
-          }
+          0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
+          60% { opacity: 1; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.25); }
+          100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) - 18px)) scale(0.8); }
         }
-        .sar-pop-particle {
-          position: fixed;
-          z-index: 99999;
-          pointer-events: none;
-          font-size: 16px;
-          animation: sarFloatParticle 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
+        .sar-pop-particle { position: fixed; z-index: 99999; pointer-events: none; font-size: 16px; animation: sarFloatParticle 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
       `;
       document.head.appendChild(animStyle);
 
       function applyShelfCascade() {
         const shelf = document.getElementById('cleanShelfRows');
         if (!shelf) return;
-        const books = shelf.querySelectorAll('.book-cover-3d');
-        books.forEach((el, idx) => {
+        shelf.querySelectorAll('.book-cover-3d').forEach((el, idx) => {
           if (el.dataset.cascaded === '1') return;
           el.dataset.cascaded = '1';
           el.classList.add('sar-cascade-item');
@@ -2576,10 +1922,7 @@
 
       window.addEventListener('DOMContentLoaded', () => {
         const shelf = document.getElementById('cleanShelfRows');
-        if (shelf) {
-          const observer = new MutationObserver(() => applyShelfCascade());
-          observer.observe(shelf, { childList: true, subtree: true });
-        }
+        if (shelf) { new MutationObserver(() => applyShelfCascade()).observe(shelf, { childList: true, subtree: true }); }
       });
 
       document.addEventListener('click', function(e) {
@@ -2593,15 +1936,13 @@
 
       function spawnPopParticles(x, y, icon) {
         if (!x && !y) return;
-        const count = 5;
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < 5; i++) {
           const span = document.createElement('span');
           span.className = 'sar-pop-particle';
           span.textContent = i % 2 === 0 ? icon : '✨';
-          const angle = (Math.PI * 2 * i) / count - Math.PI / 2;
+          const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
           const dist = 24 + Math.random() * 22;
-          span.style.left = x + 'px';
-          span.style.top = y + 'px';
+          span.style.left = x + 'px'; span.style.top = y + 'px';
           span.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
           span.style.setProperty('--dy', `${Math.sin(angle) * dist - 12}px`);
           document.body.appendChild(span);
@@ -2610,486 +1951,165 @@
       }
     })();
 
-    // ================= 14. REALISTIC PLUSH KITTEN (CANVAS ENGINE) & FAIRY LIGHTS =================
+    // ================= 14. REALISTIC PLUSH KITTEN & FAIRY LIGHTS =================
     (function initCozyShelfCatAndLights() {
       const cozyStyle = document.createElement('style');
       cozyStyle.textContent = `
-        .premium-shelf-ledge {
-          position: relative;
-          overflow: visible !important;
-        }
-
-        /* 1. ANIMATED FAIRY LIGHTS ON SHELF LEDGE */
-        .sar-fairy-wire {
-          position: absolute;
-          left: 10px;
-          right: 10px;
-          top: 9px;
-          height: 16px;
-          display: flex;
-          justify-content: space-around;
-          align-items: flex-start;
-          pointer-events: none;
-          z-index: 15;
-        }
-        .sar-fairy-wire::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 2px;
-          height: 2px;
-          background: repeating-linear-gradient(90deg, rgba(60,40,20,0.55) 0 8px, rgba(30,20,10,0.3) 8px 14px);
-          border-radius: 999px;
-        }
-        .sar-fairy-bulb {
-          position: relative;
-          width: 7px;
-          height: 9px;
-          border-radius: 50% 50% 55% 55%;
-          background: #FFFBEB;
-          transform-origin: top center;
-          animation:
-            sarBulbTwinkle var(--twinkle-dur, 2.4s) ease-in-out infinite alternate,
-            sarBulbSway 3.6s ease-in-out infinite alternate;
-          animation-delay: var(--bulb-delay, 0s);
-        }
-        .sar-fairy-bulb::before {
-          content: "";
-          position: absolute;
-          top: -2px;
-          left: 2px;
-          width: 3px;
-          height: 3px;
-          background: #44403c;
-          border-radius: 1px;
-        }
+        .sar-fairy-wire { position: absolute; left: 10px; right: 10px; top: 9px; height: 16px; display: flex; justify-content: space-around; align-items: flex-start; pointer-events: none; z-index: 15; }
+        .sar-fairy-wire::before { content: ""; position: absolute; left: 0; right: 0; top: 2px; height: 2px; background: repeating-linear-gradient(90deg, rgba(60,40,20,0.55) 0 8px, rgba(30,20,10,0.3) 8px 14px); border-radius: 999px; }
+        .sar-fairy-bulb { position: relative; width: 7px; height: 9px; border-radius: 50% 50% 55% 55%; background: #FFFBEB; transform-origin: top center; animation: sarBulbTwinkle var(--twinkle-dur, 2.4s) ease-in-out infinite alternate, sarBulbSway 3.6s ease-in-out infinite alternate; animation-delay: var(--bulb-delay, 0s); }
+        .sar-fairy-bulb::before { content: ""; position: absolute; top: -2px; left: 2px; width: 3px; height: 3px; background: #44403c; border-radius: 1px; }
         @keyframes sarBulbTwinkle {
-          0% {
-            opacity: 0.45;
-            background: #FDE68A;
-            box-shadow: 0 0 4px #F59E0B, 0 0 8px rgba(245, 158, 11, 0.35);
-            transform: scale(0.92);
-          }
-          50% {
-            opacity: 0.85;
-            background: #FEF3C7;
-            box-shadow: 0 0 8px #FBBF24, 0 0 16px rgba(251, 191, 36, 0.65);
-          }
-          100% {
-            opacity: 1;
-            background: #FFFFFF;
-            box-shadow: 0 0 11px #FDE047, 0 0 22px rgba(250, 204, 21, 0.9), 0 0 30px rgba(245, 158, 11, 0.55);
-            transform: scale(1.08);
-          }
+          0% { opacity: 0.45; background: #FDE68A; box-shadow: 0 0 4px #F59E0B; transform: scale(0.92); }
+          50% { opacity: 0.85; background: #FEF3C7; box-shadow: 0 0 8px #FBBF24; }
+          100% { opacity: 1; background: #FFFFFF; box-shadow: 0 0 11px #FDE047, 0 0 22px rgba(250, 204, 21, 0.9); transform: scale(1.08); }
         }
-        @keyframes sarBulbSway {
-          0% { rotate: -5deg; }
-          100% { rotate: 5deg; }
-        }
-
-        /* 2. SMOOTH CANVAS KITTEN STAGE (HALF-BOOK HEIGHT, ZERO TOUCH BLOCKING) */
-        .sar-kitten-stage {
-          position: absolute;
-          left: 8px;
-          right: 8px;
-          bottom: 8px;
-          height: 96px;
-          pointer-events: none;
-          z-index: 24;
-        }
-        .sar-kitten-canvas {
-          position: absolute;
-          bottom: 0;
-          width: clamp(78px, 17vw, 96px);
-          height: clamp(78px, 17vw, 96px);
-          pointer-events: none;
-          will-change: left;
-        }
+        @keyframes sarBulbSway { 0% { rotate: -5deg; } 100% { rotate: 5deg; } }
+        .sar-kitten-stage { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 96px; pointer-events: none; z-index: 24; }
+        .sar-kitten-canvas { position: absolute; bottom: 0; width: clamp(78px, 17vw, 96px); height: clamp(78px, 17vw, 96px); pointer-events: none; will-change: left; }
       `;
       document.head.appendChild(cozyStyle);
 
-      // Kitten Animation State
-      const catState = {
-        xPct: 16,
-        targetPct: 68,
-        dir: 1,           // 1 = right, -1 = left
-        walking: false,
-        sitBlend: 1,      // 0 = full walk, 1 = full sit
-        walkCycle: 0,
-        lastTime: performance.now(),
-        nextSwitchAt: performance.now() + 2600,
-        blinkTimer: 0,
-        earTwitch: 0
-      };
-
+      const catState = { xPct: 16, targetPct: 68, dir: 1, walking: false, sitBlend: 1, walkCycle: 0, lastTime: performance.now(), nextSwitchAt: performance.now() + 2600 };
       let animFrameId = null;
 
       function pickNextTarget() {
         let next = 10 + Math.random() * 72;
-        if (Math.abs(next - catState.xPct) < 20) {
-          next = catState.xPct > 50 ? 14 + Math.random() * 20 : 62 + Math.random() * 20;
-        }
-        catState.targetPct = next;
-        catState.dir = next >= catState.xPct ? 1 : -1;
-        catState.walking = true;
+        if (Math.abs(next - catState.xPct) < 20) next = catState.xPct > 50 ? 14 + Math.random() * 20 : 62 + Math.random() * 20;
+        catState.targetPct = next; catState.dir = next >= catState.xPct ? 1 : -1; catState.walking = true;
       }
 
       function renderPlushKitten(ctx, w, h, now) {
         const dt = Math.min((now - catState.lastTime) / 1000, 0.05);
         catState.lastTime = now;
-
-        // Update Walk / Sit State Machine
         if (catState.walking) {
           catState.sitBlend = Math.max(0, catState.sitBlend - dt * 3.2);
           if (catState.sitBlend < 0.35) {
-            const speedPctPerSec = 9.5;
-            const step = speedPctPerSec * dt * catState.dir;
-            catState.xPct += step;
+            catState.xPct += 9.5 * dt * catState.dir;
             catState.walkCycle += dt * 9.2;
-
-            if ((catState.dir === 1 && catState.xPct >= catState.targetPct) ||
-                (catState.dir === -1 && catState.xPct <= catState.targetPct)) {
-              catState.xPct = catState.targetPct;
-              catState.walking = false;
-              catState.nextSwitchAt = now + 4500 + Math.random() * 3200;
+            if ((catState.dir === 1 && catState.xPct >= catState.targetPct) || (catState.dir === -1 && catState.xPct <= catState.targetPct)) {
+              catState.xPct = catState.targetPct; catState.walking = false; catState.nextSwitchAt = now + 4500 + Math.random() * 3200;
             }
           }
         } else {
           catState.sitBlend = Math.min(1, catState.sitBlend + dt * 2.8);
-          if (now >= catState.nextSwitchAt) {
-            pickNextTarget();
-          }
+          if (now >= catState.nextSwitchAt) pickNextTarget();
         }
 
-        const s = catState.sitBlend; // 0 = walk, 1 = sit
+        const s = catState.sitBlend;
         const t = now / 1000;
         const breathe = Math.sin(t * 2.6) * 1.2;
         const walkBob = (1 - s) * Math.abs(Math.sin(catState.walkCycle)) * 2.2;
 
         ctx.clearRect(0, 0, w, h);
         ctx.save();
+        if (catState.dir === -1) { ctx.translate(w, 0); ctx.scale(-1, 1); }
 
-        // Flip horizontally when facing left
-        if (catState.dir === -1) {
-          ctx.translate(w, 0);
-          ctx.scale(-1, 1);
-        }
-
-        // Ground Shadow on Shelf Ledge
         ctx.fillStyle = 'rgba(20, 12, 6, 0.28)';
-        ctx.beginPath();
-        ctx.ellipse(50, 91, 24 - s * 3, 4.5, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.ellipse(50, 91, 24 - s * 3, 4.5, 0, 0, Math.PI * 2); ctx.fill();
 
-        // 1. FLUFFY ANIMATED TAIL
         const tailBaseX = 28 + s * 6;
         const tailBaseY = 68 + s * 14 - walkBob;
         const tailWag = Math.sin(t * 3.4) * (6 + (1 - s) * 4);
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#E07A2E';
-        ctx.lineWidth = 8.5;
-        ctx.beginPath();
-        ctx.moveTo(tailBaseX, tailBaseY);
-        ctx.bezierCurveTo(
-          tailBaseX - 18, tailBaseY - 4 + tailWag * 0.4,
-          tailBaseX - 22, tailBaseY - 22 + tailWag,
-          tailBaseX - 10, tailBaseY - 28 + tailWag
-        );
+        ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = '#E07A2E'; ctx.lineWidth = 8.5;
+        ctx.beginPath(); ctx.moveTo(tailBaseX, tailBaseY);
+        ctx.bezierCurveTo(tailBaseX - 18, tailBaseY - 4 + tailWag * 0.4, tailBaseX - 22, tailBaseY - 22 + tailWag, tailBaseX - 10, tailBaseY - 28 + tailWag);
         ctx.stroke();
-
-        // Cream Tail Tip
-        ctx.strokeStyle = '#FFF7EB';
-        ctx.lineWidth = 7.5;
-        ctx.beginPath();
-        ctx.moveTo(tailBaseX - 13, tailBaseY - 25 + tailWag * 0.9);
-        ctx.lineTo(tailBaseX - 10, tailBaseY - 28 + tailWag);
-        ctx.stroke();
+        ctx.strokeStyle = '#FFF7EB'; ctx.lineWidth = 7.5;
+        ctx.beginPath(); ctx.moveTo(tailBaseX - 13, tailBaseY - 25 + tailWag * 0.9); ctx.lineTo(tailBaseX - 10, tailBaseY - 28 + tailWag); ctx.stroke();
         ctx.restore();
 
-        // Helper for Stepping Paws
         function drawLeg(hipX, hipY, phaseOffset, isBackLayer) {
           const swing = (1 - s) * Math.sin(catState.walkCycle + phaseOffset) * 7.5;
           const lift = (1 - s) * Math.max(0, -Math.cos(catState.walkCycle + phaseOffset)) * 5.5;
-          const footX = hipX + swing;
-          const footY = 89 - lift;
-
-          ctx.strokeStyle = isBackLayer ? '#C8641E' : '#EDA158';
-          ctx.lineWidth = 8.5;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(hipX, hipY);
-          ctx.quadraticCurveTo(hipX + swing * 0.4, (hipY + footY) * 0.5, footX, footY - 2);
-          ctx.stroke();
-
-          // White Sock Paw
+          const footX = hipX + swing; const footY = 89 - lift;
+          ctx.strokeStyle = isBackLayer ? '#C8641E' : '#EDA158'; ctx.lineWidth = 8.5; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(hipX, hipY); ctx.quadraticCurveTo(hipX + swing * 0.4, (hipY + footY) * 0.5, footX, footY - 2); ctx.stroke();
           ctx.fillStyle = isBackLayer ? '#E8DEC8' : '#FFFDF9';
-          ctx.beginPath();
-          ctx.ellipse(footX + 1.5, footY, 5.5, 3.6, 0, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.ellipse(footX + 1.5, footY, 5.5, 3.6, 0, 0, Math.PI * 2); ctx.fill();
         }
 
-        // 2. FAR SIDE LEGS (visible during walking)
-        if (s < 0.92) {
-          drawLeg(34, 70, Math.PI, true);
-          drawLeg(58, 70, 0, true);
-        }
+        if (s < 0.92) { drawLeg(34, 70, Math.PI, true); drawLeg(58, 70, 0, true); }
 
-        // 3. PLUSH BODY ( Interpolates smoothly between Walk and Sit )
-        const bodyCenterX = 46 + s * 3;
-        const bodyCenterY = 66 + s * 6 - walkBob + breathe * 0.4;
-        const bodyRx = 21 - s * 4;
-        const bodyRy = 14 + s * 5;
+        const bodyCenterX = 46 + s * 3; const bodyCenterY = 66 + s * 6 - walkBob + breathe * 0.4;
+        const bodyGrad = ctx.createRadialGradient(bodyCenterX + 4, bodyCenterY - 4, 4, bodyCenterX, bodyCenterY, 26);
+        bodyGrad.addColorStop(0, '#FAD19E'); bodyGrad.addColorStop(0.65, '#F09A48'); bodyGrad.addColorStop(1, '#D47222');
+        ctx.fillStyle = bodyGrad; ctx.beginPath(); ctx.ellipse(bodyCenterX, bodyCenterY, 21 - s * 4, 14 + s * 5, -s * 0.25, 0, Math.PI * 2); ctx.fill();
 
-        const bodyGrad = ctx.createRadialGradient(
-          bodyCenterX + 4, bodyCenterY - 4, 4,
-          bodyCenterX, bodyCenterY, 26
-        );
-        bodyGrad.addColorStop(0, '#FAD19E');
-        bodyGrad.addColorStop(0.65, '#F09A48');
-        bodyGrad.addColorStop(1, '#D47222');
-
-        ctx.fillStyle = bodyGrad;
-        ctx.beginPath();
-        ctx.ellipse(bodyCenterX, bodyCenterY, bodyRx, bodyRy, -s * 0.25, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Soft Back Tabby Stripes
-        ctx.strokeStyle = 'rgba(168, 72, 12, 0.45)';
-        ctx.lineWidth = 2.8;
-        ctx.lineCap = 'round';
-        for (let i = 0; i < 3; i++) {
-          const sx = bodyCenterX - 8 + i * 6;
-          const sy = bodyCenterY - bodyRy + 2 + i * s * 2;
-          ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.quadraticCurveTo(sx - 2, sy + 6, sx - 1, sy + 10);
-          ctx.stroke();
-        }
-
-        // Sitting Haunch & Hind Paws
         if (s > 0.2) {
-          ctx.save();
-          ctx.globalAlpha = s;
-          ctx.fillStyle = '#E58635';
-          ctx.beginPath();
-          ctx.ellipse(39, 80, 11, 9, 0.2, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#FFFDF9';
-          ctx.beginPath();
-          ctx.ellipse(38, 89, 6.5, 3.8, 0, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.save(); ctx.globalAlpha = s;
+          ctx.fillStyle = '#E58635'; ctx.beginPath(); ctx.ellipse(39, 80, 11, 9, 0.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#FFFDF9'; ctx.beginPath(); ctx.ellipse(38, 89, 6.5, 3.8, 0, 0, Math.PI * 2); ctx.fill();
           ctx.restore();
         }
 
-        // Fluffy Cream Chest Bib
-        const chestX = 60 - s * 5;
-        const chestY = 67 + s * 4 - walkBob;
+        const chestX = 60 - s * 5; const chestY = 67 + s * 4 - walkBob;
         const chestGrad = ctx.createRadialGradient(chestX + 2, chestY - 2, 2, chestX, chestY, 14);
-        chestGrad.addColorStop(0, '#FFFFFF');
-        chestGrad.addColorStop(0.75, '#FFF6E8');
-        chestGrad.addColorStop(1, '#EADBC5');
-        ctx.fillStyle = chestGrad;
-        ctx.beginPath();
-        ctx.ellipse(chestX, chestY, 11 + s * 2, 10 + s * 2, 0.15, 0, Math.PI * 2);
-        ctx.fill();
+        chestGrad.addColorStop(0, '#FFFFFF'); chestGrad.addColorStop(0.75, '#FFF6E8'); chestGrad.addColorStop(1, '#EADBC5');
+        ctx.fillStyle = chestGrad; ctx.beginPath(); ctx.ellipse(chestX, chestY, 11 + s * 2, 10 + s * 2, 0.15, 0, Math.PI * 2); ctx.fill();
 
-        // 4. NEAR SIDE LEGS / SITTING FRONT PAWS
         drawLeg(32 + s * 6, 71 + s * 6, 0, false);
         drawLeg(56 - s * 4, 71 + s * 3, Math.PI, false);
 
         if (s > 0.3) {
-          ctx.save();
-          ctx.globalAlpha = s;
-          // Front neatly planted paws when sitting
-          ctx.fillStyle = '#FFFDF9';
-          ctx.beginPath();
+          ctx.save(); ctx.globalAlpha = s;
+          ctx.fillStyle = '#FFFDF9'; ctx.beginPath();
           ctx.ellipse(58, 89.5, 5.8, 3.8, 0, 0, Math.PI * 2);
           ctx.ellipse(50, 89.5, 5.8, 3.8, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
+          ctx.fill(); ctx.restore();
         }
 
-        // 5. ROUND PLUSH HEAD (British Shorthair Cheeks)
-        const headX = 60 - s * 6;
-        const headY = 44 + s * 2 - walkBob * 0.8 + breathe * 0.6;
-
-        // Ear Twitch Calculation
+        const headX = 60 - s * 6; const headY = 44 + s * 2 - walkBob * 0.8 + breathe * 0.6;
         const earAngle = Math.sin(t * 1.7) > 0.92 ? Math.sin(t * 18) * 0.08 : 0;
 
-        // Left (Back) Ear
-        ctx.save();
-        ctx.translate(headX - 11, headY - 14);
-        ctx.rotate(-0.28 + earAngle);
-        ctx.fillStyle = '#E07A2E';
-        ctx.beginPath();
-        ctx.moveTo(-7, 6);
-        ctx.quadraticCurveTo(-8, -12, 2, -11);
-        ctx.quadraticCurveTo(9, -10, 8, 5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#F9B4B8';
-        ctx.beginPath();
-        ctx.moveTo(-4, 4);
-        ctx.quadraticCurveTo(-4, -7, 2, -7);
-        ctx.quadraticCurveTo(6, -6, 5, 4);
-        ctx.closePath();
-        ctx.fill();
+        ctx.save(); ctx.translate(headX - 11, headY - 14); ctx.rotate(-0.28 + earAngle);
+        ctx.fillStyle = '#E07A2E'; ctx.beginPath(); ctx.moveTo(-7, 6); ctx.quadraticCurveTo(-8, -12, 2, -11); ctx.quadraticCurveTo(9, -10, 8, 5); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#F9B4B8'; ctx.beginPath(); ctx.moveTo(-4, 4); ctx.quadraticCurveTo(-4, -7, 2, -7); ctx.quadraticCurveTo(6, -6, 5, 4); ctx.closePath(); ctx.fill();
         ctx.restore();
 
-        // Right (Front) Ear
-        ctx.save();
-        ctx.translate(headX + 11, headY - 14);
-        ctx.rotate(0.26 - earAngle);
-        ctx.fillStyle = '#E07A2E';
-        ctx.beginPath();
-        ctx.moveTo(-8, 5);
-        ctx.quadraticCurveTo(-9, -10, -2, -11);
-        ctx.quadraticCurveTo(8, -12, 7, 6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#F9B4B8';
-        ctx.beginPath();
-        ctx.moveTo(-5, 4);
-        ctx.quadraticCurveTo(-6, -6, -1, -7);
-        ctx.quadraticCurveTo(4, -7, 4, 4);
-        ctx.closePath();
-        ctx.fill();
+        ctx.save(); ctx.translate(headX + 11, headY - 14); ctx.rotate(0.26 - earAngle);
+        ctx.fillStyle = '#E07A2E'; ctx.beginPath(); ctx.moveTo(-8, 5); ctx.quadraticCurveTo(-9, -10, -2, -11); ctx.quadraticCurveTo(8, -12, 7, 6); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#F9B4B8'; ctx.beginPath(); ctx.moveTo(-5, 4); ctx.quadraticCurveTo(-6, -6, -1, -7); ctx.quadraticCurveTo(4, -7, 4, 4); ctx.closePath(); ctx.fill();
         ctx.restore();
 
-        // Main Plush Head Sphere
         const headGrad = ctx.createRadialGradient(headX + 2, headY - 4, 4, headX, headY, 22);
-        headGrad.addColorStop(0, '#FFF8EE');
-        headGrad.addColorStop(0.55, '#FBD5A6');
-        headGrad.addColorStop(1, '#E89242');
+        headGrad.addColorStop(0, '#FFF8EE'); headGrad.addColorStop(0.55, '#FBD5A6'); headGrad.addColorStop(1, '#E89242');
+        ctx.fillStyle = headGrad; ctx.beginPath(); ctx.ellipse(headX, headY, 19.5, 17, 0, 0, Math.PI * 2); ctx.fill();
 
-        ctx.fillStyle = headGrad;
-        ctx.beginPath();
-        ctx.ellipse(headX, headY, 19.5, 17, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Chubby Cream Lower Cheeks
-        ctx.fillStyle = '#FFFDF9';
-        ctx.beginPath();
+        ctx.fillStyle = '#FFFDF9'; ctx.beginPath();
         ctx.ellipse(headX - 6, headY + 6, 11, 8.5, -0.1, 0, Math.PI * 2);
         ctx.ellipse(headX + 8, headY + 6, 11, 8.5, 0.1, 0, Math.PI * 2);
         ctx.fill();
 
-        // Forehead Ginger Tabby 'M' Markings
-        ctx.strokeStyle = '#D96B1E';
-        ctx.lineWidth = 2.4;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(headX + 1, headY - 15);
-        ctx.lineTo(headX + 1, headY - 8);
-        ctx.moveTo(headX - 5, headY - 14);
-        ctx.lineTo(headX - 3, headY - 8);
-        ctx.moveTo(headX + 7, headY - 14);
-        ctx.lineTo(headX + 5, headY - 8);
-        ctx.stroke();
-
-        // Cute Rosy Cheek Blush
-        ctx.fillStyle = 'rgba(251, 113, 133, 0.28)';
-        ctx.beginPath();
-        ctx.ellipse(headX - 10, headY + 5, 3.8, 2.2, 0, 0, Math.PI * 2);
-        ctx.ellipse(headX + 12, headY + 5, 3.8, 2.2, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 6. BIG GLOSSY EYES (With Natural Blink)
         const blinkCycle = (t % 4.4);
         const eyeOpen = (blinkCycle > 4.15 && blinkCycle < 4.32) ? 0.08 : 1;
 
         function drawGlossyEye(ex, ey, radius) {
-          ctx.save();
-          ctx.translate(ex, ey);
-          ctx.scale(1, eyeOpen);
-
-          // Warm Amber Outer Iris
-          ctx.fillStyle = '#854D0E';
-          ctx.beginPath();
-          ctx.arc(0, 0, radius, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Deep Dark Pupil
-          ctx.fillStyle = '#1C1412';
-          ctx.beginPath();
-          ctx.arc(0.4, 0, radius * 0.76, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Dual Anime/Real Catchlights
-          ctx.fillStyle = '#FFFFFF';
-          ctx.beginPath();
-          ctx.arc(-radius * 0.32, -radius * 0.32, radius * 0.32, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.arc(radius * 0.3, radius * 0.3, radius * 0.15, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.save(); ctx.translate(ex, ey); ctx.scale(1, eyeOpen);
+          ctx.fillStyle = '#854D0E'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#1C1412'; ctx.beginPath(); ctx.arc(0.4, 0, radius * 0.76, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(-radius * 0.32, -radius * 0.32, radius * 0.32, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(radius * 0.3, radius * 0.3, radius * 0.15, 0, Math.PI * 2); ctx.fill();
           ctx.restore();
         }
-
         drawGlossyEye(headX - 6, headY - 0.5, 4.9);
         drawGlossyEye(headX + 8.5, headY - 0.5, 4.9);
 
-        // 7. SWEET PINK NOSE, MOUTH & WHISKERS
-        const noseX = headX + 1.5;
-        const noseY = headY + 4.5;
-        ctx.fillStyle = '#FB7185';
-        ctx.beginPath();
-        ctx.moveTo(noseX - 2.6, noseY - 1.5);
-        ctx.lineTo(noseX + 2.6, noseY - 1.5);
-        ctx.lineTo(noseX, noseY + 1.6);
-        ctx.closePath();
-        ctx.fill();
+        const noseX = headX + 1.5; const noseY = headY + 4.5;
+        ctx.fillStyle = '#FB7185'; ctx.beginPath(); ctx.moveTo(noseX - 2.6, noseY - 1.5); ctx.lineTo(noseX + 2.6, noseY - 1.5); ctx.lineTo(noseX, noseY + 1.6); ctx.closePath(); ctx.fill();
 
-        // 'ω' Cat Mouth
-        ctx.strokeStyle = '#6B3E26';
-        ctx.lineWidth = 1.4;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(noseX - 4, noseY + 3.2);
-        ctx.quadraticCurveTo(noseX - 1.8, noseY + 5, noseX, noseY + 2);
-        ctx.quadraticCurveTo(noseX + 1.8, noseY + 5, noseX + 4, noseY + 3.2);
-        ctx.stroke();
-
-        // Delicate White Whiskers
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        // Left Whiskers
-        ctx.moveTo(headX - 11, headY + 4); ctx.lineTo(headX - 23, headY + 2);
-        ctx.moveTo(headX - 11, headY + 6.5); ctx.lineTo(headX - 24, headY + 7);
-        // Right Whiskers
-        ctx.moveTo(headX + 13, headY + 4); ctx.lineTo(headX + 25, headY + 2);
-        ctx.moveTo(headX + 13, headY + 6.5); ctx.lineTo(headX + 26, headY + 7);
-        ctx.stroke();
-
-        // Red Collar & Tiny Golden Bell
-        ctx.strokeStyle = '#DC2626';
-        ctx.lineWidth = 2.6;
-        ctx.beginPath();
-        ctx.arc(headX, headY + 9, 11, 0.35, Math.PI - 0.35);
-        ctx.stroke();
-
-        ctx.fillStyle = '#FACC15';
-        ctx.beginPath();
-        ctx.arc(headX + 1.5, headY + 20.5, 2.6, 0, Math.PI * 2);
-        ctx.fill();
-
+        ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(headX, headY + 9, 11, 0.35, Math.PI - 0.35); ctx.stroke();
+        ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(headX + 1.5, headY + 20.5, 2.6, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       }
 
       function startCanvasKittenLoop() {
         if (animFrameId) cancelAnimationFrame(animFrameId);
-
         function tick(now) {
           const canvas = document.getElementById('sarShelfKittenCanvas');
           if (canvas) {
             canvas.style.left = `${catState.xPct}%`;
-            const ctx = canvas.getContext('2d');
-            renderPlushKitten(ctx, 100, 100, now);
+            renderPlushKitten(canvas.getContext('2d'), 100, 100, now);
           }
           animFrameId = requestAnimationFrame(tick);
         }
@@ -3099,9 +2119,7 @@
       function decorateShelvesWithLightsAndKitten() {
         const ledges = document.querySelectorAll('#cleanShelfRows .premium-shelf-ledge');
         if (!ledges.length) return;
-
         const bulbCount = window.innerWidth >= 640 ? 11 : 8;
-
         ledges.forEach((ledge, shelfIdx) => {
           if (!ledge.querySelector('.sar-fairy-wire')) {
             const wire = document.createElement('div');
@@ -3116,7 +2134,6 @@
             wire.innerHTML = bulbsHtml;
             ledge.appendChild(wire);
           }
-
           if (shelfIdx === 0 && !ledge.querySelector('.sar-kitten-stage')) {
             const stage = document.createElement('div');
             stage.className = 'sar-kitten-stage';
@@ -3130,41 +2147,17 @@
       window.addEventListener('DOMContentLoaded', () => {
         setTimeout(decorateShelvesWithLightsAndKitten, 600);
         const shelfContainer = document.getElementById('cleanShelfRows');
-        if (shelfContainer) {
-          const obs = new MutationObserver(() => decorateShelvesWithLightsAndKitten());
-          obs.observe(shelfContainer, { childList: true });
-        }
+        if (shelfContainer) { new MutationObserver(() => decorateShelvesWithLightsAndKitten()).observe(shelfContainer, { childList: true }); }
       });
     })();
 
-// ================= 15. SMART iOS APP SUPPORT (DIRECT PROFILE + HOME SCREEN) =================
+    // ================= 15. SMART iOS APP SUPPORT =================
     (function initIosAppExperience() {
-      const vpMeta = document.querySelector('meta[name="viewport"]');
-      if (vpMeta && !vpMeta.content.includes('viewport-fit=cover')) {
-        vpMeta.content += ', viewport-fit=cover';
-      }
-
-      const iosStyle = document.createElement('style');
-      iosStyle.textContent = `
-        @supports (padding-top: env(safe-area-inset-top)) {
-          header {
-            padding-top: calc(0.625rem + env(safe-area-inset-top)) !important;
-          }
-          body {
-            padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
-          }
-        }
-      `;
-      document.head.appendChild(iosStyle);
-
       window.isIosDevice = function() {
-        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       };
-
       window.isIosStandalone = function() {
-        return window.navigator.standalone === true ||
-          window.matchMedia('(display-mode: standalone)').matches;
+        return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
       };
 
       const iosModalHtml = `
@@ -3180,19 +2173,11 @@
               </div>
               <button onclick="document.getElementById('sarIosInstallModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
             </div>
-
-            <!-- Method 1: Direct iOS Configuration Profile -->
             <div style="background:var(--bg-card, #F3EFE6); border-radius:16px; padding:14px; font-size:12.5px; line-height:1.7; border:1px solid var(--border-col, #E5DEC9); margin-bottom:12px;">
               <div style="font-weight:700; color:var(--accent, #6B141A); margin-bottom:6px;">⚡ နည်းလမ်း (၁) — တိုက်ရိုက် iOS Profile ဖြင့် သွင်းရန်</div>
-              <a href="https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-ios.mobileconfig" style="display:block; text-align:center; padding:10px; border-radius:12px; background:var(--accent, #6B141A); color:#fff; font-weight:700; text-decoration:none; margin-bottom:6px;">
-                🍎 iOS App Profile ဒေါင်းလုဒ်ဆွဲမည်
-              </a>
-              <div style="font-size:11px; opacity:0.8;">
-                ဒေါင်းပြီးပါက iPhone ၏ <b>Settings ➔ Profile Downloaded ➔ Install</b> ကို နှိပ်လိုက်ရုံဖြင့် Home Screen ပေါ်သို့ App ရောက်ရှိသွားပါမည်။
-              </div>
+              <a href="https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-ios.mobileconfig" style="display:block; text-align:center; padding:10px; border-radius:12px; background:var(--accent, #6B141A); color:#fff; font-weight:700; text-decoration:none; margin-bottom:6px;">🍎 iOS App Profile ဒေါင်းလုဒ်ဆွဲမည်</a>
+              <div style="font-size:11px; opacity:0.8;">ဒေါင်းပြီးပါက iPhone ၏ <b>Settings ➔ Profile Downloaded ➔ Install</b> ကို နှိပ်ပါ။</div>
             </div>
-
-            <!-- Method 2: Safari Add to Home Screen -->
             <div style="background:var(--bg-card, #F3EFE6); border-radius:16px; padding:14px; font-size:12.5px; line-height:1.7; border:1px solid var(--border-col, #E5DEC9);">
               <div style="font-weight:700; margin-bottom:4px;">📲 နည်းလမ်း (၂) — Safari မှ တိုက်ရိုက်တင်ရန်</div>
               <div>၁။ အောက်ခြေရှိ <b>Share ခလုတ် (⬆️)</b> ကို နှိပ်ပါ။</div>
@@ -3211,7 +2196,7 @@
       });
 
       window.installPwaApp = function() {
-        if (typeof triggerHaptic === 'function') triggerHaptic(15);
+        triggerHaptic(15);
         if (window.isIosDevice()) {
           document.getElementById('sarIosInstallModal').style.display = 'flex';
         } else {
@@ -3219,7 +2204,6 @@
         }
       };
     })();
-    
   </script>
 </body>
 </html>
