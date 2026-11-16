@@ -2610,7 +2610,7 @@
       }
     })();
 
-   // ================= 14. 3D CHIBI KITTEN (HALF-BOOK SIZE) & ANIMATED FAIRY LIGHTS =================
+    // ================= 14. REALISTIC PLUSH KITTEN (CANVAS ENGINE) & FAIRY LIGHTS =================
     (function initCozyShelfCatAndLights() {
       const cozyStyle = document.createElement('style');
       cozyStyle.textContent = `
@@ -2688,261 +2688,413 @@
           100% { rotate: 5deg; }
         }
 
-        /* 2. HALF-BOOK SIZE 3D CHIBI KITTEN (NEVER BLOCKS BOOKS) */
+        /* 2. SMOOTH CANVAS KITTEN STAGE (HALF-BOOK HEIGHT, ZERO TOUCH BLOCKING) */
         .sar-kitten-stage {
           position: absolute;
-          left: 10px;
-          right: 10px;
-          bottom: 10px;
+          left: 8px;
+          right: 8px;
+          bottom: 8px;
           height: 96px;
           pointer-events: none;
           z-index: 24;
         }
-        .sar-kitten-actor {
+        .sar-kitten-canvas {
           position: absolute;
           bottom: 0;
-          left: 12%;
-          width: clamp(74px, 16vw, 94px);
-          height: clamp(80px, 17.5vw, 102px);
+          width: clamp(78px, 17vw, 96px);
+          height: clamp(78px, 17vw, 96px);
           pointer-events: none;
-          will-change: left, transform;
-          filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.38));
-        }
-        .sar-kitten-inner {
-          width: 100%;
-          height: 100%;
-          transform-origin: center bottom;
-          transition: transform 0.22s ease;
-        }
-        .sar-kitten-actor.face-left .sar-kitten-inner {
-          transform: scaleX(-1);
-        }
-
-        /* Sitting vs Walking Pose */
-        .sar-kitten-actor .pose-walk { display: none; width: 100%; height: 100%; }
-        .sar-kitten-actor .pose-sit  { display: block; width: 100%; height: 100%; }
-        .sar-kitten-actor.is-walking .pose-walk { display: block; }
-        .sar-kitten-actor.is-walking .pose-sit  { display: none; }
-
-        /* Walking & Breathing Animations */
-        @keyframes sarChibiWalkBob {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-3.5px) rotate(1.5deg); }
-        }
-        @keyframes sarChibiBreathe {
-          0%, 100% { transform: scaleY(1) scaleX(1); }
-          50% { transform: scaleY(1.025) scaleX(1.015); }
-        }
-        @keyframes sarChibiPawA {
-          0%, 100% { transform: rotate(-16deg) translateY(0); }
-          50% { transform: rotate(16deg) translateY(-2px); }
-        }
-        @keyframes sarChibiPawB {
-          0%, 100% { transform: rotate(16deg) translateY(-2px); }
-          50% { transform: rotate(-16deg) translateY(0); }
-        }
-        .sar-kitten-actor.is-walking .pose-walk {
-          animation: sarChibiWalkBob 0.34s infinite ease-in-out;
-        }
-        .sar-kitten-actor:not(.is-walking) .pose-sit {
-          transform-origin: center bottom;
-          animation: sarChibiBreathe 2.8s infinite ease-in-out;
-        }
-        .sar-kitten-actor.is-walking .paw-a {
-          transform-origin: center 72px;
-          animation: sarChibiPawA 0.34s infinite ease-in-out;
-        }
-        .sar-kitten-actor.is-walking .paw-b {
-          transform-origin: center 72px;
-          animation: sarChibiPawB 0.34s infinite ease-in-out;
-        }
-
-        /* Tail, Blink & Ear Twitch */
-        @keyframes sarChibiTail {
-          0%, 100% { transform: rotate(-10deg); }
-          50% { transform: rotate(14deg); }
-        }
-        @keyframes sarChibiBlink {
-          0%, 92%, 100% { transform: scaleY(1); }
-          96% { transform: scaleY(0.08); }
-        }
-        .chibi-tail {
-          transform-origin: 28px 84px;
-          animation: sarChibiTail 2s ease-in-out infinite;
-        }
-        .chibi-eyes {
-          transform-origin: center 44px;
-          animation: sarChibiBlink 4.2s infinite;
+          will-change: left;
         }
       `;
       document.head.appendChild(cozyStyle);
 
-      function getChibiKittenSvgMarkup() {
-        return `
-          <div class="sar-kitten-inner">
-            <!-- 1. SITTING POSE (MATCHING UPLOADED 3D CHIBI KITTEN) -->
-            <svg class="pose-sit" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="chibiHeadGrad" cx="50%" cy="42%" r="55%">
-                  <stop offset="0%" stop-color="#FFFDF9"/>
-                  <stop offset="65%" stop-color="#FDECD2"/>
-                  <stop offset="100%" stop-color="#F5C384"/>
-                </radialGradient>
-                <linearGradient id="chibiOrange" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#F59E0B"/>
-                  <stop offset="100%" stop-color="#D97706"/>
-                </linearGradient>
-                <radialGradient id="chibiChest" cx="50%" cy="40%" r="55%">
-                  <stop offset="0%" stop-color="#FFFFFF"/>
-                  <stop offset="80%" stop-color="#F5EFE6"/>
-                  <stop offset="100%" stop-color="#E5D9C5"/>
-                </radialGradient>
-                <radialGradient id="chibiEye" cx="45%" cy="45%" r="50%">
-                  <stop offset="0%" stop-color="#1C130E"/>
-                  <stop offset="65%" stop-color="#45220E"/>
-                  <stop offset="100%" stop-color="#B45309"/>
-                </radialGradient>
-              </defs>
+      // Kitten Animation State
+      const catState = {
+        xPct: 16,
+        targetPct: 68,
+        dir: 1,           // 1 = right, -1 = left
+        walking: false,
+        sitBlend: 1,      // 0 = full walk, 1 = full sit
+        walkCycle: 0,
+        lastTime: performance.now(),
+        nextSwitchAt: performance.now() + 2600,
+        blinkTimer: 0,
+        earTwitch: 0
+      };
 
-              <!-- Curled Orange Tail with White Tip -->
-              <g class="chibi-tail">
-                <path d="M29 88 C14 86, 12 75, 18 72" stroke="url(#chibiOrange)" stroke-width="6.5" stroke-linecap="round"/>
-                <circle cx="17" cy="72" r="3.2" fill="#FFFDF9"/>
-              </g>
+      let animFrameId = null;
 
-              <!-- Sitting Body & Orange Tabby Back Stripes -->
-              <path d="M27 94 C24 72, 33 60, 50 60 C67 60, 76 72, 73 94 Z" fill="url(#chibiOrange)"/>
-              <path d="M28 76 Q34 73 39 77" stroke="#B45309" stroke-width="2.5" stroke-linecap="round"/>
-              <path d="M72 76 Q66 73 61 77" stroke="#B45309" stroke-width="2.5" stroke-linecap="round"/>
-
-              <!-- Back Hind Paws -->
-              <ellipse cx="30" cy="94" rx="7" ry="4.5" fill="#F5EFE6"/>
-              <ellipse cx="70" cy="94" rx="7" ry="4.5" fill="#F5EFE6"/>
-
-              <!-- Fluffy White Chest Bib -->
-              <ellipse cx="50" cy="74" rx="16" ry="14" fill="url(#chibiChest)"/>
-
-              <!-- Front Striped Legs & White Paws -->
-              <path d="M37 77 L38 96 L48 96 L48 79 Z" fill="url(#chibiOrange)"/>
-              <path d="M52 79 L52 96 L62 96 L63 77 Z" fill="url(#chibiOrange)"/>
-              <path d="M38 83 Q43 85 48 83" stroke="#B45309" stroke-width="2.2" stroke-linecap="round"/>
-              <path d="M52 83 Q57 85 62 83" stroke="#B45309" stroke-width="2.2" stroke-linecap="round"/>
-              <ellipse cx="43" cy="96.5" rx="6.5" ry="4.5" fill="#FFFFFF"/>
-              <ellipse cx="57" cy="96.5" rx="6.5" ry="4.5" fill="#FFFFFF"/>
-              <line x1="41" y1="95" x2="41" y2="99" stroke="#D6C7B2" stroke-width="1"/>
-              <line x1="45" y1="95" x2="45" y2="99" stroke="#D6C7B2" stroke-width="1"/>
-              <line x1="55" y1="95" x2="55" y2="99" stroke="#D6C7B2" stroke-width="1"/>
-              <line x1="59" y1="95" x2="59" y2="99" stroke="#D6C7B2" stroke-width="1"/>
-
-              <!-- Large Chibi Ears -->
-              <path d="M22 36 C17 18, 22 10, 38 20 Z" fill="url(#chibiOrange)"/>
-              <path d="M25 33 C21 21, 25 15, 35 22 Z" fill="#FDE2E4"/>
-              <path d="M78 36 C83 18, 78 10, 62 20 Z" fill="url(#chibiOrange)"/>
-              <path d="M75 33 C79 21, 75 15, 65 22 Z" fill="#FDE2E4"/>
-
-              <!-- Big Round 3D Chibi Head -->
-              <ellipse cx="50" cy="43" rx="31" ry="26" fill="url(#chibiHeadGrad)"/>
-              <ellipse cx="50" cy="49" rx="28" ry="19" fill="#FFFDF9" opacity="0.7"/>
-
-              <!-- Forehead Orange Tabby Stripes & 2 Eyebrow Dots -->
-              <path d="M50 18 L50 28" stroke="#EA580C" stroke-width="3.2" stroke-linecap="round"/>
-              <path d="M43 19 L45 27" stroke="#F59E0B" stroke-width="2.6" stroke-linecap="round"/>
-              <path d="M57 19 L55 27" stroke="#F59E0B" stroke-width="2.6" stroke-linecap="round"/>
-              <ellipse cx="39" cy="30" rx="2.3" ry="3" fill="#EA580C"/>
-              <ellipse cx="61" cy="30" rx="2.3" ry="3" fill="#EA580C"/>
-
-              <!-- Cheek Tabby Stripes -->
-              <path d="M21 46 Q26 45 30 47" stroke="#F59E0B" stroke-width="2.6" stroke-linecap="round"/>
-              <path d="M23 51 Q27 50 31 51.5" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round"/>
-              <path d="M79 46 Q74 45 70 47" stroke="#F59E0B" stroke-width="2.6" stroke-linecap="round"/>
-              <path d="M77 51 Q73 50 69 51.5" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round"/>
-
-              <!-- Huge Glossy Amber/Brown Eyes -->
-              <g class="chibi-eyes">
-                <circle cx="37" cy="43" r="8.8" fill="#F59E0B"/>
-                <circle cx="37" cy="43" r="7.8" fill="url(#chibiEye)"/>
-                <circle cx="34.2" cy="39.8" r="2.7" fill="#FFFFFF"/>
-                <circle cx="39.8" cy="45.8" r="1.2" fill="#FFFFFF" opacity="0.85"/>
-
-                <circle cx="63" cy="43" r="8.8" fill="#F59E0B"/>
-                <circle cx="63" cy="43" r="7.8" fill="url(#chibiEye)"/>
-                <circle cx="60.2" cy="39.8" r="2.7" fill="#FFFFFF"/>
-                <circle cx="65.8" cy="45.8" r="1.2" fill="#FFFFFF" opacity="0.85"/>
-              </g>
-
-              <!-- Puffy White Muzzle, Pink Nose & Mouth -->
-              <ellipse cx="45" cy="52.5" rx="6.2" ry="4.5" fill="#FFFFFF"/>
-              <ellipse cx="55" cy="52.5" rx="6.2" ry="4.5" fill="#FFFFFF"/>
-              <polygon points="50,48.5 47,51.2 53,51.2" fill="#FB7185"/>
-              <path d="M46 54 Q50 56.5 50 52.5 Q50 56.5 54 54" stroke="#78350F" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            </svg>
-
-            <!-- 2. WALKING POSE (3/4 CHIBI VIEW WITH STEPPING PAWS) -->
-            <svg class="pose-walk" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Raised Wagging Tail -->
-              <path class="chibi-tail" d="M24 76 C12 68, 11 54, 18 49" stroke="url(#chibiOrange)" stroke-width="6.5" stroke-linecap="round"/>
-              <circle cx="18" cy="49" r="3.2" fill="#FFFDF9"/>
-
-              <!-- Back Stepping Legs -->
-              <g class="paw-b">
-                <rect x="26" y="76" width="10" height="19" rx="5" fill="#D97706"/>
-                <ellipse cx="31" cy="95" rx="6" ry="4" fill="#FFFFFF"/>
-              </g>
-              <g class="paw-a">
-                <rect x="52" y="76" width="10" height="19" rx="5" fill="#D97706"/>
-                <ellipse cx="57" cy="95" rx="6" ry="4" fill="#FFFFFF"/>
-              </g>
-
-              <!-- Chibi Striped Body & White Chest -->
-              <ellipse cx="45" cy="76" rx="22" ry="14" fill="url(#chibiOrange)"/>
-              <path d="M36 64 L34 76" stroke="#B45309" stroke-width="2.8" stroke-linecap="round"/>
-              <path d="M45 63 L44 77" stroke="#B45309" stroke-width="2.8" stroke-linecap="round"/>
-              <ellipse cx="58" cy="76" rx="12" ry="11" fill="url(#chibiChest)"/>
-
-              <!-- Front Stepping Legs -->
-              <g class="paw-a">
-                <rect x="35" y="78" width="10" height="19" rx="5" fill="url(#chibiOrange)"/>
-                <ellipse cx="40" cy="96.5" rx="6.2" ry="4.2" fill="#FFFFFF"/>
-              </g>
-              <g class="paw-b">
-                <rect x="58" y="78" width="10" height="19" rx="5" fill="url(#chibiOrange)"/>
-                <ellipse cx="63" cy="96.5" rx="6.2" ry="4.2" fill="#FFFFFF"/>
-              </g>
-
-              <!-- Chibi Head Turned Slightly Forward -->
-              <path d="M30 34 C25 16, 30 9, 45 19 Z" fill="url(#chibiOrange)"/>
-              <path d="M82 34 C87 16, 82 9, 67 19 Z" fill="url(#chibiOrange)"/>
-              <ellipse cx="56" cy="42" rx="29" ry="25" fill="url(#chibiHeadGrad)"/>
-
-              <!-- Forehead Stripes & Dots -->
-              <path d="M58 18 L58 27" stroke="#EA580C" stroke-width="3" stroke-linecap="round"/>
-              <path d="M51 19 L53 26" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-              <path d="M65 19 L63 26" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-              <ellipse cx="47" cy="29" rx="2.2" ry="2.8" fill="#EA580C"/>
-              <ellipse cx="68" cy="29" rx="2.2" ry="2.8" fill="#EA580C"/>
-
-              <!-- Cheek Stripes -->
-              <path d="M30 46 Q35 45 39 47" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-              <path d="M82 46 Q77 45 73 47" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-
-              <!-- Big Glossy Eyes -->
-              <g class="chibi-eyes">
-                <circle cx="46" cy="42" r="8.2" fill="url(#chibiEye)"/>
-                <circle cx="43.5" cy="39" r="2.5" fill="#FFFFFF"/>
-                <circle cx="69" cy="42" r="8.2" fill="url(#chibiEye)"/>
-                <circle cx="66.5" cy="39" r="2.5" fill="#FFFFFF"/>
-              </g>
-
-              <!-- Nose & Mouth -->
-              <ellipse cx="54" cy="51" rx="5.5" ry="4" fill="#FFFFFF"/>
-              <ellipse cx="62" cy="51" rx="5.5" ry="4" fill="#FFFFFF"/>
-              <polygon points="58,47.5 55.2,50 60.8,50" fill="#FB7185"/>
-            </svg>
-          </div>
-        `;
+      function pickNextTarget() {
+        let next = 10 + Math.random() * 72;
+        if (Math.abs(next - catState.xPct) < 20) {
+          next = catState.xPct > 50 ? 14 + Math.random() * 20 : 62 + Math.random() * 20;
+        }
+        catState.targetPct = next;
+        catState.dir = next >= catState.xPct ? 1 : -1;
+        catState.walking = true;
       }
 
-      let kittenLoopTimer = null;
+      function renderPlushKitten(ctx, w, h, now) {
+        const dt = Math.min((now - catState.lastTime) / 1000, 0.05);
+        catState.lastTime = now;
+
+        // Update Walk / Sit State Machine
+        if (catState.walking) {
+          catState.sitBlend = Math.max(0, catState.sitBlend - dt * 3.2);
+          if (catState.sitBlend < 0.35) {
+            const speedPctPerSec = 9.5;
+            const step = speedPctPerSec * dt * catState.dir;
+            catState.xPct += step;
+            catState.walkCycle += dt * 9.2;
+
+            if ((catState.dir === 1 && catState.xPct >= catState.targetPct) ||
+                (catState.dir === -1 && catState.xPct <= catState.targetPct)) {
+              catState.xPct = catState.targetPct;
+              catState.walking = false;
+              catState.nextSwitchAt = now + 4500 + Math.random() * 3200;
+            }
+          }
+        } else {
+          catState.sitBlend = Math.min(1, catState.sitBlend + dt * 2.8);
+          if (now >= catState.nextSwitchAt) {
+            pickNextTarget();
+          }
+        }
+
+        const s = catState.sitBlend; // 0 = walk, 1 = sit
+        const t = now / 1000;
+        const breathe = Math.sin(t * 2.6) * 1.2;
+        const walkBob = (1 - s) * Math.abs(Math.sin(catState.walkCycle)) * 2.2;
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.save();
+
+        // Flip horizontally when facing left
+        if (catState.dir === -1) {
+          ctx.translate(w, 0);
+          ctx.scale(-1, 1);
+        }
+
+        // Ground Shadow on Shelf Ledge
+        ctx.fillStyle = 'rgba(20, 12, 6, 0.28)';
+        ctx.beginPath();
+        ctx.ellipse(50, 91, 24 - s * 3, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 1. FLUFFY ANIMATED TAIL
+        const tailBaseX = 28 + s * 6;
+        const tailBaseY = 68 + s * 14 - walkBob;
+        const tailWag = Math.sin(t * 3.4) * (6 + (1 - s) * 4);
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#E07A2E';
+        ctx.lineWidth = 8.5;
+        ctx.beginPath();
+        ctx.moveTo(tailBaseX, tailBaseY);
+        ctx.bezierCurveTo(
+          tailBaseX - 18, tailBaseY - 4 + tailWag * 0.4,
+          tailBaseX - 22, tailBaseY - 22 + tailWag,
+          tailBaseX - 10, tailBaseY - 28 + tailWag
+        );
+        ctx.stroke();
+
+        // Cream Tail Tip
+        ctx.strokeStyle = '#FFF7EB';
+        ctx.lineWidth = 7.5;
+        ctx.beginPath();
+        ctx.moveTo(tailBaseX - 13, tailBaseY - 25 + tailWag * 0.9);
+        ctx.lineTo(tailBaseX - 10, tailBaseY - 28 + tailWag);
+        ctx.stroke();
+        ctx.restore();
+
+        // Helper for Stepping Paws
+        function drawLeg(hipX, hipY, phaseOffset, isBackLayer) {
+          const swing = (1 - s) * Math.sin(catState.walkCycle + phaseOffset) * 7.5;
+          const lift = (1 - s) * Math.max(0, -Math.cos(catState.walkCycle + phaseOffset)) * 5.5;
+          const footX = hipX + swing;
+          const footY = 89 - lift;
+
+          ctx.strokeStyle = isBackLayer ? '#C8641E' : '#EDA158';
+          ctx.lineWidth = 8.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(hipX, hipY);
+          ctx.quadraticCurveTo(hipX + swing * 0.4, (hipY + footY) * 0.5, footX, footY - 2);
+          ctx.stroke();
+
+          // White Sock Paw
+          ctx.fillStyle = isBackLayer ? '#E8DEC8' : '#FFFDF9';
+          ctx.beginPath();
+          ctx.ellipse(footX + 1.5, footY, 5.5, 3.6, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 2. FAR SIDE LEGS (visible during walking)
+        if (s < 0.92) {
+          drawLeg(34, 70, Math.PI, true);
+          drawLeg(58, 70, 0, true);
+        }
+
+        // 3. PLUSH BODY ( Interpolates smoothly between Walk and Sit )
+        const bodyCenterX = 46 + s * 3;
+        const bodyCenterY = 66 + s * 6 - walkBob + breathe * 0.4;
+        const bodyRx = 21 - s * 4;
+        const bodyRy = 14 + s * 5;
+
+        const bodyGrad = ctx.createRadialGradient(
+          bodyCenterX + 4, bodyCenterY - 4, 4,
+          bodyCenterX, bodyCenterY, 26
+        );
+        bodyGrad.addColorStop(0, '#FAD19E');
+        bodyGrad.addColorStop(0.65, '#F09A48');
+        bodyGrad.addColorStop(1, '#D47222');
+
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.ellipse(bodyCenterX, bodyCenterY, bodyRx, bodyRy, -s * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Soft Back Tabby Stripes
+        ctx.strokeStyle = 'rgba(168, 72, 12, 0.45)';
+        ctx.lineWidth = 2.8;
+        ctx.lineCap = 'round';
+        for (let i = 0; i < 3; i++) {
+          const sx = bodyCenterX - 8 + i * 6;
+          const sy = bodyCenterY - bodyRy + 2 + i * s * 2;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.quadraticCurveTo(sx - 2, sy + 6, sx - 1, sy + 10);
+          ctx.stroke();
+        }
+
+        // Sitting Haunch & Hind Paws
+        if (s > 0.2) {
+          ctx.save();
+          ctx.globalAlpha = s;
+          ctx.fillStyle = '#E58635';
+          ctx.beginPath();
+          ctx.ellipse(39, 80, 11, 9, 0.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FFFDF9';
+          ctx.beginPath();
+          ctx.ellipse(38, 89, 6.5, 3.8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Fluffy Cream Chest Bib
+        const chestX = 60 - s * 5;
+        const chestY = 67 + s * 4 - walkBob;
+        const chestGrad = ctx.createRadialGradient(chestX + 2, chestY - 2, 2, chestX, chestY, 14);
+        chestGrad.addColorStop(0, '#FFFFFF');
+        chestGrad.addColorStop(0.75, '#FFF6E8');
+        chestGrad.addColorStop(1, '#EADBC5');
+        ctx.fillStyle = chestGrad;
+        ctx.beginPath();
+        ctx.ellipse(chestX, chestY, 11 + s * 2, 10 + s * 2, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. NEAR SIDE LEGS / SITTING FRONT PAWS
+        drawLeg(32 + s * 6, 71 + s * 6, 0, false);
+        drawLeg(56 - s * 4, 71 + s * 3, Math.PI, false);
+
+        if (s > 0.3) {
+          ctx.save();
+          ctx.globalAlpha = s;
+          // Front neatly planted paws when sitting
+          ctx.fillStyle = '#FFFDF9';
+          ctx.beginPath();
+          ctx.ellipse(58, 89.5, 5.8, 3.8, 0, 0, Math.PI * 2);
+          ctx.ellipse(50, 89.5, 5.8, 3.8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // 5. ROUND PLUSH HEAD (British Shorthair Cheeks)
+        const headX = 60 - s * 6;
+        const headY = 44 + s * 2 - walkBob * 0.8 + breathe * 0.6;
+
+        // Ear Twitch Calculation
+        const earAngle = Math.sin(t * 1.7) > 0.92 ? Math.sin(t * 18) * 0.08 : 0;
+
+        // Left (Back) Ear
+        ctx.save();
+        ctx.translate(headX - 11, headY - 14);
+        ctx.rotate(-0.28 + earAngle);
+        ctx.fillStyle = '#E07A2E';
+        ctx.beginPath();
+        ctx.moveTo(-7, 6);
+        ctx.quadraticCurveTo(-8, -12, 2, -11);
+        ctx.quadraticCurveTo(9, -10, 8, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#F9B4B8';
+        ctx.beginPath();
+        ctx.moveTo(-4, 4);
+        ctx.quadraticCurveTo(-4, -7, 2, -7);
+        ctx.quadraticCurveTo(6, -6, 5, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Right (Front) Ear
+        ctx.save();
+        ctx.translate(headX + 11, headY - 14);
+        ctx.rotate(0.26 - earAngle);
+        ctx.fillStyle = '#E07A2E';
+        ctx.beginPath();
+        ctx.moveTo(-8, 5);
+        ctx.quadraticCurveTo(-9, -10, -2, -11);
+        ctx.quadraticCurveTo(8, -12, 7, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#F9B4B8';
+        ctx.beginPath();
+        ctx.moveTo(-5, 4);
+        ctx.quadraticCurveTo(-6, -6, -1, -7);
+        ctx.quadraticCurveTo(4, -7, 4, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Main Plush Head Sphere
+        const headGrad = ctx.createRadialGradient(headX + 2, headY - 4, 4, headX, headY, 22);
+        headGrad.addColorStop(0, '#FFF8EE');
+        headGrad.addColorStop(0.55, '#FBD5A6');
+        headGrad.addColorStop(1, '#E89242');
+
+        ctx.fillStyle = headGrad;
+        ctx.beginPath();
+        ctx.ellipse(headX, headY, 19.5, 17, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Chubby Cream Lower Cheeks
+        ctx.fillStyle = '#FFFDF9';
+        ctx.beginPath();
+        ctx.ellipse(headX - 6, headY + 6, 11, 8.5, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(headX + 8, headY + 6, 11, 8.5, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Forehead Ginger Tabby 'M' Markings
+        ctx.strokeStyle = '#D96B1E';
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(headX + 1, headY - 15);
+        ctx.lineTo(headX + 1, headY - 8);
+        ctx.moveTo(headX - 5, headY - 14);
+        ctx.lineTo(headX - 3, headY - 8);
+        ctx.moveTo(headX + 7, headY - 14);
+        ctx.lineTo(headX + 5, headY - 8);
+        ctx.stroke();
+
+        // Cute Rosy Cheek Blush
+        ctx.fillStyle = 'rgba(251, 113, 133, 0.28)';
+        ctx.beginPath();
+        ctx.ellipse(headX - 10, headY + 5, 3.8, 2.2, 0, 0, Math.PI * 2);
+        ctx.ellipse(headX + 12, headY + 5, 3.8, 2.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. BIG GLOSSY EYES (With Natural Blink)
+        const blinkCycle = (t % 4.4);
+        const eyeOpen = (blinkCycle > 4.15 && blinkCycle < 4.32) ? 0.08 : 1;
+
+        function drawGlossyEye(ex, ey, radius) {
+          ctx.save();
+          ctx.translate(ex, ey);
+          ctx.scale(1, eyeOpen);
+
+          // Warm Amber Outer Iris
+          ctx.fillStyle = '#854D0E';
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Deep Dark Pupil
+          ctx.fillStyle = '#1C1412';
+          ctx.beginPath();
+          ctx.arc(0.4, 0, radius * 0.76, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Dual Anime/Real Catchlights
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(-radius * 0.32, -radius * 0.32, radius * 0.32, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(radius * 0.3, radius * 0.3, radius * 0.15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        drawGlossyEye(headX - 6, headY - 0.5, 4.9);
+        drawGlossyEye(headX + 8.5, headY - 0.5, 4.9);
+
+        // 7. SWEET PINK NOSE, MOUTH & WHISKERS
+        const noseX = headX + 1.5;
+        const noseY = headY + 4.5;
+        ctx.fillStyle = '#FB7185';
+        ctx.beginPath();
+        ctx.moveTo(noseX - 2.6, noseY - 1.5);
+        ctx.lineTo(noseX + 2.6, noseY - 1.5);
+        ctx.lineTo(noseX, noseY + 1.6);
+        ctx.closePath();
+        ctx.fill();
+
+        // 'ω' Cat Mouth
+        ctx.strokeStyle = '#6B3E26';
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(noseX - 4, noseY + 3.2);
+        ctx.quadraticCurveTo(noseX - 1.8, noseY + 5, noseX, noseY + 2);
+        ctx.quadraticCurveTo(noseX + 1.8, noseY + 5, noseX + 4, noseY + 3.2);
+        ctx.stroke();
+
+        // Delicate White Whiskers
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        // Left Whiskers
+        ctx.moveTo(headX - 11, headY + 4); ctx.lineTo(headX - 23, headY + 2);
+        ctx.moveTo(headX - 11, headY + 6.5); ctx.lineTo(headX - 24, headY + 7);
+        // Right Whiskers
+        ctx.moveTo(headX + 13, headY + 4); ctx.lineTo(headX + 25, headY + 2);
+        ctx.moveTo(headX + 13, headY + 6.5); ctx.lineTo(headX + 26, headY + 7);
+        ctx.stroke();
+
+        // Red Collar & Tiny Golden Bell
+        ctx.strokeStyle = '#DC2626';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.arc(headX, headY + 9, 11, 0.35, Math.PI - 0.35);
+        ctx.stroke();
+
+        ctx.fillStyle = '#FACC15';
+        ctx.beginPath();
+        ctx.arc(headX + 1.5, headY + 20.5, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function startCanvasKittenLoop() {
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+
+        function tick(now) {
+          const canvas = document.getElementById('sarShelfKittenCanvas');
+          if (canvas) {
+            canvas.style.left = `${catState.xPct}%`;
+            const ctx = canvas.getContext('2d');
+            renderPlushKitten(ctx, 100, 100, now);
+          }
+          animFrameId = requestAnimationFrame(tick);
+        }
+        animFrameId = requestAnimationFrame(tick);
+      }
 
       function decorateShelvesWithLightsAndKitten() {
         const ledges = document.querySelectorAll('#cleanShelfRows .premium-shelf-ledge');
@@ -2968,50 +3120,11 @@
           if (shelfIdx === 0 && !ledge.querySelector('.sar-kitten-stage')) {
             const stage = document.createElement('div');
             stage.className = 'sar-kitten-stage';
-            stage.innerHTML = `<div class="sar-kitten-actor" id="sarShelfKitten">${getChibiKittenSvgMarkup()}</div>`;
+            stage.innerHTML = `<canvas id="sarShelfKittenCanvas" class="sar-kitten-canvas" width="100" height="100"></canvas>`;
             ledge.appendChild(stage);
-            startKittenBehaviorLoop();
+            startCanvasKittenLoop();
           }
         });
-      }
-
-      function startKittenBehaviorLoop() {
-        if (kittenLoopTimer) clearTimeout(kittenLoopTimer);
-        let currentPosPct = 14;
-
-        function runNextAction() {
-          const kitten = document.getElementById('sarShelfKitten');
-          if (!kitten) return;
-
-          let targetPct = 8 + Math.floor(Math.random() * 72);
-          if (Math.abs(targetPct - currentPosPct) < 18) {
-            targetPct = currentPosPct > 50 ? 14 : 74;
-          }
-
-          const distancePct = Math.abs(targetPct - currentPosPct);
-          const walkDurationMs = Math.max(Math.round(distancePct * 95), 2400);
-
-          if (targetPct < currentPosPct) {
-            kitten.classList.add('face-left');
-          } else {
-            kitten.classList.remove('face-left');
-          }
-
-          kitten.classList.add('is-walking');
-          kitten.style.transition = `left ${walkDurationMs}ms linear`;
-          kitten.style.left = `${targetPct}%`;
-          currentPosPct = targetPct;
-
-          kittenLoopTimer = setTimeout(() => {
-            const kNow = document.getElementById('sarShelfKitten');
-            if (!kNow) return;
-            kNow.classList.remove('is-walking');
-            const sitRestMs = 4500 + Math.floor(Math.random() * 3000);
-            kittenLoopTimer = setTimeout(runNextAction, sitRestMs);
-          }, walkDurationMs);
-        }
-
-        kittenLoopTimer = setTimeout(runNextAction, 1800);
       }
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -3023,7 +3136,8 @@
         }
       });
     })();
-    
+
+ 
   </script>
 </body>
 </html>
