@@ -6,12 +6,10 @@
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
 
   <!-- PWA Manifest & Mobile App Meta Tags -->
-
-
   <link rel="manifest" href="/myBooks/manifest.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="/myBooks/icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/myBooks/icon.png" />
- 
+
   <meta name="theme-color" content="#6B141A" id="metaThemeColor" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -377,6 +375,7 @@
         <!-- In-App Notification Bell Button -->
         <button
           type="button"
+          id="notifBtn"
           onclick="openNotificationsModal()"
           class="tactile-btn relative w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs"
           title="စာအုပ်အသစ် အသိပေးချက်များ"
@@ -401,6 +400,7 @@
         <!-- Settings Button -->
         <button
           type="button"
+          id="settingsBtn"
           onclick="openSettingsModal()"
           class="tactile-btn w-9 h-9 rounded-full theme-card flex items-center justify-center text-xs"
           title="Settings"
@@ -906,22 +906,19 @@
       edgeTap: JSON.parse(localStorage.getItem('SET_EDGE_TAP') ?? 'true'),
       volume: parseInt(localStorage.getItem('SET_VOLUME') || '75', 10),
       brightness: parseInt(localStorage.getItem('SET_BRIGHTNESS') || '100', 10),
-      themeMode: localStorage.getItem('APP_THEME_MODE') || 'auto', // 'auto' | 'winter' | 'crimson' | 'walnut' | 'oak' | 'midnight'
+      themeMode: localStorage.getItem('APP_THEME_MODE') || 'auto',
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
 
     // ================= 1. AUTO SEASONAL & MULTI-THEME ENGINE =================
     function getSeasonalThemeForCurrentMonth() {
-      const month = new Date().getMonth() + 1; // 1 - 12
-      // Nov, Dec, Jan, Feb -> Winter Frost Theme (❄️)
+      const month = new Date().getMonth() + 1;
       if (month === 11 || month === 12 || month === 1 || month === 2) {
         return { theme: 'winter', label: 'Auto (❄️ ဆောင်းရာသီ)', emoji: '❄️' };
       }
-      // Mar, Apr, May -> Summer Oak Theme (🌸)
       if (month >= 3 && month <= 5) {
         return { theme: 'oak', label: 'Auto (🌸 နွေဦးရာသီ)', emoji: '🌸' };
       }
-      // Jun, Jul, Aug, Sep, Oct -> Monsoon Forest Theme (🌧️)
       return { theme: 'forest', label: 'Auto (🌧️ မိုးရာသီ)', emoji: '🌧️' };
     }
 
@@ -955,7 +952,6 @@
       document.getElementById('headerThemeEmoji').textContent = badgeEmoji;
       document.getElementById('headerThemeName').textContent = badgeName;
 
-      // Toggle subtle falling snow in Winter Theme
       const snowBox = document.getElementById('winterSnowContainer');
       if (resolvedTheme === 'winter') {
         snowBox.classList.remove('hidden');
@@ -964,7 +960,6 @@
         snowBox.classList.add('hidden');
       }
 
-      // Highlight active button in Theme Selector Modal
       ['auto', 'winter', 'crimson', 'walnut', 'oak', 'midnight'].forEach((k) => {
         const btn = document.getElementById('tBtn_' + k);
         if (btn) {
@@ -1011,9 +1006,8 @@
       const statusText = document.getElementById('splashStatusText');
 
       const startTime = Date.now();
-      const MIN_SPLASH_MS = 3000; // Strictly wait 3 seconds while loading books in background
+      const MIN_SPLASH_MS = 3000;
 
-      // Animate smooth progress bar over 3 seconds
       const timer = setInterval(() => {
         const elapsed = Date.now() - startTime;
         const pct = Math.min(Math.round((elapsed / MIN_SPLASH_MS) * 95), 95);
@@ -1027,7 +1021,6 @@
         const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY');
         await startReaderApp(url, key);
 
-        // Preload first 8 book cover images in background so there is zero flicker
         const coverUrls = allPublishedBooks.slice(0, 8).map((b) => b.cover_url).filter(Boolean);
         await Promise.race([
           Promise.all(
@@ -1044,7 +1037,6 @@
         ]);
       } catch (e) {}
 
-      // Wait remaining time so total is at least 3 seconds (3000ms)
       const remaining = Math.max(MIN_SPLASH_MS - (Date.now() - startTime), 0);
       await new Promise((res) => setTimeout(res, remaining));
 
@@ -1075,7 +1067,6 @@
     function initRealtimeBookNotifications() {
       if (!supabaseClient) return;
 
-      // 1. Live Presence Count
       try {
         const room = supabaseClient.channel('online-library-readers', {
           config: { presence: { key: 'reader_' + Math.random().toString(36).slice(2, 8) } }
@@ -1089,7 +1080,6 @@
         });
       } catch (e) {}
 
-      // 2. Listen for LIVE INSERT on `books` table when Admin uploads a new book
       try {
         supabaseClient
           .channel('public:books:noti')
@@ -1120,7 +1110,6 @@
       }
 
       if (lastKnownBookId !== newestBook.id) {
-        // Admin uploaded at least 1 new book since user's last visit!
         const newOnes = [];
         for (const b of books) {
           if (b.id === lastKnownBookId) break;
@@ -1287,8 +1276,8 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18); // A5
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
         gain.gain.setValueAtTime(0.15, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
         osc.connect(gain);
@@ -1435,6 +1424,8 @@
     async function startReaderApp(url, key) {
       supabaseClient = window.supabase.createClient(url.trim(), key.trim());
       initRealtimeBookNotifications();
+      initReaderSponsorBanner();
+      verifyVipWithServer();
 
       const { data } = await supabaseClient.from('categories').select('*').order('name');
       categoriesList = data || [];
@@ -1656,7 +1647,6 @@
       }).join('');
     }
 
-    // CLEAN 3D SHELF ROWS: Covers sit directly on the wooden/stone shelf ledge with NO clutter text underneath!
     function renderCleanShelfRows(books) {
       const container = document.getElementById('cleanShelfRows');
       if (books.length === 0) {
@@ -1705,7 +1695,6 @@
               `;
             }).join('')}
           </div>
-          <!-- Clean 3D Shelf Ledge Directly Under Covers -->
           <div class="premium-shelf-ledge w-full"></div>
         </div>
       `).join('');
@@ -2121,8 +2110,7 @@
       loadBooks();
     }
 
-    // ================= 11. PWA SERVICE WORKER & INSTALL PROMPT =================
- // ================= 11. NATIVE APK DETECTION & DIRECT APK DOWNLOAD =================
+    // ================= 11. NATIVE APK DETECTION & DIRECT APK DOWNLOAD =================
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/myBooks/sw.js').catch((err) => console.log('SW Error:', err));
@@ -2134,7 +2122,6 @@
         window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone === true;
 
-      // Native Android WebView (sar-app.apk) ဟုတ်/မဟုတ် စစ်ဆေးခြင်း
       const isAndroidWebView =
         Boolean(window.AndroidNative) ||
         /; wv\)|Version\/[\d.]+.*Chrome\/[\d.]+ Mobile/i.test(navigator.userAgent);
@@ -2149,14 +2136,12 @@
     window.addEventListener('DOMContentLoaded', hideInstallBtnIfNativeApp);
     setTimeout(hideInstallBtnIfNativeApp, 500);
 
-    // Website (Browser) မှ ဝင်ကြည့်သူများ 📲 App ခလုတ်နှိပ်လျှင် sar-app.apk ကို တိုက်ရိုက်ဒေါင်းပေးမည်
     function installPwaApp() {
       triggerHaptic(15);
       window.location.href = 'https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-app.apk';
     }
 
-
-// ================= ANIMATED 16:9 SPONSOR BANNER & VIP SYSTEM =================
+    // ================= 12. ANIMATED 16:9 SPONSOR BANNER & VIP SYSTEM =================
     let activeSponsorAds = [];
     let currentAdIndex = 0;
     let adSlideTimer = null;
@@ -2167,8 +2152,8 @@
       const style = document.createElement('style');
       style.textContent = `
         #sarSponsorBannerSlot {
-          width: 100%; max-width: 860px; margin: 10px auto 16px;
-          padding: 0 14px; box-sizing: border-box; display: none;
+          width: 100%; max-width: 768px; margin: 10px auto 6px;
+          padding: 0 16px; box-sizing: border-box; display: none;
         }
         .sar-ad-viewport {
           position: relative; width: 100%; aspect-ratio: 16 / 9;
@@ -2267,13 +2252,12 @@
     }
 
     async function initReaderSponsorBanner() {
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return;
+      if (!supabaseClient) return;
 
       if (!document.getElementById('sarSponsorBannerSlot')) {
         const slot = document.createElement('div');
         slot.id = 'sarSponsorBannerSlot';
-        const headerEl = document.querySelector('header') || document.querySelector('.header') || document.querySelector('nav');
+        const headerEl = document.querySelector('header');
         const mainEl = document.querySelector('main') || document.body;
         if (headerEl && headerEl.parentNode) {
           headerEl.insertAdjacentElement('afterend', slot);
@@ -2282,15 +2266,17 @@
         }
       }
 
-      const { data } = await client
-        .from('ads')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      try {
+        const { data } = await supabaseClient
+          .from('ads')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
 
-      activeSponsorAds = data || [];
-      buildSponsorBannerCarousel();
-      startSponsorBannerAutoPlay();
+        activeSponsorAds = data || [];
+        buildSponsorBannerCarousel();
+        startSponsorBannerAutoPlay();
+      } catch (e) {}
     }
 
     function buildSponsorBannerCarousel() {
@@ -2304,9 +2290,9 @@
 
       slot.style.display = 'block';
       const slidesHtml = activeSponsorAds.map((ad, idx) => `
-        <div class="sar-ad-slide ${idx === currentAdIndex ? 'active' : ''}" onclick="openSponsorAdLink(${ad.id}, '${ad.target_url.replace(/'/g, "\\'")}')">
-          <img src="${ad.image_url}" alt="${ad.title}" />
-          <span class="sar-ad-badge">ကြော်ငြာ • ${ad.title}</span>
+        <div class="sar-ad-slide ${idx === currentAdIndex ? 'active' : ''}" onclick="openSponsorAdLink(${ad.id}, '${(ad.target_url || '').replace(/'/g, "\\'")}')">
+          <img src="${ad.image_url}" alt="${ad.title || 'Sponsor'}" />
+          <span class="sar-ad-badge">ကြော်ငြာ • ${ad.title || 'Sponsor'}</span>
         </div>
       `).join('');
 
@@ -2385,14 +2371,13 @@
     }
 
     async function openSponsorAdLink(id, url) {
-      if (typeof triggerHaptic === 'function') triggerHaptic(10);
+      triggerHaptic(10);
       window.open(url, '_blank');
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (client) {
+      if (supabaseClient) {
         const ad = activeSponsorAds.find(a => a.id === id);
         const nextClicks = ((ad && ad.clicks) || 0) + 1;
         if (ad) ad.clicks = nextClicks;
-        await client.from('ads').update({ clicks: nextClicks }).eq('id', id);
+        await supabaseClient.from('ads').update({ clicks: nextClicks }).eq('id', id);
       }
     }
 
@@ -2421,7 +2406,7 @@
     (function injectVipModalAndButton() {
       const modalHtml = `
         <div id="sarVipModal" onclick="if(event.target===this) this.style.display='none'" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,10,7,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px; font-family:'Padauk',sans-serif;">
-          <div style="width:100%; max-width:380px; background:var(--bg-main, #FAF8F5); color:var(--text-main, #2A1810); border-radius:22px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.45);">
+          <div style="width:100%; max-width:380px; background:var(--bg-main, #FAF8F5); color:var(--text-primary, #2A1810); border-radius:22px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.45);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <h3 style="margin:0; font-size:18px; color:#b45309;">👑 စာကြည့်တိုက် VIP Package</h3>
               <button onclick="document.getElementById('sarVipModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
@@ -2432,21 +2417,22 @@
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-      const targetBtn = document.getElementById('settingsBtn') || document.getElementById('notifBtn') || document.getElementById('installAppBtn');
+      const targetBtn = document.getElementById('installAppBtn') || document.getElementById('settingsBtn');
       const vipBtn = document.createElement('button');
       vipBtn.id = 'sarVipHeaderBtn';
-      vipBtn.style.cssText = 'padding:5px 11px; border-radius:999px; border:1px solid rgba(217,119,6,0.4); font-family:Padauk,sans-serif; font-size:12px; font-weight:700; cursor:pointer; margin-right:6px;';
+      vipBtn.type = 'button';
+      vipBtn.className = 'tactile-btn';
+      vipBtn.style.cssText = 'padding:5px 11px; border-radius:999px; border:1px solid rgba(217,119,6,0.4); font-family:Padauk,sans-serif; font-size:12px; font-weight:700; cursor:pointer;';
       vipBtn.onclick = openSarVipModal;
       if (targetBtn && targetBtn.parentNode) {
         targetBtn.parentNode.insertBefore(vipBtn, targetBtn);
       }
 
       applyVipAdFreeState();
-      verifyVipWithServer();
     })();
 
     function openSarVipModal() {
-      if (typeof triggerHaptic === 'function') triggerHaptic(10);
+      triggerHaptic(10);
       const modal = document.getElementById('sarVipModal');
       const body = document.getElementById('sarVipModalBody');
       modal.style.display = 'flex';
@@ -2472,7 +2458,7 @@
             • App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>
             • စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်
           </div>
-          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (ဥပမာ - SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
+          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (ဥပမာ - SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); background:#fff; color:#111; font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
           <div id="sarVipStatusMsg" style="font-size:13px; margin-bottom:8px; display:none;"></div>
           <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">
             🔓 VIP Code အသက်သွင်းမည်
@@ -2485,14 +2471,13 @@
       const input = document.getElementById('sarVipCodeInput');
       const msg = document.getElementById('sarVipStatusMsg');
       const code = (input.value || '').trim().toUpperCase();
-      if (!code) return;
+      if (!code || !supabaseClient) return;
 
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
       msg.style.display = 'block';
       msg.style.color = '#b45309';
       msg.textContent = 'စစ်ဆေးနေပါသည်...';
 
-      const { data, error } = await client.from('vip_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
+      const { data, error } = await supabaseClient.from('vip_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
       if (error || !data) {
         msg.style.color = '#dc2626';
         msg.textContent = '❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
@@ -2504,7 +2489,7 @@
         const now = new Date();
         const exp = new Date(now.getTime() + (data.duration_days || 30) * 86400000);
         expiresAt = exp.toISOString();
-        await client.from('vip_codes').update({ activated_at: now.toISOString(), expires_at: expiresAt }).eq('id', data.id);
+        await supabaseClient.from('vip_codes').update({ activated_at: now.toISOString(), expires_at: expiresAt }).eq('id', data.id);
       } else if (new Date(expiresAt).getTime() < Date.now()) {
         msg.style.color = '#dc2626';
         msg.textContent = '❌ ဤ VIP Code သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
@@ -2523,195 +2508,25 @@
     }
 
     async function verifyVipWithServer() {
-      if (!isReaderVipActive()) return;
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return;
-      const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
-      const { data } = await client.from('vip_codes').select('is_active, expires_at').eq('code', vip.code).maybeSingle();
-      if (!data || !data.is_active || (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
-        localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-        applyVipAdFreeState();
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => setTimeout(initReaderSponsorBanner, 400));
-
-    
-    // ================= VIP PREMIUM READER SYSTEM (AD-FREE) =================
-    const SAR_VIP_STORAGE_KEY = 'sar_vip_membership_v1';
-
-    function isReaderVipActive() {
+      if (!isReaderVipActive() || !supabaseClient) return;
       try {
-        const raw = localStorage.getItem(SAR_VIP_STORAGE_KEY);
-        if (!raw) return false;
-        const vip = JSON.parse(raw);
-        if (!vip || !vip.code || !vip.expires_at) return false;
-        if (new Date(vip.expires_at).getTime() < Date.now()) {
-          localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-          return false;
-        }
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    function applyVipAdFreeState() {
-      const slot = document.getElementById('sarSponsorBannerSlot');
-      const headerBtn = document.getElementById('sarVipHeaderBtn');
-      if (isReaderVipActive()) {
-        if (slot) slot.style.display = 'none';
-        if (typeof adSlideTimer !== 'undefined' && adSlideTimer) clearInterval(adSlideTimer);
-        if (headerBtn) {
-          headerBtn.innerHTML = '👑 VIP';
-          headerBtn.style.background = 'linear-gradient(135deg, #f59e0b, #b45309)';
-          headerBtn.style.color = '#FFFBEB';
-        }
-      } else if (headerBtn) {
-        headerBtn.innerHTML = '👑 VIP';
-        headerBtn.style.background = 'rgba(217, 119, 6, 0.14)';
-        headerBtn.style.color = '#b45309';
-      }
-    }
-
-    (function injectVipModalAndButton() {
-      const modalHtml = `
-        <div id="sarVipModal" onclick="if(event.target===this) this.style.display='none'" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,10,7,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px; font-family:'Padauk',sans-serif;">
-          <div style="width:100%; max-width:380px; background:var(--bg-main, #FAF8F5); color:var(--text-main, #2A1810); border-radius:22px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.45);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <h3 style="margin:0; font-size:18px; color:#b45309;">👑 စာကြည့်တိုက် VIP Package</h3>
-              <button onclick="document.getElementById('sarVipModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
-            </div>
-            <div id="sarVipModalBody"></div>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-      const targetBtn = document.getElementById('settingsBtn') || document.getElementById('notifBtn') || document.getElementById('installAppBtn');
-      const vipBtn = document.createElement('button');
-      vipBtn.id = 'sarVipHeaderBtn';
-      vipBtn.style.cssText = 'padding:5px 11px; border-radius:999px; border:1px solid rgba(217,119,6,0.4); font-family:Padauk,sans-serif; font-size:12px; font-weight:700; cursor:pointer; margin-right:6px;';
-      vipBtn.onclick = openSarVipModal;
-      if (targetBtn && targetBtn.parentNode) {
-        targetBtn.parentNode.insertBefore(vipBtn, targetBtn);
-      }
-
-      // Sponsor Banner ဖော်ပြသည့် Function ကို VIP စစ်ဆေးချက်ဖြင့် ထိန်းချုပ်ခြင်း
-      const origRender = window.renderSponsorBannerSlide;
-      if (typeof origRender === 'function') {
-        window.renderSponsorBannerSlide = function() {
-          if (isReaderVipActive()) {
-            const slot = document.getElementById('sarSponsorBannerSlot');
-            if (slot) slot.style.display = 'none';
-            return;
-          }
-          origRender();
-        };
-      }
-
-      applyVipAdFreeState();
-      verifyVipWithServer();
-    })();
-
-    function openSarVipModal() {
-      if (typeof triggerHaptic === 'function') triggerHaptic(10);
-      const modal = document.getElementById('sarVipModal');
-      const body = document.getElementById('sarVipModalBody');
-      modal.style.display = 'flex';
-
-      if (isReaderVipActive()) {
         const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
-        const expDate = new Date(vip.expires_at).toLocaleDateString();
-        body.innerHTML = `
-          <div style="text-align:center; padding:10px 0;">
-            <div style="font-size:38px; margin-bottom:6px;">👑</div>
-            <div style="font-weight:700; font-size:17px; color:#b45309;">${vip.member_name} (${vip.plan_name})</div>
-            <div style="font-size:13px; opacity:0.8; margin:6px 0 14px;">ကြော်ငြာကင်းစင်သော VIP စနစ် အသက်ဝင်နေပါသည်။<br/>သက်တမ်းကုန်ဆုံးရက်: <b>${expDate}</b></div>
-            <div style="font-family:monospace; padding:8px; background:rgba(217,119,6,0.1); border-radius:8px; font-weight:700; color:#92400e; margin-bottom:14px;">Code: ${vip.code}</div>
-            <button onclick="localStorage.removeItem('${SAR_VIP_STORAGE_KEY}'); applyVipAdFreeState(); openSarVipModal();" style="padding:8px 14px; border-radius:10px; border:1px solid #dc2626; background:transparent; color:#dc2626; font-family:'Padauk',sans-serif; cursor:pointer; font-size:12px;">
-              VIP Code ဖြုတ်မည်
-            </button>
-          </div>
-        `;
-      } else {
-        body.innerHTML = `
-          <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px;">
-            ✨ <b>VIP အဖွဲ့ဝင် အခွင့်အရေးများ</b><br/>
-            • App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>
-            • စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်
-          </div>
-          <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (ဥပမာ - SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
-          <div id="sarVipStatusMsg" style="font-size:13px; margin-bottom:8px; display:none;"></div>
-          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">
-            🔓 VIP Code အသက်သွင်းမည်
-          </button>
-        `;
-      }
+        const { data } = await supabaseClient.from('vip_codes').select('is_active, expires_at').eq('code', vip.code).maybeSingle();
+        if (!data || !data.is_active || (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
+          localStorage.removeItem(SAR_VIP_STORAGE_KEY);
+          applyVipAdFreeState();
+        }
+      } catch (e) {}
     }
 
-    async function activateSarVipCode() {
-      const input = document.getElementById('sarVipCodeInput');
-      const msg = document.getElementById('sarVipStatusMsg');
-      const code = (input.value || '').trim().toUpperCase();
-      if (!code) return;
-
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      msg.style.display = 'block';
-      msg.style.color = '#b45309';
-      msg.textContent = 'စစ်ဆေးနေပါသည်...';
-
-      const { data, error } = await client.from('vip_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
-      if (error || !data) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
-      }
-
-      let expiresAt = data.expires_at;
-      if (!expiresAt) {
-        const now = new Date();
-        const exp = new Date(now.getTime() + (data.duration_days || 30) * 86400000);
-        expiresAt = exp.toISOString();
-        await client.from('vip_codes').update({ activated_at: now.toISOString(), expires_at: expiresAt }).eq('id', data.id);
-      } else if (new Date(expiresAt).getTime() < Date.now()) {
-        msg.style.color = '#dc2626';
-        msg.textContent = '❌ ဤ VIP Code သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ။';
-        return;
-      }
-
-      localStorage.setItem(SAR_VIP_STORAGE_KEY, JSON.stringify({
-        code: data.code,
-        member_name: data.member_name,
-        plan_name: data.plan_name,
-        expires_at: expiresAt
-      }));
-
-      applyVipAdFreeState();
-      openSarVipModal();
-    }
-
-    async function verifyVipWithServer() {
-      if (!isReaderVipActive()) return;
-      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient;
-      if (!client) return;
-      const vip = JSON.parse(localStorage.getItem(SAR_VIP_STORAGE_KEY));
-      const { data } = await client.from('vip_codes').select('is_active, expires_at').eq('code', vip.code).maybeSingle();
-      if (!data || !data.is_active || (data.expires_at && new Date(data.expires_at).getTime() < Date.now())) {
-        localStorage.removeItem(SAR_VIP_STORAGE_KEY);
-        applyVipAdFreeState();
-      }
-    }
-
-    // ================= 13. PREMIUM UI ANIMATIONS (CASCADE, 3D BOOK, PAGE TURN, POP) =================
+    // ================= 13. PREMIUM UI ANIMATIONS (CASCADE & FLOATING PARTICLES) =================
     (function initSarPremiumAnimations() {
       const animStyle = document.createElement('style');
       animStyle.textContent = `
-        /* 1. စာအုပ်စင် Cascade Animation (တစ်အုပ်ချင်း စီတက်လာသည့် ပုံစံ) */
         @keyframes sarBookCascadeIn {
           0% {
             opacity: 0;
-            transform: translateY(22px) scale(0.92) rotateY(-12deg);
+            transform: translateY(20px) scale(0.92) rotateY(-10deg);
           }
           100% {
             opacity: 1;
@@ -2720,51 +2535,9 @@
         }
         .sar-cascade-item {
           opacity: 0;
-          transform-origin: left center;
-          animation: sarBookCascadeIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-          will-change: transform, opacity;
+          transform-origin: left bottom;
+          animation: sarBookCascadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-
-        /* 2. 3D Book Tap & Hover Lift */
-        .sar-cascade-item {
-          transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), filter 0.28s ease;
-        }
-        .sar-cascade-item:active {
-          transform: scale(0.95) rotateY(-15deg) translateY(-4px) !important;
-          filter: brightness(1.06);
-        }
-
-        /* 3. PDF စာမျက်နှာလှန်သည့် Page-Turn Animation */
-        @keyframes sarPageTurnNext {
-          0% {
-            opacity: 0.35;
-            transform: perspective(1200px) rotateY(-14deg) translateX(28px) scale(0.98);
-          }
-          100% {
-            opacity: 1;
-            transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
-          }
-        }
-        @keyframes sarPageTurnPrev {
-          0% {
-            opacity: 0.35;
-            transform: perspective(1200px) rotateY(14deg) translateX(-28px) scale(0.98);
-          }
-          100% {
-            opacity: 1;
-            transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
-          }
-        }
-        .sar-page-turn-next {
-          transform-origin: left center;
-          animation: sarPageTurnNext 0.36s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .sar-page-turn-prev {
-          transform-origin: right center;
-          animation: sarPageTurnPrev 0.36s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        /* 4. Heart / Upvote Floating Particle Effect */
         @keyframes sarFloatParticle {
           0% {
             opacity: 1;
@@ -2789,49 +2562,31 @@
       `;
       document.head.appendChild(animStyle);
 
-      // စာအုပ်စင်ပေါ်ရှိ စာအုပ်များကို အလိုအလျောက် Cascade Effect ထည့်ပေးခြင်း
       function applyShelfCascade() {
-        const shelf = document.getElementById('bookshelfContainer') || document.querySelector('main');
+        const shelf = document.getElementById('cleanShelfRows');
         if (!shelf) return;
-        const books = shelf.querySelectorAll('.book-card, .book-item, [onclick*="openBook"], [onclick*="showBook"]');
+        const books = shelf.querySelectorAll('.book-cover-3d');
         books.forEach((el, idx) => {
           if (el.dataset.cascaded === '1') return;
           el.dataset.cascaded = '1';
           el.classList.add('sar-cascade-item');
-          el.style.animationDelay = `${Math.min(idx * 0.045, 0.65)}s`;
+          el.style.animationDelay = `${Math.min(idx * 0.045, 0.6)}s`;
         });
       }
 
       window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(applyShelfCascade, 200);
-        const shelf = document.getElementById('bookshelfContainer') || document.body;
-        const observer = new MutationObserver(() => applyShelfCascade());
-        observer.observe(shelf, { childList: true, subtree: true });
+        const shelf = document.getElementById('cleanShelfRows');
+        if (shelf) {
+          const observer = new MutationObserver(() => applyShelfCascade());
+          observer.observe(shelf, { childList: true, subtree: true });
+        }
       });
-
-      // PDF စာမျက်နှာ အရှေ့/အနောက် လှန်ချိန်တွင် Page-Turn Animation ထည့်ပေးခြင်း
-      function triggerPdfPageAnim(direction) {
-        const canvas = document.getElementById('pdfCanvas') || document.querySelector('#readerModal canvas');
-        if (!canvas) return;
-        canvas.classList.remove('sar-page-turn-next', 'sar-page-turn-prev');
-        void canvas.offsetWidth;
-        canvas.classList.add(direction === 'prev' ? 'sar-page-turn-prev' : 'sar-page-turn-next');
-      }
 
       document.addEventListener('click', function(e) {
         const btn = e.target.closest('button, [onclick]');
         if (!btn) return;
         const actionStr = (btn.getAttribute('onclick') || '') + ' ' + (btn.id || '') + ' ' + (btn.textContent || '');
-
-        // PDF Next / Prev စစ်ဆေးခြင်း
-        if (/nextPage|changePage\(1|ရှေ့|▶|→/i.test(actionStr)) {
-          triggerPdfPageAnim('next');
-        } else if (/prevPage|changePage\(-1|နောက်|◀|←/i.test(actionStr)) {
-          triggerPdfPageAnim('prev');
-        }
-
-        // ❤️ Favorite သို့မဟုတ် 👍 Upvote နှိပ်ချိန်တွင် Particle လွင့်တက်စေခြင်း
-        if (/fav|heart|upvote|like|❤️|🤍|👍/i.test(actionStr)) {
+        if (/quickToggleFav|toggleFavoriteCurrentBook|upvoteRequest|❤️|🔖|👍/i.test(actionStr)) {
           spawnPopParticles(e.clientX, e.clientY, /👍|upvote/i.test(actionStr) ? '👍' : '❤️');
         }
       }, true);
@@ -2854,7 +2609,6 @@
         }
       }
     })();
-    
   </script>
 </body>
 </html>
