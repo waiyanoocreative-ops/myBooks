@@ -2609,6 +2609,341 @@
         }
       }
     })();
+
+    // ================= 14. COZY LIBRARY KITTEN & ANIMATED FAIRY LIGHTS =================
+    (function initCozyShelfCatAndLights() {
+      const cozyStyle = document.createElement('style');
+      cozyStyle.textContent = `
+        .premium-shelf-ledge {
+          position: relative;
+          overflow: visible !important;
+        }
+
+        /* 1. ANIMATED FAIRY LIGHTS ON SHELF LEDGE */
+        .sar-fairy-wire {
+          position: absolute;
+          left: 10px;
+          right: 10px;
+          top: 9px;
+          height: 16px;
+          display: flex;
+          justify-content: space-around;
+          align-items: flex-start;
+          pointer-events: none;
+          z-index: 15;
+        }
+        .sar-fairy-wire::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 2px;
+          height: 2px;
+          background: repeating-linear-gradient(90deg, rgba(60,40,20,0.55) 0 8px, rgba(30,20,10,0.3) 8px 14px);
+          border-radius: 999px;
+        }
+        .sar-fairy-bulb {
+          position: relative;
+          width: 7px;
+          height: 9px;
+          border-radius: 50% 50% 55% 55%;
+          background: #FFFBEB;
+          transform-origin: top center;
+          animation:
+            sarBulbTwinkle var(--twinkle-dur, 2.4s) ease-in-out infinite alternate,
+            sarBulbSway 3.6s ease-in-out infinite alternate;
+          animation-delay: var(--bulb-delay, 0s);
+        }
+        .sar-fairy-bulb::before {
+          content: "";
+          position: absolute;
+          top: -2px;
+          left: 2px;
+          width: 3px;
+          height: 3px;
+          background: #44403c;
+          border-radius: 1px;
+        }
+        @keyframes sarBulbTwinkle {
+          0% {
+            opacity: 0.45;
+            background: #FDE68A;
+            box-shadow: 0 0 4px #F59E0B, 0 0 8px rgba(245, 158, 11, 0.35);
+            transform: scale(0.92);
+          }
+          50% {
+            opacity: 0.85;
+            background: #FEF3C7;
+            box-shadow: 0 0 8px #FBBF24, 0 0 16px rgba(251, 191, 36, 0.65);
+          }
+          100% {
+            opacity: 1;
+            background: #FFFFFF;
+            box-shadow: 0 0 11px #FDE047, 0 0 22px rgba(250, 204, 21, 0.9), 0 0 30px rgba(245, 158, 11, 0.55);
+            transform: scale(1.08);
+          }
+        }
+        @keyframes sarBulbSway {
+          0% { rotate: -5deg; }
+          100% { rotate: 5deg; }
+        }
+
+        /* 2. WALKING & SITTING COZY KITTEN (NEVER BLOCKS BOOKS) */
+        .sar-kitten-stage {
+          position: absolute;
+          left: 14px;
+          right: 14px;
+          bottom: 11px;
+          height: 38px;
+          pointer-events: none;
+          z-index: 22;
+        }
+        .sar-kitten-actor {
+          position: absolute;
+          bottom: 0;
+          left: 12%;
+          width: 42px;
+          height: 34px;
+          pointer-events: none;
+          will-change: left, transform;
+          filter: drop-shadow(0 3px 4px rgba(0,0,0,0.32));
+        }
+        .sar-kitten-inner {
+          width: 100%;
+          height: 100%;
+          transform-origin: center bottom;
+          transition: transform 0.2s ease;
+        }
+        .sar-kitten-actor.face-left .sar-kitten-inner {
+          transform: scaleX(-1);
+        }
+
+        /* Walking vs Sitting Pose Visibility */
+        .sar-kitten-actor .pose-walk { display: none; }
+        .sar-kitten-actor .pose-sit  { display: block; }
+        .sar-kitten-actor.is-walking .pose-walk { display: block; }
+        .sar-kitten-actor.is-walking .pose-sit  { display: none; }
+
+        /* Walking Leg & Body Bounce Animations */
+        @keyframes sarCatWalkBob {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-1.8px); }
+        }
+        @keyframes sarCatLegA {
+          0%, 100% { transform: rotate(-18deg); }
+          50% { transform: rotate(18deg); }
+        }
+        @keyframes sarCatLegB {
+          0%, 100% { transform: rotate(18deg); }
+          50% { transform: rotate(-18deg); }
+        }
+        .sar-kitten-actor.is-walking svg {
+          animation: sarCatWalkBob 0.32s infinite ease-in-out;
+        }
+        .sar-kitten-actor.is-walking .leg-a {
+          transform-origin: center 21px;
+          animation: sarCatLegA 0.32s infinite ease-in-out;
+        }
+        .sar-kitten-actor.is-walking .leg-b {
+          transform-origin: center 21px;
+          animation: sarCatLegB 0.32s infinite ease-in-out;
+        }
+
+        /* Tail Wag & Eye Blink Animations */
+        @keyframes sarCatTailWag {
+          0%, 100% { transform: rotate(-8deg); }
+          50% { transform: rotate(14deg); }
+        }
+        @keyframes sarCatBlink {
+          0%, 92%, 100% { transform: scaleY(1); }
+          96% { transform: scaleY(0.1); }
+        }
+        .cat-tail {
+          transform-origin: 9px 22px;
+          animation: sarCatTailWag 1.8s ease-in-out infinite;
+        }
+        .cat-eyes {
+          transform-origin: center 14px;
+          animation: sarCatBlink 4.2s infinite;
+        }
+
+        /* Cozy Floating Note When Sitting */
+        @keyframes sarCatNoteFloat {
+          0% { opacity: 0; transform: translateY(4px) scale(0.7); }
+          40% { opacity: 0.9; transform: translateY(-3px) scale(1); }
+          100% { opacity: 0; transform: translateY(-10px) scale(0.85); }
+        }
+        .sar-cat-mood {
+          position: absolute;
+          top: -8px;
+          right: 2px;
+          font-size: 10px;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .sar-kitten-actor:not(.is-walking) .sar-cat-mood {
+          animation: sarCatNoteFloat 3.2s ease-in-out infinite;
+        }
+      `;
+      document.head.appendChild(cozyStyle);
+
+      function getKittenSvgMarkup() {
+        return `
+          <span class="sar-cat-mood">♪</span>
+          <div class="sar-kitten-inner">
+            <!-- WALKING POSE SVG -->
+            <svg class="pose-walk" viewBox="0 0 48 36" width="42" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Tail -->
+              <path class="cat-tail" d="M10 22 C4 18, 3 11, 7 8" stroke="#F59E0B" stroke-width="3.2" stroke-linecap="round"/>
+              <!-- Back Legs -->
+              <line class="leg-b" x1="15" y1="22" x2="14" y2="32" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
+              <line class="leg-a" x1="29" y1="22" x2="28" y2="32" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
+              <!-- Body -->
+              <ellipse cx="22" cy="21" rx="11" ry="6.5" fill="#FBBF24"/>
+              <ellipse cx="22" cy="19" rx="6" ry="3" fill="#F59E0B" opacity="0.45"/>
+              <!-- Front Legs -->
+              <line class="leg-a" x1="13" y1="22" x2="13" y2="32" stroke="#FBBF24" stroke-width="3.2" stroke-linecap="round"/>
+              <line class="leg-b" x1="31" y1="22" x2="31" y2="32" stroke="#FBBF24" stroke-width="3.2" stroke-linecap="round"/>
+              <!-- Head -->
+              <circle cx="34" cy="15" r="7" fill="#FBBF24"/>
+              <!-- Ears -->
+              <polygon points="29,10 31,4 34,9" fill="#F59E0B"/>
+              <polygon points="35,9 39,4 40,11" fill="#F59E0B"/>
+              <polygon points="30,9.5 31.3,5.5 33.3,9" fill="#FDA4AF"/>
+              <polygon points="35.6,9 38.4,5.5 39.2,10.2" fill="#FDA4AF"/>
+              <!-- Collar -->
+              <path d="M28 19 Q33 22 37 19" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="34" cy="21" r="1.6" fill="#FEF08A"/>
+              <!-- Eyes & Nose -->
+              <g class="cat-eyes">
+                <circle cx="33" cy="14.5" r="1.2" fill="#1C1917"/>
+                <circle cx="37.5" cy="14.5" r="1.2" fill="#1C1917"/>
+              </g>
+              <polygon points="35.5,16 34.6,17.2 36.4,17.2" fill="#FB7185"/>
+            </svg>
+
+            <!-- SITTING POSE SVG -->
+            <svg class="pose-sit" viewBox="0 0 48 36" width="42" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Wagging Tail -->
+              <path class="cat-tail" d="M15 29 C7 28, 5 21, 9 17" stroke="#F59E0B" stroke-width="3.2" stroke-linecap="round"/>
+              <!-- Sitting Body -->
+              <path d="M16 32 C15 22, 19 16, 25 16 C31 16, 33 23, 32 32 Z" fill="#FBBF24"/>
+              <!-- White Chest Patch -->
+              <ellipse cx="26.5" cy="23" rx="3.5" ry="4.5" fill="#FFFBEB"/>
+              <!-- Front Paws -->
+              <ellipse cx="23" cy="32" rx="2.2" ry="1.5" fill="#FFFBEB"/>
+              <ellipse cx="28.5" cy="32" rx="2.2" ry="1.5" fill="#FFFBEB"/>
+              <!-- Head -->
+              <circle cx="26" cy="12.5" r="7.2" fill="#FBBF24"/>
+              <!-- Ears -->
+              <polygon points="20,8 22,2 25,7" fill="#F59E0B"/>
+              <polygon points="27,7 31,2 32,9" fill="#F59E0B"/>
+              <polygon points="21,7.5 22.3,3.6 24.4,7" fill="#FDA4AF"/>
+              <polygon points="27.6,7 30.3,3.6 31.2,8.2" fill="#FDA4AF"/>
+              <!-- Red Collar & Golden Bell -->
+              <path d="M21 17.5 Q26 19.8 31 17.5" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round"/>
+              <circle cx="26.5" cy="19.2" r="1.8" fill="#FEF08A"/>
+              <!-- Blinking Eyes & Pink Cheek -->
+              <g class="cat-eyes">
+                <circle cx="24" cy="12.2" r="1.25" fill="#1C1917"/>
+                <circle cx="29" cy="12.2" r="1.25" fill="#1C1917"/>
+              </g>
+              <ellipse cx="22.2" cy="14" rx="1.3" ry="0.7" fill="#FDA4AF" opacity="0.75"/>
+              <ellipse cx="30.6" cy="14" rx="1.3" ry="0.7" fill="#FDA4AF" opacity="0.75"/>
+              <polygon points="26.5,13.5 25.6,14.7 27.4,14.7" fill="#FB7185"/>
+            </svg>
+          </div>
+        `;
+      }
+
+      let kittenLoopTimer = null;
+
+      function decorateShelvesWithLightsAndKitten() {
+        const ledges = document.querySelectorAll('#cleanShelfRows .premium-shelf-ledge');
+        if (!ledges.length) return;
+
+        const bulbCount = window.innerWidth >= 640 ? 11 : 8;
+
+        ledges.forEach((ledge, shelfIdx) => {
+          // 1. Attach Fairy Lights to every shelf ledge
+          if (!ledge.querySelector('.sar-fairy-wire')) {
+            const wire = document.createElement('div');
+            wire.className = 'sar-fairy-wire';
+            let bulbsHtml = '';
+            for (let i = 0; i < bulbCount; i++) {
+              const delay = ((i * 0.37 + shelfIdx * 0.5) % 2.5).toFixed(2);
+              const dur = (1.8 + ((i * 0.29) % 1.4)).toFixed(2);
+              const drop = Math.sin((i / (bulbCount - 1)) * Math.PI) * 4;
+              bulbsHtml += `<span class="sar-fairy-bulb" style="--bulb-delay:${delay}s; --twinkle-dur:${dur}s; margin-top:${drop.toFixed(1)}px;"></span>`;
+            }
+            wire.innerHTML = bulbsHtml;
+            ledge.appendChild(wire);
+          }
+
+          // 2. Attach Cozy Kitten to the first shelf ledge
+          if (shelfIdx === 0 && !ledge.querySelector('.sar-kitten-stage')) {
+            const stage = document.createElement('div');
+            stage.className = 'sar-kitten-stage';
+            stage.innerHTML = `<div class="sar-kitten-actor" id="sarShelfKitten">${getKittenSvgMarkup()}</div>`;
+            ledge.appendChild(stage);
+            startKittenBehaviorLoop();
+          }
+        });
+      }
+
+      function startKittenBehaviorLoop() {
+        if (kittenLoopTimer) clearTimeout(kittenLoopTimer);
+        let currentPosPct = 14;
+
+        function runNextAction() {
+          const kitten = document.getElementById('sarShelfKitten');
+          if (!kitten) return;
+
+          // Pick a new random spot along the shelf (between 8% and 84%)
+          let targetPct = 8 + Math.floor(Math.random() * 76);
+          if (Math.abs(targetPct - currentPosPct) < 18) {
+            targetPct = currentPosPct > 50 ? 15 : 78;
+          }
+
+          const distancePct = Math.abs(targetPct - currentPosPct);
+          const walkDurationMs = Math.max(Math.round(distancePct * 95), 2200);
+
+          // Face direction of movement
+          if (targetPct < currentPosPct) {
+            kitten.classList.add('face-left');
+          } else {
+            kitten.classList.remove('face-left');
+          }
+
+          // Start Walking
+          kitten.classList.add('is-walking');
+          kitten.style.transition = `left ${walkDurationMs}ms linear`;
+          kitten.style.left = `${targetPct}%`;
+          currentPosPct = targetPct;
+
+          // Arrive & Sit Down for 4.5 ~ 7 seconds
+          kittenLoopTimer = setTimeout(() => {
+            const kNow = document.getElementById('sarShelfKitten');
+            if (!kNow) return;
+            kNow.classList.remove('is-walking');
+            const sitRestMs = 4500 + Math.floor(Math.random() * 2800);
+            kittenLoopTimer = setTimeout(runNextAction, sitRestMs);
+          }, walkDurationMs);
+        }
+
+        kittenLoopTimer = setTimeout(runNextAction, 1800);
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(decorateShelvesWithLightsAndKitten, 600);
+        const shelfContainer = document.getElementById('cleanShelfRows');
+        if (shelfContainer) {
+          const obs = new MutationObserver(() => decorateShelvesWithLightsAndKitten());
+          obs.observe(shelfContainer, { childList: true });
+        }
+      });
+    })();
+    
   </script>
 </body>
 </html>
