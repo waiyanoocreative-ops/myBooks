@@ -22,109 +22,66 @@ jobs:
       - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 2. Set up JDK 17
+      - name: 2. Generate iOS Profile & Privacy Policy
+        run: |
+          python3 -c '
+          import base64, os
+          icon_b64 = ""
+          if os.path.exists("icon.png"):
+              icon_b64 = base64.b64encode(open("icon.png", "rb").read()).decode()
+          mc = (
+              "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+              "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+              "<plist version=\"1.0\">\n<dict>\n"
+              "  <key>PayloadContent</key>\n  <array>\n    <dict>\n"
+              "      <key>FullScreen</key><true/>\n"
+              "      <key>IgnoreManifestScope</key><true/>\n"
+              "      <key>IsRemovable</key><true/>\n"
+              "      <key>Label</key><string>စာ</string>\n"
+              "      <key>PayloadDescription</key><string>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက် iOS App</string>\n"
+              "      <key>PayloadDisplayName</key><string>စာ (Digital Library)</string>\n"
+              "      <key>PayloadIdentifier</key><string>com.waiyanoo.sar.webclip</string>\n"
+              "      <key>PayloadType</key><string>com.apple.webClip.managed</string>\n"
+              "      <key>PayloadUUID</key><string>A1B2C3D4-E5F6-4789-8012-3456789ABCDE</string>\n"
+              "      <key>PayloadVersion</key><integer>1</integer>\n"
+              "      <key>Precomposed</key><true/>\n"
+              "      <key>URL</key><string>https://waiyanoocreative-ops.github.io/myBooks/</string>\n"
+              "      <key>Icon</key><data>" + icon_b64 + "</data>\n"
+              "    </dict>\n  </array>\n"
+              "  <key>PayloadDescription</key><string>စာ ဒစ်ဂျစ်တယ် စာကြည့်တိုက် iOS App Profile</string>\n"
+              "  <key>PayloadDisplayName</key><string>စာ — iOS App Installer</string>\n"
+              "  <key>PayloadIdentifier</key><string>com.waiyanoo.sar.profile</string>\n"
+              "  <key>PayloadOrganization</key><string>စာ Digital Library</string>\n"
+              "  <key>PayloadRemovalDisallowed</key><false/>\n"
+              "  <key>PayloadType</key><string>Configuration</string>\n"
+              "  <key>PayloadUUID</key><string>F9E8D7C6-B5A4-4321-9876-543210FEDCBA</string>\n"
+              "  <key>PayloadVersion</key><integer>1</integer>\n"
+              "</dict>\n</plist>\n"
+          )
+          open("sar-ios.mobileconfig", "w", encoding="utf-8").write(mc)
+
+          priv = (
+              "<!DOCTYPE html>\n<html lang=\"my\">\n<head>\n<meta charset=\"UTF-8\" />\n"
+              "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+              "<title>Privacy Policy — စာ</title>\n"
+              "<style>body{font-family:sans-serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.7;background:#faf8f5;color:#1f2937}h1,h2{color:#6B141A}.card{background:#fff;padding:24px;border-radius:16px}</style>\n"
+              "</head>\n<body><div class=\"card\">\n"
+              "<h1>Privacy Policy (ကိုယ်ရေးအချက်အလက် မူဝါဒ)</h1>\n"
+              "<p><strong>စာ ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</strong> သည် စာဖတ်သူများ၏ ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အချက်အလက်များကို လုံးဝ ရယူသိမ်းဆည်းခြင်း မရှိပါ။</p>\n"
+              "<h2>သိမ်းဆည်းသော အချက်အလက်များ</h2>\n"
+              "<p>စာဖတ်သူ နောက်ဆုံးဖတ်ရှုခဲ့သော စာမျက်နှာနံပါတ်နှင့် App Settings များကို သုံးစွဲသူ၏ ဖုန်းအတွင်း၌သာ သိမ်းဆည်းပါသည်။</p>\n"
+              "</div></body>\n</html>\n"
+          )
+          open("privacy.html", "w", encoding="utf-8").write(priv)
+          '
+
+      - name: 3. Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 3. Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Generate iOS WebClip Profile & Privacy Policy
-        run: |
-          python3 - << 'PYEOF'
-          import base64, os
-
-          icon_b64 = ""
-          if os.path.exists("icon.png"):
-              with open("icon.png", "rb") as f:
-                  icon_b64 = base64.b64encode(f.read()).decode("utf-8")
-
-          mobileconfig = f"""<?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>PayloadContent</key>
-            <array>
-              <dict>
-                <key>FullScreen</key>
-                <true/>
-                <key>IgnoreManifestScope</key>
-                <true/>
-                <key>IsRemovable</key>
-                <true/>
-                <key>Label</key>
-                <string>စာ</string>
-                <key>PayloadDescription</key>
-                <string>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက် iOS App</string>
-                <key>PayloadDisplayName</key>
-                <string>စာ (Digital Library)</string>
-                <key>PayloadIdentifier</key>
-                <string>com.waiyanoo.sar.webclip</string>
-                <key>PayloadType</key>
-                <string>com.apple.webClip.managed</string>
-                <key>PayloadUUID</key>
-                <string>A1B2C3D4-E5F6-4789-8012-3456789ABCDE</string>
-                <key>PayloadVersion</key>
-                <integer>1</integer>
-                <key>Precomposed</key>
-                <true/>
-                <key>URL</key>
-                <string>https://waiyanoocreative-ops.github.io/myBooks/</string>
-                <key>Icon</key>
-                <data>{icon_b64}</data>
-              </dict>
-            </array>
-            <key>PayloadDescription</key>
-            <string>"စာ" ဒစ်ဂျစ်တယ် စာကြည့်တိုက်ကို iPhone/iPad Home Screen ပေါ်သို့ Fullscreen App အဖြစ် ထည့်သွင်းပေးသည့် Profile ဖြစ်ပါသည်။</string>
-            <key>PayloadDisplayName</key>
-            <string>စာ — iOS App Installer</string>
-            <key>PayloadIdentifier</key>
-            <string>com.waiyanoo.sar.profile</string>
-            <key>PayloadOrganization</key>
-            <string>စာ Digital Library</string>
-            <key>PayloadRemovalDisallowed</key>
-            <false/>
-            <key>PayloadType</key>
-            <string>Configuration</string>
-            <key>PayloadUUID</key>
-            <string>F9E8D7C6-B5A4-4321-9876-543210FEDCBA</string>
-            <key>PayloadVersion</key>
-            <integer>1</integer>
-          </dict>
-          </plist>
-          """
-          with open("sar-ios.mobileconfig", "w", encoding="utf-8") as f:
-              f.write(mobileconfig.strip())
-
-          privacy_html = """<!DOCTYPE html>
-          <html lang="my">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Privacy Policy — စာ ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
-            <style>
-              body { font-family: sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #1f2937; background: #faf8f5; }
-              h1, h2 { color: #6B141A; }
-              .card { background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              <h1>Privacy Policy (ကိုယ်ရေးအချက်အလက် မူဝါဒ)</h1>
-              <p><strong>"စာ" ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</strong> သည် စာဖတ်သူများ၏ ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အချက်အလက်များ (ဖုန်းနံပါတ်၊ တည်နေရာ၊ ဓာတ်ပုံနှင့် အဆက်အသွယ်များ) ကို လုံးဝ ရယူသိမ်းဆည်းခြင်း မရှိပါ။</p>
-              <h2>သိမ်းဆည်းသော အချက်အလက်များ</h2>
-              <p>စာဖတ်သူ နောက်ဆုံးဖတ်ရှုခဲ့သော စာမျက်နှာနံပါတ်၊ အကြိုက်ဆုံးမှတ်သားထားသော စာအုပ်များနှင့် App Theme ရွေးချယ်မှုများကို သုံးစွဲသူ၏ ဖုန်းအတွင်း (Local Storage) ၌သာ သိမ်းဆည်းပါသည်။</p>
-            </div>
-          </body>
-          </html>
-          """
-          with open("privacy.html", "w", encoding="utf-8") as f:
-              f.write(privacy_html.strip())
-          PYEOF
-
-      - name: 5. Create Native Android Project Structure
+      - name: 4. Build Android APK & AAB
         run: |
           mkdir -p android-app/app/src/main/java/com/waiyanoo/sar
           mkdir -p android-app/app/src/main/res/drawable
@@ -143,189 +100,139 @@ jobs:
             cp icon.png android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           fi
 
-          python3 - << 'PYEOF'
-          files = {
-              "android-app/settings.gradle": 'rootProject.name = "SarLibrary"\ninclude ":app"\n',
-              "android-app/build.gradle": """buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.2'
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          """,
-              "android-app/gradle.properties": "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n",
-              "android-app/app/build.gradle": """plugins {
-              id 'com.android.application'
-          }
-          android {
-              namespace 'com.waiyanoo.sar'
-              compileSdk 34
-
-              defaultConfig {
-                  applicationId "com.waiyanoo.sar"
-                  minSdk 23
-                  targetSdk 34
-                  versionCode 2
-                  versionName "2.0.0"
-              }
-              signingConfigs {
-                  release {
-                      storeFile file("release.keystore")
-                      storePassword "sarlibrarypass"
-                      keyAlias "sarkey"
-                      keyPassword "sarlibrarypass"
-                  }
-              }
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                      minifyEnabled false
-                      shrinkResources false
-                  }
-              }
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
-              }
-          }
-          dependencies {}
-          """,
-              "android-app/app/src/main/AndroidManifest.xml": """<?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.waiyanoo.sar">
-
-              <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-              <uses-permission android:name="android.permission.VIBRATE" />
-
-              <application
-                  android:allowBackup="true"
-                  android:icon="@mipmap/ic_launcher"
-                  android:roundIcon="@mipmap/ic_launcher"
-                  android:label="စာ"
-                  android:supportsRtl="true"
-                  android:usesCleartextTraffic="true"
-                  android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true"
-                      android:configChanges="orientation|screenSize|keyboardHidden">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-                  </activity>
-              </application>
-          </manifest>
-          """,
-              "android-app/app/src/main/java/com/waiyanoo/sar/MainActivity.java": """package com.waiyanoo.sar;
-
-          import android.app.Activity;
-          import android.content.Intent;
-          import android.graphics.Color;
-          import android.net.Uri;
-          import android.os.Bundle;
-          import android.view.Window;
-          import android.view.WindowManager;
-          import android.webkit.WebResourceError;
-          import android.webkit.WebResourceRequest;
-          import android.webkit.WebSettings;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-
-          public class MainActivity extends Activity {
-              private WebView webView;
-              private static final String APP_URL = "https://waiyanoocreative-ops.github.io/myBooks/";
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-                  requestWindowFeature(Window.FEATURE_NO_TITLE);
-                  Window window = getWindow();
-                  window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                  window.setStatusBarColor(Color.parseColor("#6B141A"));
-
-                  webView = new WebView(this);
-                  setContentView(webView);
-
-                  WebSettings settings = webView.getSettings();
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setDatabaseEnabled(true);
-                  settings.setAllowFileAccess(true);
-                  settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-                  settings.setMediaPlaybackRequiresUserGesture(false);
-
-                  webView.setWebViewClient(new WebViewClient() {
-                      @Override
-                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                          String url = request.getUrl().toString();
-                          if (url.startsWith("https://waiyanoocreative-ops.github.io")) {
-                              return false;
-                          }
-                          try {
-                              Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                              startActivity(intent);
-                          } catch (Exception ignored) {}
-                          return true;
-                      }
-
-                      @Override
-                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                          if (request.isForMainFrame()) {
-                              String offlineHtml = "<html><body style='background:#FAF8F5;color:#1E1916;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;padding:24px;'>"
-                                  + "<div style='width:68px;height:68px;border-radius:20px;background:#6B141A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:bold;margin-bottom:16px;'>စာ</div>"
-                                  + "<h2 style='margin:0 0 8px;'>အင်တာနက် ချိတ်ဆက်မှု မရှိပါ</h2>"
-                                  + "<p style='font-size:14px;opacity:0.75;margin:0 0 20px;'>စာအုပ်စင်ကို ဖွင့်ရန် Wi-Fi သို့မဟုတ် Mobile Data ပြန်ဖွင့်ပြီး ထပ်မံကြိုးစားပါ။</p>"
-                                  + "<button onclick=\\"location.href='" + APP_URL + "'\\" style='background:#6B141A;color:#fff;border:none;padding:12px 28px;border-radius:999px;font-size:14px;font-weight:bold;'>🔄 ပြန်လည်ချိတ်ဆက်မည်</button>"
-                                  + "</body></html>";
-                              view.loadDataWithBaseURL(null, offlineHtml, "text/html", "UTF-8", null);
-                          }
-                      }
-                  });
-
-                  webView.loadUrl(APP_URL);
-              }
-
-              @Override
-              public void onBackPressed() {
-                  if (webView != null && webView.canGoBack()) {
-                      webView.goBack();
-                  } else {
-                      super.onBackPressed();
-                  }
-              }
-          }
-          """
-          }
-
-          for path, content in files.items():
-              with open(path, "w", encoding="utf-8") as f:
-                  f.write(content)
-          PYEOF
+          python3 -c '
+          open("android-app/settings.gradle", "w").write("rootProject.name = \"SarLibrary\"\ninclude \":app\"\n")
+          open("android-app/gradle.properties", "w").write("org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n")
+          open("android-app/build.gradle", "w").write(
+              "buildscript {\n"
+              "  repositories { google(); mavenCentral() }\n"
+              "  dependencies { classpath \"com.android.tools.build:gradle:8.1.2\" }\n"
+              "}\n"
+              "allprojects { repositories { google(); mavenCentral() } }\n"
+          )
+          open("android-app/app/build.gradle", "w").write(
+              "plugins { id \"com.android.application\" }\n"
+              "android {\n"
+              "  namespace \"com.waiyanoo.sar\"\n"
+              "  compileSdk 34\n"
+              "  defaultConfig {\n"
+              "    applicationId \"com.waiyanoo.sar\"\n"
+              "    minSdk 23\n"
+              "    targetSdk 34\n"
+              "    versionCode 2\n"
+              "    versionName \"2.0.0\"\n"
+              "  }\n"
+              "  signingConfigs {\n"
+              "    release {\n"
+              "      storeFile file(\"release.keystore\")\n"
+              "      storePassword \"sarlibrarypass\"\n"
+              "      keyAlias \"sarkey\"\n"
+              "      keyPassword \"sarlibrarypass\"\n"
+              "    }\n"
+              "  }\n"
+              "  buildTypes {\n"
+              "    release {\n"
+              "      signingConfig signingConfigs.release\n"
+              "      minifyEnabled false\n"
+              "      shrinkResources false\n"
+              "    }\n"
+              "  }\n"
+              "  compileOptions {\n"
+              "    sourceCompatibility JavaVersion.VERSION_17\n"
+              "    targetCompatibility JavaVersion.VERSION_17\n"
+              "  }\n"
+              "}\n"
+              "dependencies {}\n"
+          )
+          open("android-app/app/src/main/AndroidManifest.xml", "w").write(
+              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+              "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"com.waiyanoo.sar\">\n"
+              "  <uses-permission android:name=\"android.permission.INTERNET\" />\n"
+              "  <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />\n"
+              "  <uses-permission android:name=\"android.permission.VIBRATE\" />\n"
+              "  <application android:allowBackup=\"true\" android:icon=\"@mipmap/ic_launcher\" android:roundIcon=\"@mipmap/ic_launcher\" android:label=\"စာ\" android:supportsRtl=\"true\" android:usesCleartextTraffic=\"true\" android:theme=\"@android:style/Theme.DeviceDefault.NoActionBar\">\n"
+              "    <activity android:name=\".MainActivity\" android:exported=\"true\" android:configChanges=\"orientation|screenSize|keyboardHidden\">\n"
+              "      <intent-filter>\n"
+              "        <action android:name=\"android.intent.action.MAIN\" />\n"
+              "        <category android:name=\"android.intent.category.LAUNCHER\" />\n"
+              "      </intent-filter>\n"
+              "    </activity>\n"
+              "  </application>\n"
+              "</manifest>\n"
+          )
+          open("android-app/app/src/main/java/com/waiyanoo/sar/MainActivity.java", "w").write(
+              "package com.waiyanoo.sar;\n"
+              "import android.app.Activity;\n"
+              "import android.content.Intent;\n"
+              "import android.graphics.Color;\n"
+              "import android.net.Uri;\n"
+              "import android.os.Bundle;\n"
+              "import android.view.Window;\n"
+              "import android.view.WindowManager;\n"
+              "import android.webkit.WebResourceError;\n"
+              "import android.webkit.WebResourceRequest;\n"
+              "import android.webkit.WebSettings;\n"
+              "import android.webkit.WebView;\n"
+              "import android.webkit.WebViewClient;\n"
+              "public class MainActivity extends Activity {\n"
+              "  private WebView webView;\n"
+              "  private static final String APP_URL = \"https://waiyanoocreative-ops.github.io/myBooks/\";\n"
+              "  @Override\n"
+              "  protected void onCreate(Bundle savedInstanceState) {\n"
+              "    super.onCreate(savedInstanceState);\n"
+              "    requestWindowFeature(Window.FEATURE_NO_TITLE);\n"
+              "    Window window = getWindow();\n"
+              "    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);\n"
+              "    window.setStatusBarColor(Color.parseColor(\"#6B141A\"));\n"
+              "    webView = new WebView(this);\n"
+              "    setContentView(webView);\n"
+              "    WebSettings settings = webView.getSettings();\n"
+              "    settings.setJavaScriptEnabled(true);\n"
+              "    settings.setDomStorageEnabled(true);\n"
+              "    settings.setDatabaseEnabled(true);\n"
+              "    settings.setAllowFileAccess(true);\n"
+              "    settings.setCacheMode(WebSettings.LOAD_DEFAULT);\n"
+              "    settings.setMediaPlaybackRequiresUserGesture(false);\n"
+              "    webView.setWebViewClient(new WebViewClient() {\n"
+              "      @Override\n"
+              "      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {\n"
+              "        String url = request.getUrl().toString();\n"
+              "        if (url.startsWith(\"https://waiyanoocreative-ops.github.io\")) return false;\n"
+              "        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}\n"
+              "        return true;\n"
+              "      }\n"
+              "      @Override\n"
+              "      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {\n"
+              "        if (request.isForMainFrame()) {\n"
+              "          String html = \"<html><body style=\\\"background:#FAF8F5;color:#1E1916;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;padding:24px;\\\"><h2>အင်တာနက် ချိတ်ဆက်မှု မရှိပါ</h2><button onclick=\\\"location.href=\\x27\" + APP_URL + \"\\x27\\\" style=\\\"background:#6B141A;color:#fff;border:none;padding:12px 24px;border-radius:999px;font-weight:bold;\\\">ပြန်လည်ချိတ်ဆက်မည်</button></body></html>\";\n"
+              "          view.loadDataWithBaseURL(null, html, \"text/html\", \"UTF-8\", null);\n"
+              "        }\n"
+              "      }\n"
+              "    });\n"
+              "    webView.loadUrl(APP_URL);\n"
+              "  }\n"
+              "  @Override\n"
+              "  public void onBackPressed() {\n"
+              "    if (webView != null && webView.canGoBack()) webView.goBack();\n"
+              "    else super.onBackPressed();\n"
+              "  }\n"
+              "}\n"
+          )
+          '
 
           keytool -genkey -v -keystore android-app/app/release.keystore \
             -alias sarkey -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass sarlibrarypass -keypass sarlibrarypass \
             -dname "CN=WaiYanOo, OU=SarLibrary, O=Sar, L=Mandalay, S=Mandalay, C=MM"
 
-      - name: 6. Build Signed APK & Play Store AAB
-        working-directory: ./android-app
-        run: gradle assembleRelease bundleRelease
-
-      - name: 7. Copy & Commit APK, AAB, iOS Profile & Privacy Policy to Repo
-        run: |
+          cd android-app
+          gradle assembleRelease bundleRelease
+          cd ..
           cp android-app/app/build/outputs/apk/release/app-release.apk ./sar-app.apk
           cp android-app/app/build/outputs/bundle/release/app-release.aab ./sar-app.aab
+
+      - name: 5. Commit & Push Generated Files
+        run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add sar-app.apk sar-app.aab sar-ios.mobileconfig privacy.html
