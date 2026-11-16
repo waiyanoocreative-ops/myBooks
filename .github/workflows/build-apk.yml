@@ -144,8 +144,6 @@ jobs:
           fi
 
           python3 - << 'PYEOF'
-          import os
-
           files = {
               "android-app/settings.gradle": 'rootProject.name = "SarLibrary"\ninclude ":app"\n',
               "android-app/build.gradle": """buildscript {
@@ -320,14 +318,11 @@ jobs:
             -storepass sarlibrarypass -keypass sarlibrarypass \
             -dname "CN=WaiYanOo, OU=SarLibrary, O=Sar, L=Mandalay, S=Mandalay, C=MM"
 
-      - name: 6. Setup Gradle & Build Signed APK + Play Store AAB
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: 7. Run Gradle Release Build
+      - name: 6. Build Signed APK & Play Store AAB
         working-directory: ./android-app
         run: gradle assembleRelease bundleRelease
 
-      - name: 8. Copy & Commit APK, AAB, iOS Profile & Privacy Policy to Repo
+      - name: 7. Copy & Commit APK, AAB, iOS Profile & Privacy Policy to Repo
         run: |
           cp android-app/app/build/outputs/apk/release/app-release.apk ./sar-app.apk
           cp android-app/app/build/outputs/bundle/release/app-release.aab ./sar-app.aab
