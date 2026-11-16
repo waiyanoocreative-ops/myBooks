@@ -3136,7 +3136,93 @@
         }
       });
     })();
+// ================= 15. SMART iOS APP SUPPORT & AUTO DEVICE DETECTION =================
+    (function initIosAppExperience() {
+      // 1. iPhone Notch နှင့် Home Indicator အပြည့်ပေါ်စေရန် viewport-fit=cover ထည့်သွင်းခြင်း
+      const vpMeta = document.querySelector('meta[name="viewport"]');
+      if (vpMeta && !vpMeta.content.includes('viewport-fit=cover')) {
+        vpMeta.content += ', viewport-fit=cover';
+      }
 
+      const iosStyle = document.createElement('style');
+      iosStyle.textContent = `
+        /* iOS Standalone App Mode တွင် အပေါ် Notch နှင့် အောက်ခြေ Home Bar အကွာအဝေး ညှိပေးခြင်း */
+        @supports (padding-top: env(safe-area-inset-top)) {
+          header {
+            padding-top: calc(0.625rem + env(safe-area-inset-top)) !important;
+          }
+          body {
+            padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+          }
+        }
+      `;
+      document.head.appendChild(iosStyle);
+
+      // 2. iOS (iPhone / iPad) ဟုတ်၊ မဟုတ် စစ်ဆေးသည့် Function
+      window.isIosDevice = function() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      };
+
+      window.isIosStandalone = function() {
+        return window.navigator.standalone === true ||
+          window.matchMedia('(display-mode: standalone)').matches;
+      };
+
+      // 3. iOS Install Modal HTML ထည့်သွင်းခြင်း
+      const iosModalHtml = `
+        <div id="sarIosInstallModal" onclick="if(event.target===this) this.style.display='none'" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,7,0.78); backdrop-filter:blur(8px); align-items:flex-end; justify-content:center; padding:16px; font-family:'Padauk',sans-serif;">
+          <div style="width:100%; max-width:400px; background:var(--bg-main, #FAF8F5); color:var(--text-primary, #1E1916); border-radius:26px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.5); margin-bottom:env(safe-area-inset-bottom, 10px);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img src="/myBooks/icon.png" style="width:42px; height:42px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);" />
+                <div>
+                  <h3 style="margin:0; font-size:17px; font-weight:700;">"စာ" iOS App သွင်းယူရန်</h3>
+                  <span style="font-size:11px; opacity:0.7;">iPhone / iPad Home Screen သို့ ထည့်သွင်းနည်း</span>
+                </div>
+              </div>
+              <button onclick="document.getElementById('sarIosInstallModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:inherit;">✕</button>
+            </div>
+
+            <div style="background:var(--bg-card, #F3EFE6); border-radius:16px; padding:14px; font-size:13px; line-height:1.75; space-y-2; border:1px solid var(--border-col, #E5DEC9);">
+              <div style="margin-bottom:8px;">
+                <b>အဆင့် (၁)</b> — Safari အောက်ခြေ (သို့မဟုတ် အပေါ်ထောင့်) ရှိ <b>Share ခလုတ်</b> <span style="display:inline-block; padding:1px 7px; border-radius:6px; background:rgba(0,0,0,0.1); font-weight:700;">⬆️</span> ကို နှိပ်ပါ။
+              </div>
+              <div style="margin-bottom:8px;">
+                <b>အဆင့် (၂)</b> — မီနူးကို အပေါ်သို့ အနည်းငယ်ဆွဲတင်ပြီး <b>"Add to Home Screen" (➕)</b> ကို နှိပ်ပါ။
+              </div>
+              <div>
+                <b>အဆင့် (၃)</b> — ညာဘက်အပေါ်ထောင့်ရှိ <b>"Add"</b> ကို နှိပ်လိုက်ပါက သင့် iPhone မျက်နှာပြင်ပေါ်တွင် <b>"စာ" App</b> အဖြစ် တိုက်ရိုက် ဖွင့်သုံးနိုင်ပါပြီ။
+              </div>
+            </div>
+
+            <button onclick="document.getElementById('sarIosInstallModal').style.display='none'" style="width:100%; margin-top:14px; padding:11px; border:none; border-radius:12px; background:var(--accent, #6B141A); color:#fff; font-family:'Padauk',sans-serif; font-weight:700; font-size:14px; cursor:pointer;">
+              နားလည်ပါပြီ
+            </button>
+          </div>
+        </div>
+      `;
+
+      window.addEventListener('DOMContentLoaded', () => {
+        document.body.insertAdjacentHTML('beforeend', iosModalHtml);
+
+        // iPhone ဖြစ်နေလျှင် ခလုတ်စာသားကို 🍎 iOS App ဟု အလိုအလျောက် ပြောင်းပေးခြင်း
+        const btn = document.getElementById('installAppBtn');
+        if (btn && window.isIosDevice() && !window.isIosStandalone()) {
+          btn.innerHTML = '<span>🍎</span><span class="hidden sm:inline">iOS App</span>';
+        }
+      });
+
+      // 4. installPwaApp() ကို Override လုပ်၍ iOS နှင့် Android ခွဲခြားပေးခြင်း
+      window.installPwaApp = function() {
+        if (typeof triggerHaptic === 'function') triggerHaptic(15);
+        if (window.isIosDevice()) {
+          document.getElementById('sarIosInstallModal').style.display = 'flex';
+        } else {
+          window.location.href = 'https://github.com/waiyanoocreative-ops/myBooks/raw/main/sar-app.apk';
+        }
+      };
+    })();
  
   </script>
 </body>
