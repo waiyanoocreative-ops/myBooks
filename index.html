@@ -2373,6 +2373,51 @@ function goToPage(page) {
   currentPage = page;
   renderPagedBooks();
 }
+
+// ================= QUICK DARK / LIGHT MODE TOGGLE (Fixed) =================
+function toggleQuickDarkMode() {
+  const htmlElement = document.documentElement;
+  const currentTheme = htmlElement.getAttribute('data-theme') || localStorage.getItem('sar_theme') || 'light';
+  
+  // အကယ်၍ လက်ရှိက dark ဖြစ်နေရင် light ပြောင်းမယ်၊ ကျန်တာမှန်သမျှ dark ကို သွားမယ်
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  // 1. HTML tag မှာ data-theme attribute ထည့်ခြင်း
+  htmlElement.setAttribute('data-theme', newTheme);
+  
+  // 2. LocalStorage မှာ မှတ်သားခြင်း
+  localStorage.setItem('sar_theme', newTheme);
+  
+  // 3. အကယ်၍ body မှာ class သုံးနေရင်ပါ တွဲပြောင်းပေးဖို့
+  if (newTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+  
+  // 4. Button စာသား ပြောင်းလဲခြင်း
+  const btn = document.getElementById('darkModeToggleBtn');
+  if (btn) {
+    btn.innerHTML = newTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
+  }
+  
+  if (typeof triggerHaptic === 'function') triggerHaptic(10);
+}
+
+// Page Load လုပ်ချိန်မှာ သိမ်းထားတဲ့ Theme ကို ပြန်ဖော်ရန်
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('sar_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+  
+  const btn = document.getElementById('darkModeToggleBtn');
+  if (btn) {
+    btn.innerHTML = savedTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
+  }
+});
     
   </script>
 </body>
