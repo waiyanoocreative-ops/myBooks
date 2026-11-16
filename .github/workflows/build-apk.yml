@@ -106,7 +106,7 @@ jobs:
           open("android-app/build.gradle", "w").write(
               "buildscript {\n"
               "  repositories { google(); mavenCentral() }\n"
-              "  dependencies { classpath \"com.android.tools.build:gradle:8.1.2\" }\n"
+              "  dependencies { classpath \"com.android.tools.build:gradle:8.5.0\" }\n"
               "}\n"
               "allprojects { repositories { google(); mavenCentral() } }\n"
           )
