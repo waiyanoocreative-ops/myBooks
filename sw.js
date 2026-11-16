@@ -1,182 +1,76 @@
-const CACHE_NAME = 'bookshelf-pwa-v3';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
+const CACHE_NAME = 'sar-library-v2';
+const ASSETS_TO_CACHE = [
+  '/myBooks/',
+  '/myBooks/index.html',
+  'https://cdn.tailwindcss.com',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  'https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap'
 ];
 
-const SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-
+// Install Service Worker & Cache Core Assets
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
+  self.skipWaiting();
 });
 
+// Activate & Clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((k) => k !== CACHE_NAME && k !== STATE_CACHE)
-          .map((k) => caches.delete(k))
-      )
-    )
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    })
   );
   self.clients.claim();
 });
 
-// Network-First Fetch Strategy
+// Fetch & Cache PDFs and dynamic resources on-the-fly
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request)
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(event.request))
-  );
-});
+  const url = new URL(event.request.url);
 
-// ================= BACKGROUND STATE HELPERS =================
-async function getLastNotifiedBookId() {
-  const cache = await caches.open(STATE_CACHE);
-  const res = await cache.match('/__last_book_id');
-  if (!res) return null;
-  return await res.text();
-}
-
-async function setLastNotifiedBookId(bookId) {
-  if (!bookId) return;
-  const cache = await caches.open(STATE_CACHE);
-  await cache.put('/__last_book_id', new Response(String(bookId)));
-}
-
-// ================= SHOW NATIVE PHONE NOTIFICATION BAR ALERT =================
-async function showBookOsNotification(book) {
-  const title = `📚 စာ — စာအုပ်အသစ် ရောက်ရှိပါပြီ!`;
-  const options = {
-    body: `📖 "${book.title}" (✍️ ${book.author || 'စာရေးဆရာ'}) ကို ယခု ဖတ်ရှုနိုင်ပါပြီ။`,
-    icon: book.cover_url || './manifest.json',
-    badge: book.cover_url || './manifest.json',
-    image: book.cover_url || undefined,
-    vibrate: [200, 100, 200],
-    tag: 'new-book-' + (book.id || Date.now()),
-    renotify: true,
-    data: {
-      url: `./index.html?book=${book.id || ''}`,
-      bookId: book.id
-    },
-    actions: [
-      { action: 'read', title: '📖 ယခုဖတ်မည်' },
-      { action: 'close', title: 'ပိတ်မည်' }
-    ]
-  };
-
-  return self.registration.showNotification(title, options);
-}
-
-// ================= CHECK SUPABASE IN BACKGROUND FOR NEW BOOKS =================
-async function checkSupabaseForNewBookInBackground() {
-  try {
-    const apiUrl = `${SUPABASE_URL}/rest/v1/books?select=id,title,author,cover_url,status&status=eq.published&order=created_at.desc&limit=1`;
-    const res = await fetch(apiUrl, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      }
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data || data.length === 0) return;
-
-    const newestBook = data[0];
-    const lastId = await getLastNotifiedBookId();
-
-    if (!lastId) {
-      await setLastNotifiedBookId(newestBook.id);
-      return;
-    }
-
-    if (lastId !== String(newestBook.id)) {
-      await setLastNotifiedBookId(newestBook.id);
-      await showBookOsNotification(newestBook);
-    }
-  } catch (err) {
-    // Ignore offline errors silently
-  }
-}
-
-// 1. Listen for Periodic Background Sync (When App is Closed on Android PWA)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'check-new-books') {
-    event.waitUntil(checkSupabaseForNewBookInBackground());
-  }
-});
-
-// 2. Listen for One-Off Background Sync
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'check-new-books') {
-    event.waitUntil(checkSupabaseForNewBookInBackground());
-  }
-});
-
-// 3. Listen for Standard Web Push Payload
-self.addEventListener('push', (event) => {
-  if (event.data) {
-    try {
-      const payload = event.data.json();
-      event.waitUntil(showBookOsNotification(payload));
-      return;
-    } catch (e) {}
-  }
-  event.waitUntil(checkSupabaseForNewBookInBackground());
-});
-
-// 4. Listen for Direct Messages from index.html
-self.addEventListener('message', (event) => {
-  if (!event.data) return;
-
-  if (event.data.type === 'INIT_LAST_BOOK_ID' && event.data.bookId) {
-    event.waitUntil(setLastNotifiedBookId(event.data.bookId));
-  }
-
-  if (event.data.type === 'SHOW_OS_NOTIFICATION' && event.data.book) {
-    event.waitUntil(
-      setLastNotifiedBookId(event.data.book.id).then(() =>
-        showBookOsNotification(event.data.book)
-      )
+  // For Supabase or external API requests, network first then cache fallback
+  if (url.origin.includes('supabase.co') || event.request.method !== 'GET') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
     );
+    return;
   }
 
-  if (event.data.type === 'CHECK_NEW_BOOKS_NOW') {
-    event.waitUntil(checkSupabaseForNewBookInBackground());
-  }
-});
+  // For app assets and PDFs, cache first then network fallback
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Fetch in background to update cache
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse);
+            });
+          }
+        }).catch(() => {});
+        return cachedResponse;
+      }
 
-// 5. Handle User Tapping the Notification in Phone Notification Bar
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  if (event.action === 'close') return;
-
-  const targetUrl = event.notification.data?.url || './index.html';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
-        if ('focus' in client) {
-          client.navigate(targetUrl);
-          return client.focus();
+      return fetch(event.request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
         }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => {
+        // Fallback if offline and asset not cached
+        return caches.match('/myBooks/index.html');
+      });
     })
   );
 });
