@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
 
-  <!-- Social Media Link Preview (Open Graph & Twitter Meta Tags) -->
   <meta name="description" content="မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့၊ လွယ်ကူချောမွေ့စွာ ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်" />
@@ -16,7 +15,6 @@
   <meta name="twitter:description" content="မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့ ဖတ်ရှုလိုက်ပါ။" />
   <meta name="twitter:image" content="https://sar-coral-ten.vercel.app/icon.png" />
 
-  <!-- PWA Manifest & Mobile App Meta Tags -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
@@ -32,7 +30,6 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
 
-    /* ================= DYNAMIC THEME VARIABLES ================= */
     :root, body.theme-crimson {
       --bg-main: #FAF8F5;
       --bg-card: #F3EFE6;
@@ -784,7 +781,6 @@
           </div>
         </div>
 
-        <!-- NIGHT READING SLEEP TIMER -->
         <div class="pt-2 border-t border-white/5 space-y-1.5 text-xs">
           <div class="flex items-center justify-between">
             <span class="font-bold text-white">⏳ အိပ်ချိန်သတိပေးစနစ် (Reading Timer)</span>
@@ -854,7 +850,6 @@
     let currentDetailBookId = null;
     let selectedReviewRating = 5;
 
-    // Shelf Pagination State
     let currentShelfPage = 1;
     const booksPerPage = 12;
 
@@ -865,8 +860,8 @@
     let currentSpreadHalf = 'left';
     let currentReadingBookId = null;
     let syncDebounceTimer = null;
+    let activeMergedPdfBlobUrl = null;
 
-    // Sleep Timer & Auto-Flip State
     let sleepTimerRemainingSec = 0;
     let sleepTimerIntervalId = null;
     let autoFlipSec = 0;
@@ -1275,7 +1270,7 @@
       openInBookBookmarksModal();
     }
 
-    // ================= ONE-TAP OFFLINE DOWNLOAD =================
+    // ================= ONE-TAP OFFLINE DOWNLOAD (SUPPORTS MULTI-PART PDFS) =================
     function getOfflineSavedBookIds() {
       try { return JSON.parse(localStorage.getItem('OFFLINE_SAVED_BOOKS') || '[]'); } catch (e) { return []; }
     }
@@ -1300,10 +1295,20 @@
       try {
         if ('caches' in window) {
           const cache = await caches.open('sar-library-v3');
-          await cache.add(book.pdf_url);
+          if (book.pdf_url.includes('#parts=')) {
+            const [firstPartUrl, hashPart] = book.pdf_url.split('#parts=');
+            const totalParts = parseInt(hashPart, 10) || 1;
+            const basePrefix = firstPartUrl.replace(/\.part0$/, '');
+            for (let i = 0; i < totalParts; i++) {
+              if (labelEl) labelEl.textContent = `သိမ်းနေသည် (${i + 1}/${totalParts})...`;
+              await cache.add(`${basePrefix}.part${i}`);
+            }
+          } else {
+            await cache.add(book.pdf_url);
+          }
           if (book.cover_url) { try { await cache.add(book.cover_url); } catch (e) {} }
         } else {
-          await fetch(book.pdf_url, { mode: 'no-cors' });
+          await fetch(book.pdf_url.split('#')[0], { mode: 'no-cors' });
         }
         const saved = getOfflineSavedBookIds();
         if (!saved.includes(book.id)) {
@@ -2281,6 +2286,34 @@
       if (isModalVisible('pdfReaderModal') && currentPdfDoc) renderPdfPage(currentPageNum, 0);
     });
 
+    // ================= 300MB+ MULTI-PART PDF REASSEMBLER & READER =================
+    async function resolveMultiPartPdfUrl(pdfUrl) {
+      if (activeMergedPdfBlobUrl) {
+        URL.revokeObjectURL(activeMergedPdfBlobUrl);
+        activeMergedPdfBlobUrl = null;
+      }
+      if (!pdfUrl || !pdfUrl.includes('#parts=')) return pdfUrl;
+
+      const [firstPartUrl, hashPart] = pdfUrl.split('#parts=');
+      const totalParts = parseInt(hashPart, 10) || 1;
+      if (totalParts <= 1) return firstPartUrl;
+
+      const basePrefix = firstPartUrl.replace(/\.part0$/, '');
+      const partBlobs = [];
+      const pageInd = document.getElementById('pdfPageIndicator');
+
+      for (let i = 0; i < totalParts; i++) {
+        if (pageInd) pageInd.textContent = `ဖိုင်ကြီးဆွဲယူနေသည် (${i + 1}/${totalParts})...`;
+        const res = await fetch(`${basePrefix}.part${i}`);
+        if (!res.ok) throw new Error(`Part ${i} download failed`);
+        partBlobs.push(await res.blob());
+      }
+
+      const mergedBlob = new Blob(partBlobs, { type: 'application/pdf' });
+      activeMergedPdfBlobUrl = URL.createObjectURL(mergedBlob);
+      return activeMergedPdfBlobUrl;
+    }
+
     async function openPdfReader(bookId, title, pdfUrl, totalPages = 1) {
       currentReadingBookId = bookId; zoomPercent = 100; currentSpreadHalf = 'left';
       setAutoFlipSpeed(0);
@@ -2293,7 +2326,8 @@
       localStorage.setItem('LAST_READ_BOOK', JSON.stringify({ id: bookId, title, pdfUrl, totalPages }));
       if (supabaseClient) supabaseClient.rpc('increment_read_count', { book_uuid: bookId });
 
-      currentPdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+      const resolvedUrl = await resolveMultiPartPdfUrl(pdfUrl);
+      currentPdfDoc = await pdfjsLib.getDocument(resolvedUrl).promise;
       document.getElementById('pageJumpSlider').max = currentPdfDoc.numPages;
 
       const firstPage = await currentPdfDoc.getPage(1);
@@ -2437,6 +2471,10 @@
     function closePdfReader() {
       triggerHaptic(12);
       setAutoFlipSpeed(0);
+      if (activeMergedPdfBlobUrl) {
+        URL.revokeObjectURL(activeMergedPdfBlobUrl);
+        activeMergedPdfBlobUrl = null;
+      }
       document.getElementById('pdfReaderModal').style.display = 'none';
       syncUserDataToSupabase();
       loadBooks();
@@ -2944,21 +2982,12 @@
       });
     })();
 
-    // ================= 15. SMART iOS APP SUPPORT (SAFARI ADD TO HOME SCREEN GUIDE) =================
+    // ================= 15. SMART iOS APP SUPPORT =================
     (function initIosAppExperience() {
       const vpMeta = document.querySelector('meta[name="viewport"]');
       if (vpMeta && !vpMeta.content.includes('viewport-fit=cover')) {
         vpMeta.content += ', viewport-fit=cover';
       }
-
-      const iosStyle = document.createElement('style');
-      iosStyle.textContent = `
-        @supports (padding-top: env(safe-area-inset-top)) {
-          header { padding-top: calc(0.625rem + env(safe-area-inset-top)) !important; }
-          body { padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; }
-        }
-      `;
-      document.head.appendChild(iosStyle);
 
       window.isIosDevice = function() {
         return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
