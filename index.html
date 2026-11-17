@@ -2,9 +2,6 @@
 <html lang="my">
 <head>
 
-<button onclick="toggleQuickDarkMode()" id="darkModeToggleBtn" style="background:var(--bg-card, #F3EFE6); border:1px solid var(--border-col, #E5DEC9); padding:8px 12px; border-radius:10px; cursor:pointer; font-size:14px;" title="Dark/Light Mode ပြောင်းရန်">
-  🌙 ညဘက်စနစ်
-</button>
  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
@@ -2373,51 +2370,119 @@ function goToPage(page) {
   currentPage = page;
   renderPagedBooks();
 }
-
-// ================= QUICK DARK / LIGHT MODE TOGGLE (Fixed) =================
-function toggleQuickDarkMode() {
-  const htmlElement = document.documentElement;
-  const currentTheme = htmlElement.getAttribute('data-theme') || localStorage.getItem('sar_theme') || 'light';
-  
-  // အကယ်၍ လက်ရှိက dark ဖြစ်နေရင် light ပြောင်းမယ်၊ ကျန်တာမှန်သမျှ dark ကို သွားမယ်
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  
-  // 1. HTML tag မှာ data-theme attribute ထည့်ခြင်း
-  htmlElement.setAttribute('data-theme', newTheme);
-  
-  // 2. LocalStorage မှာ မှတ်သားခြင်း
-  localStorage.setItem('sar_theme', newTheme);
-  
-  // 3. အကယ်၍ body မှာ class သုံးနေရင်ပါ တွဲပြောင်းပေးဖို့
-  if (newTheme === 'dark') {
-    document.body.classList.add('dark-mode');
-  } else {
-    document.body.classList.remove('dark-mode');
-  }
-  
-  // 4. Button စာသား ပြောင်းလဲခြင်း
-  const btn = document.getElementById('darkModeToggleBtn');
-  if (btn) {
-    btn.innerHTML = newTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
-  }
-  
-  if (typeof triggerHaptic === 'function') triggerHaptic(10);
-}
-
-// Page Load လုပ်ချိန်မှာ သိမ်းထားတဲ့ Theme ကို ပြန်ဖော်ရန်
+// ================= INITIALIZATION (OFFLINE SW & DEVICE ID) =================
 window.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('sar_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  
-  if (savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
+  // Service Worker မှတ်ပုံတင်ခြင်း (Offline Support အတွက်)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/myBooks/sw.js')
+      .then(() => console.log('Service Worker Registered Successfully'))
+      .catch((err) => console.log('Service Worker Registration Failed:', err));
   }
   
-  const btn = document.getElementById('darkModeToggleBtn');
-  if (btn) {
-    btn.innerHTML = savedTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
+  // Device ID ဖန်တီးခြင်း သို့မဟုတ် ယူခြင်း (Sync အတွက်)
+  let deviceId = localStorage.getItem('sar_device_id');
+  if (!deviceId) {
+    deviceId = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem('sar_device_id', deviceId);
   }
 });
+
+// ================= SUPABASE BOOKMARKS & PROGRESS SYNC =================
+async function syncUserDataToSupabase(bookmarks, progress) {
+  const deviceId = localStorage.getItem('sar_device_id');
+  if (!window.supabaseClient || !deviceId) return;
+
+  try {
+    const { error } = await window.supabaseClient
+      .from('user_sync_data')
+      .upsert({
+        device_id: deviceId,
+        bookmarks: bookmarks,
+        reading_progress: progress,
+        updated_at: new Date()
+      }, { onConflict: 'device_id' });
+
+    if (error) console.error('Sync Error:', error.message);
+  } catch (err) {
+    console.error('Sync Exception:', err);
+  }
+}
+
+async function fetchUserDataFromSupabase() {
+  const deviceId = localStorage.getItem('sar_device_id');
+  if (!window.supabaseClient || !deviceId) return null;
+
+  try {
+    const { data, error } = await window.supabaseClient
+      .from('user_sync_data')
+      .select('*')
+      .eq('device_id', deviceId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Fetch Sync Error:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    return null;
+  }
+}
+
+// ================= CATEGORY FILTER & PAGINATION =================
+let currentPage = 1;
+const itemsPerPage = 8; // တစ်မျက်နှာလျှင် ပြမည့် စာအုပ်အရေအတွက်
+let currentCategory = 'all';
+let allBooksData = []; // Supabase မှ ယူလာမည့် စာအုပ်စာရင်း အားလုံး
+
+function filterByCategory(category) {
+  currentCategory = category;
+  currentPage = 1;
+  renderPagedBooks();
+}
+
+function renderPagedBooks() {
+  const container = document.getElementById('booksGridContainer');
+  if (!container) return;
+
+  let filtered = allBooksData;
+  if (currentCategory !== 'all') {
+    filtered = allBooksData.filter(b => b.category === currentCategory);
+  }
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = filtered.slice(startIndex, endIndex);
+
+  let html = '';
+  if (paginatedItems.length === 0) {
+    html = '<p style="text-align:center; padding:20px; opacity:0.6;">စာအုပ် မရှိသေးပါ။</p>';
+  } else {
+    paginatedItems.forEach(book => {
+      html += `
+        <div class="book-card" style="padding:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-col);">
+          <h3>${book.title}</h3>
+          <p>${book.author || ''}</p>
+          <button onclick="openBook('${book.id}')">ဖတ်မည်</button>
+        </div>
+      `;
+    });
+  }
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  let paginationHtml = '<div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">';
+  for (let i = 1; i <= totalPages; i++) {
+    paginationHtml += `<button onclick="goToPage(${i})" style="padding:6px 12px; background:${i === currentPage ? 'var(--accent)' : '#ccc'}; color:#fff; border:none; border-radius:6px; cursor:pointer;">${i}</button>`;
+  }
+  paginationHtml += '</div>';
+
+  container.innerHTML = html + (totalPages > 1 ? paginationHtml : '');
+}
+
+function goToPage(page) {
+  currentPage = page;
+  renderPagedBooks();
+}
     
   </script>
 </body>
