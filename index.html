@@ -370,7 +370,7 @@
   </header>
 
   <!-- MAIN COLLECTION -->
-  <main class="max-w-3xl w-full mx-auto px-4 pt-4 space-y-6 flex-1 relative z-10">
+  <main class="max-w-3xl w-full mx-auto px-4 pt-4 space-y-5 flex-1 relative z-10">
     <div class="relative overflow-hidden rounded-3xl text-white p-5 sm:p-6 shadow-lg transition-all" style="background: var(--hero-grad);">
       <div class="relative z-10 max-w-[66%] space-y-2.5">
         <span id="heroStatsBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-white/15 text-[10px] font-bold tracking-wider uppercase text-amber-200">စာကြည့်တိုက်</span>
@@ -381,6 +381,31 @@
         </div>
       </div>
       <div id="heroFanCovers" class="absolute -right-3 -bottom-4 flex items-end pointer-events-none opacity-95"></div>
+    </div>
+
+    <!-- READING STATS & STREAK BAR -->
+    <div class="grid grid-cols-3 gap-2.5">
+      <div class="theme-card rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
+        <span class="text-xl leading-none">🔥</span>
+        <div class="min-w-0">
+          <p class="text-[10px] font-bold opacity-70 truncate">ဆက်တိုက်ဖတ်ရှုမှု</p>
+          <p id="statStreakText" class="text-xs sm:text-sm font-bold truncate">1 ရက်</p>
+        </div>
+      </div>
+      <div onclick="setBottomNavFilter('progress')" class="theme-card rounded-2xl p-3 flex items-center gap-2.5 shadow-sm cursor-pointer">
+        <span class="text-xl leading-none">📚</span>
+        <div class="min-w-0">
+          <p class="text-[10px] font-bold opacity-70 truncate">ဖတ်လက်စစာအုပ်</p>
+          <p id="statBooksReadText" class="text-xs sm:text-sm font-bold truncate">0 အုပ်</p>
+        </div>
+      </div>
+      <div class="theme-card rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
+        <span class="text-xl leading-none">📄</span>
+        <div class="min-w-0">
+          <p class="text-[10px] font-bold opacity-70 truncate">ဖတ်ပြီးသမျှစာမျက်နှာ</p>
+          <p id="statPagesReadText" class="text-xs sm:text-sm font-bold truncate">0 မျက်နှာ</p>
+        </div>
+      </div>
     </div>
 
     <div class="flex gap-2">
@@ -593,18 +618,23 @@
   <!-- FULLSCREEN PDF READER -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 bg-[#FBF8F3] flex-col">
     <div class="px-3 sm:px-4 py-2 bg-stone-950 text-white flex flex-wrap items-center justify-between gap-2 text-xs border-b border-white/10 shrink-0">
-      <div class="flex items-center gap-2 truncate max-w-[42%] sm:max-w-xs">
+      <div class="flex items-center gap-2 truncate max-w-[38%] sm:max-w-xs">
         <button type="button" onclick="closePdfReader()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 font-bold shrink-0">← စင်သို့</button>
         <span id="readerBookTitle" class="font-bold truncate text-amber-100"></span>
       </div>
       <div class="flex items-center gap-1.5 flex-wrap">
         <span id="readerSleepTimerBadge" onclick="openSettingsModal()" class="hidden px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-[10px] cursor-pointer" title="အိပ်ချိန်သတိပေးစနစ်">⏳ 00:00</span>
-        <button type="button" onclick="toggleCurrentPageBookmark()" id="pageBmToggleBtn" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px]" title="ယခုစာမျက်နှာကို မှတ်သားရန်">🔖</button>
-        <button type="button" onclick="openInBookBookmarksModal()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1" title="မှတ်သားထားသော စာမျက်နှာများ">
+        <button type="button" onclick="cycleAutoFlipSpeed()" id="autoFlipBtn" class="tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[10px] flex items-center gap-1" title="အလိုအလျောက် စာရွက်လှန်စနစ်">
+          <span>▶️</span>
+          <span id="autoFlipLabel">Auto</span>
+        </button>
+        <button type="button" onclick="captureAndSharePdfPage()" id="snapshotPageBtn" class="tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px]" title="ယခုစာမျက်နှာကို ပုံရိုက်သိမ်းဆည်း/မျှဝေရန်">📸</button>
+        <button type="button" onclick="toggleCurrentPageBookmark()" id="pageBmToggleBtn" class="tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px]" title="ယခုစာမျက်နှာကို မှတ်သားရန်">🔖</button>
+        <button type="button" onclick="openInBookBookmarksModal()" class="tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1" title="မှတ်သားထားသော စာမျက်နှာများ">
           <span>📑</span>
           <span id="inBookBmCount" class="text-amber-300 font-mono">0</span>
         </button>
-        <button type="button" onclick="toggleSplitSpreadMode()" id="splitModeBtn" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1">
+        <button type="button" onclick="toggleSplitSpreadMode()" id="splitModeBtn" class="tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px] flex items-center gap-1">
           <span>📖</span>
           <span id="splitModeLabel" class="hidden sm:inline">စာရွက်အပြည့်</span>
         </button>
@@ -613,7 +643,7 @@
           <button type="button" onclick="resetZoom()" id="zoomLabel" class="px-1 text-[10px] font-mono text-amber-300">100%</button>
           <button type="button" onclick="changeZoom(0.25)" class="tactile-btn px-2 py-1 hover:bg-stone-700 rounded font-bold text-sm">+</button>
         </div>
-        <button type="button" onclick="openSettingsModal()" class="tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⚙️</button>
+        <button type="button" onclick="openSettingsModal()" class="tactile-btn px-2 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⚙️</button>
       </div>
     </div>
     <div id="pdfCanvasWrapper" class="relative flex-1 overflow-auto p-2 sm:p-5 pdf-theme-sepia select-none">
@@ -811,6 +841,7 @@
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
+    const ADMIN_VIP_CONTACT_URL = 'https://t.me/sar_library_admin';
 
     let supabaseClient = null;
     let selectedCategoryId = null;
@@ -835,9 +866,11 @@
     let currentReadingBookId = null;
     let syncDebounceTimer = null;
 
-    // Sleep Timer State
+    // Sleep Timer & Auto-Flip State
     let sleepTimerRemainingSec = 0;
     let sleepTimerIntervalId = null;
+    let autoFlipSec = 0;
+    let autoFlipIntervalId = null;
 
     const userSettings = {
       flipSound: JSON.parse(localStorage.getItem('SET_FLIP_SOUND') ?? 'true'),
@@ -849,6 +882,139 @@
       themeMode: localStorage.getItem('APP_THEME_MODE') || 'auto',
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
+
+    // ================= READING STATS & DAILY STREAK =================
+    function updateDailyReadingStreak() {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastDate = localStorage.getItem('SAR_LAST_READ_DATE');
+      let streak = parseInt(localStorage.getItem('SAR_STREAK_COUNT') || '1', 10);
+
+      if (lastDate !== today) {
+        if (lastDate) {
+          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+          streak = (lastDate === yesterday) ? streak + 1 : 1;
+        } else {
+          streak = 1;
+        }
+        localStorage.setItem('SAR_LAST_READ_DATE', today);
+        localStorage.setItem('SAR_STREAK_COUNT', String(streak));
+      }
+      renderReadingStatsBar();
+    }
+
+    function incrementTotalPagesReadCounter() {
+      const current = parseInt(localStorage.getItem('SAR_TOTAL_PAGES_READ') || '0', 10) + 1;
+      localStorage.setItem('SAR_TOTAL_PAGES_READ', String(current));
+      renderReadingStatsBar();
+    }
+
+    function renderReadingStatsBar() {
+      const streak = parseInt(localStorage.getItem('SAR_STREAK_COUNT') || '1', 10);
+      let booksInProgress = 0;
+      let sumBookPages = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('BOOK_PAGE_')) {
+          booksInProgress++;
+          sumBookPages += parseInt(localStorage.getItem(k) || '0', 10);
+        }
+      }
+      const trackedTotal = Math.max(parseInt(localStorage.getItem('SAR_TOTAL_PAGES_READ') || '0', 10), sumBookPages);
+
+      const sEl = document.getElementById('statStreakText');
+      const bEl = document.getElementById('statBooksReadText');
+      const pEl = document.getElementById('statPagesReadText');
+      if (sEl) sEl.textContent = `${streak} ရက်`;
+      if (bEl) bEl.textContent = `${booksInProgress} အုပ်`;
+      if (pEl) pEl.textContent = `${trackedTotal} မျက်နှာ`;
+    }
+
+    // ================= HANDS-FREE AUTO PAGE TURN =================
+    function cycleAutoFlipSpeed() {
+      triggerHaptic(14);
+      const speeds = [0, 15, 30, 45];
+      const nextIdx = (speeds.indexOf(autoFlipSec) + 1) % speeds.length;
+      setAutoFlipSpeed(speeds[nextIdx]);
+    }
+
+    function setAutoFlipSpeed(sec) {
+      autoFlipSec = sec;
+      if (autoFlipIntervalId) {
+        clearInterval(autoFlipIntervalId);
+        autoFlipIntervalId = null;
+      }
+      const btn = document.getElementById('autoFlipBtn');
+      const label = document.getElementById('autoFlipLabel');
+      if (btn && label) {
+        if (sec > 0) {
+          btn.className = 'tactile-btn px-2 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[10px] flex items-center gap-1 shadow';
+          label.textContent = `${sec}s`;
+        } else {
+          btn.className = 'tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[10px] flex items-center gap-1';
+          label.textContent = 'Auto';
+        }
+      }
+      if (sec > 0) {
+        autoFlipIntervalId = setInterval(() => {
+          if (!isModalVisible('pdfReaderModal') || !currentPdfDoc) {
+            setAutoFlipSpeed(0);
+            return;
+          }
+          if (currentPageNum >= currentPdfDoc.numPages && (!splitSpreadMode || currentSpreadHalf === 'right')) {
+            setAutoFlipSpeed(0);
+            return;
+          }
+          changePdfPage(1);
+        }, sec * 1000);
+      }
+    }
+
+    // ================= PAGE SNAPSHOT SHARE (WATERMARKED PNG) =================
+    async function captureAndSharePdfPage() {
+      const srcCanvas = document.getElementById('pdfViewerCanvas');
+      if (!srcCanvas || !currentPdfDoc) return;
+      triggerHaptic(20);
+
+      const bookTitle = document.getElementById('readerBookTitle')?.textContent || 'စာအုပ်';
+      const outCanvas = document.createElement('canvas');
+      const footerH = Math.max(Math.round(srcCanvas.height * 0.065), 48);
+      outCanvas.width = srcCanvas.width;
+      outCanvas.height = srcCanvas.height + footerH;
+
+      const ctx = outCanvas.getContext('2d');
+      ctx.fillStyle = '#FAF8F5';
+      ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+      ctx.drawImage(srcCanvas, 0, 0);
+
+      ctx.fillStyle = '#1E120A';
+      ctx.fillRect(0, srcCanvas.height, outCanvas.width, footerH);
+
+      const fontSize = Math.max(Math.round(footerH * 0.36), 14);
+      ctx.font = `bold ${fontSize}px Padauk, sans-serif`;
+      ctx.fillStyle = '#FDE68A';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`📖 စာ — ${bookTitle} (စာမျက်နှာ ${currentPageNum})`, Math.round(outCanvas.width * 0.03), srcCanvas.height + Math.round(footerH / 2));
+
+      outCanvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const fileName = `sar-page-${currentPageNum}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              title: bookTitle,
+              text: `📖 "${bookTitle}" — စာမျက်နှာ (${currentPageNum})`,
+              files: [file]
+            });
+            return;
+          } catch (e) {}
+        }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+      }, 'image/png');
+    }
 
     // ================= DEVICE ID & SUPABASE CLOUD SYNC =================
     function getOrInitDeviceId() {
@@ -863,7 +1029,14 @@
     }
 
     function collectLocalReadingProgress() {
-      const progress = { _inbook_bookmarks: {} };
+      const progress = {
+        _inbook_bookmarks: {},
+        _stats: {
+          streak: parseInt(localStorage.getItem('SAR_STREAK_COUNT') || '1', 10),
+          last_date: localStorage.getItem('SAR_LAST_READ_DATE') || '',
+          total_pages: parseInt(localStorage.getItem('SAR_TOTAL_PAGES_READ') || '0', 10)
+        }
+      };
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.startsWith('BOOK_PAGE_')) {
@@ -930,6 +1103,11 @@
           Object.entries(data.reading_progress).forEach(([key, val]) => {
             if (key === '_last_read' && val && !localStorage.getItem('LAST_READ_BOOK')) {
               localStorage.setItem('LAST_READ_BOOK', JSON.stringify(val));
+            } else if (key === '_stats' && val && typeof val === 'object') {
+              const localStreak = parseInt(localStorage.getItem('SAR_STREAK_COUNT') || '1', 10);
+              if ((val.streak || 1) > localStreak) localStorage.setItem('SAR_STREAK_COUNT', String(val.streak));
+              const localPages = parseInt(localStorage.getItem('SAR_TOTAL_PAGES_READ') || '0', 10);
+              if ((val.total_pages || 0) > localPages) localStorage.setItem('SAR_TOTAL_PAGES_READ', String(val.total_pages));
             } else if (key === '_inbook_bookmarks' && val && typeof val === 'object') {
               Object.entries(val).forEach(([bId, pagesArr]) => {
                 if (Array.isArray(pagesArr)) {
@@ -938,7 +1116,7 @@
                   localStorage.setItem('BOOK_BM_PAGES_' + bId, JSON.stringify(merged));
                 }
               });
-            } else if (key !== '_last_read' && key !== '_inbook_bookmarks') {
+            } else if (key !== '_last_read' && key !== '_inbook_bookmarks' && key !== '_stats') {
               const localPage = parseInt(localStorage.getItem('BOOK_PAGE_' + key) || '0', 10);
               if (val > localPage) {
                 localStorage.setItem('BOOK_PAGE_' + key, String(val));
@@ -946,6 +1124,7 @@
             }
           });
         }
+        renderReadingStatsBar();
         return true;
       } catch (err) {
         return false;
@@ -1001,6 +1180,7 @@
           if (sleepTimerRemainingSec <= 0) {
             clearInterval(sleepTimerIntervalId);
             sleepTimerIntervalId = null;
+            setAutoFlipSpeed(0);
             triggerHaptic(40);
             playNotificationChime();
             document.getElementById('sleepTimerAlertModal').style.display = 'flex';
@@ -1042,8 +1222,8 @@
       const countEl = document.getElementById('inBookBmCount');
       if (btn) {
         btn.className = isBookmarked
-          ? 'tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] shadow'
-          : 'tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px]';
+          ? 'tactile-btn px-2 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] shadow'
+          : 'tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 font-bold text-[11px]';
         btn.textContent = isBookmarked ? '🔖 မှတ်ပြီး' : '🔖';
       }
       if (countEl) countEl.textContent = list.length;
@@ -1557,7 +1737,10 @@
         for (const id of modalsOrder) {
           if (isModalVisible(id)) {
             document.getElementById(id).style.display = 'none';
-            if (id === 'pdfReaderModal') loadBooks();
+            if (id === 'pdfReaderModal') {
+              setAutoFlipSpeed(0);
+              loadBooks();
+            }
             history.pushState({ view: 'guard' }, '');
             return;
           }
@@ -1670,6 +1853,7 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       getOrInitDeviceId();
+      renderReadingStatsBar();
       initBackNavigationGuard();
       applyThemeMode(userSettings.themeMode, false);
       applyAllSettingsToUI();
@@ -1832,6 +2016,7 @@
       }
 
       updateHeroBanner(allPublishedBooks);
+      renderReadingStatsBar();
       renderRecommendationsHorizontal(allPublishedBooks);
 
       let list = [...allPublishedBooks];
@@ -2098,6 +2283,8 @@
 
     async function openPdfReader(bookId, title, pdfUrl, totalPages = 1) {
       currentReadingBookId = bookId; zoomPercent = 100; currentSpreadHalf = 'left';
+      setAutoFlipSpeed(0);
+      updateDailyReadingStreak();
       document.getElementById('readerBookTitle').textContent = title;
       history.pushState({ modal: 'reader' }, '');
       document.getElementById('pdfReaderModal').style.display = 'flex';
@@ -2131,10 +2318,10 @@
       const btn = document.getElementById('splitModeBtn');
       const label = document.getElementById('splitModeLabel');
       if (splitSpreadMode) {
-        btn.className = 'tactile-btn px-2.5 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] flex items-center gap-1 shadow';
+        btn.className = 'tactile-btn px-2 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] flex items-center gap-1 shadow';
         label.textContent = '၁ ခြမ်းချင်း';
       } else {
-        btn.className = 'tactile-btn px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 font-bold text-[11px] flex items-center gap-1';
+        btn.className = 'tactile-btn px-2 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 font-bold text-[11px] flex items-center gap-1';
         label.textContent = 'စာရွက်အပြည့်';
       }
     }
@@ -2150,6 +2337,7 @@
         canvas.classList.remove('page-flip-next', 'page-flip-prev');
         void canvas.offsetWidth;
         canvas.classList.add(flipDir > 0 ? 'page-flip-next' : 'page-flip-prev');
+        incrementTotalPagesReadCounter();
       }
 
       const baseVp = page.getViewport({ scale: 1.0 });
@@ -2196,6 +2384,7 @@
       document.getElementById('zoomLabel').textContent = `${zoomPercent}%`;
       localStorage.setItem('BOOK_PAGE_' + currentReadingBookId, num);
       updateInBookBookmarkUI();
+      renderReadingStatsBar();
       scheduleCloudSync();
     }
 
@@ -2247,6 +2436,7 @@
 
     function closePdfReader() {
       triggerHaptic(12);
+      setAutoFlipSpeed(0);
       document.getElementById('pdfReaderModal').style.display = 'none';
       syncUserDataToSupabase();
       loadBooks();
@@ -2457,7 +2647,8 @@
           <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px;">✨ <b>VIP အဖွဲ့ဝင် အခွင့်အရေးများ</b><br/>• App တစ်ခုလုံးတွင် ကြော်ငြာများ လုံးဝမပါဝင်တော့ပါ<br/>• စာအုပ်များကို အနှောင့်အယှက်ကင်းစွာ အပြည့်အဝ ဖတ်ရှုနိုင်ပါသည်</div>
           <input id="sarVipCodeInput" type="text" placeholder="VIP Code ရိုက်ထည့်ပါ (SAR-XXXXXX)" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.2); background:#fff; color:#111; font-family:monospace; font-size:15px; text-transform:uppercase; margin-bottom:10px;" />
           <div id="sarVipStatusMsg" style="font-size:13px; margin-bottom:8px; display:none;"></div>
-          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">🔓 VIP Code အသက်သွင်းမည်</button>
+          <button onclick="activateSarVipCode()" style="width:100%; padding:11px; border:none; border-radius:11px; background:linear-gradient(135deg, #d97706, #92400e); color:#FFFBEB; font-family:'Padauk',sans-serif; font-weight:700; font-size:15px; cursor:pointer; margin-bottom:10px;">🔓 VIP Code အသက်သွင်းမည်</button>
+          <a href="${ADMIN_VIP_CONTACT_URL}" target="_blank" style="display:block; text-align:center; width:100%; box-sizing:border-box; padding:10px; border-radius:11px; border:1px solid rgba(217,119,6,0.45); background:rgba(217,119,6,0.1); color:#b45309; font-family:'Padauk',sans-serif; font-weight:700; font-size:13px; text-decoration:none;">💬 VIP Code ဝယ်ယူရန် Admin သို့ ဆက်သွယ်မည်</a>
         `;
       }
     }
