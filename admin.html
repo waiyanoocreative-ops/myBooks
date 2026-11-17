@@ -317,7 +317,7 @@
       };
     }
 
-   async function updateHeaderBadgeUI() {
+  async function updateHeaderBadgeUI() {
       const badge = document.getElementById('storageBadgePill');
       if (!badge) return;
       const cfg = getStorageConfig();
@@ -327,6 +327,44 @@
         badge.textContent = '⚠️ GitHub Token ထည့်ရန် နှိပ်ပါ';
         return;
       }
+
+      badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-600/30 text-[10px] font-bold text-emerald-800 cursor-pointer';
+      badge.textContent = `🐙 ${cfg.ghRepo} (Storage စစ်ဆေးနေသည်...)`;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${cfg.ghOwner}/${cfg.ghRepo}`, {
+          headers: {
+            'Authorization': `Bearer ${cfg.ghToken}`,
+            'Accept': 'application/vnd.github+json'
+          }
+        });
+        if (!res.ok) throw new Error('Repo check failed');
+        const repoData = await res.json();
+
+        // GitHub API မှ size ကို KB ဖြင့် ပြန်ပေးသဖြင့် MB သို့ ပြောင်းလဲတွက်ချက်ခြင်း
+        const usedMb = (repoData.size / 1024).toFixed(1);
+        const usedGb = (repoData.size / (1024 * 1024)).toFixed(2);
+        const maxLimitMb = 4500; // 4.5 GB Safe Limit
+        const usedPct = Math.min(Math.round((usedMb / maxLimitMb) * 100), 100);
+
+        if (usedMb >= 4000) {
+          // 4 GB ကျော်သွားပါက အနီရောင်သတိပေးချက် ပြသမည်
+          badge.className = 'px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold cursor-pointer animate-bounce shadow';
+          badge.textContent = `🚨 ${cfg.ghRepo} ပြည့်ခါနီးပြီ (${usedGb} GB / 4.5 GB) • Repo အသစ်ပြောင်းရန်နှိပ်ပါ`;
+          alert(`⚠️ သတိပေးချက်: လက်ရှိ "${cfg.ghRepo}" တွင် ${usedGb} GB သုံးထားပြီးဖြစ်၍ Storage ပြည့်ခါနီးပါပြီ!\n\nGitHub တွင် Repo အသစ် (ဥပမာ - myBooks-2) ဖွင့်ပြီး Settings ထဲတွင် အမည်ပြောင်းချိတ်ပေးပါ။`);
+        } else if (usedMb >= 3000) {
+          // 3 GB ကျော်ပါက အဝါရောင်သတိပေးချက် ပြသမည်
+          badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/25 border border-amber-600 text-[10px] font-bold text-amber-900 cursor-pointer';
+          badge.textContent = `⚠️ ${cfg.ghRepo}: ${usedGb} GB / 4.5 GB (${usedPct}% သုံးပြီး)`;
+        } else {
+          // ပုံမှန်အခြေအနေတွင် အစိမ်းရောင်ဖြင့် လက်ရှိ MB ကို ပြသမည်
+          const sizeLabel = usedMb >= 1000 ? `${usedGb} GB` : `${usedMb} MB`;
+          badge.textContent = `🐙 ${cfg.ghRepo}: ${sizeLabel} / 4.5 GB (${usedPct}%)`;
+        }
+      } catch (e) {
+        badge.textContent = `🐙 GitHub Connected (${cfg.ghOwner}/${cfg.ghRepo})`;
+      }
+    }
 
       badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-600/30 text-[10px] font-bold text-emerald-800 cursor-pointer';
       badge.textContent = `🐙 ${cfg.ghRepo} (Storage စစ်ဆေးနေသည်...)`;
