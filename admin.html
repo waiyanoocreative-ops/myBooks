@@ -42,7 +42,7 @@
               🐙 GitHub Primary Storage
             </button>
           </div>
-          <p class="text-[11px] text-[#786E65] mt-0.5">GitHub ဖိုင်သိမ်းဆည်းမှုစနစ်နှင့် စာကြည့်တိုက် စီမံခန့်ခွဲရေး</p>
+          <p class="text-[11px] text-[#786E65] mt-0.5">GitHub ဖိုင်သိမ်းဆည်းမှုစနစ် (75MB အထိ) နှင့် စာကြည့်တိုက် စီမံခန့်ခွဲရေး</p>
         </div>
       </div>
 
@@ -405,7 +405,7 @@
       renderVipUI(vipRes.data || []);
     }
 
-    // ================= GITHUB PRIMARY STORAGE UPLOAD ENGINE =================
+    // ================= GITHUB PRIMARY STORAGE UPLOAD ENGINE (UP TO 75MB SUPPORT) =================
     function blobToBase64Content(fileOrBlob) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -427,32 +427,83 @@
 
       const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const path = `${folder}/${cleanName}`;
-      const apiUrl = `https://api.github.com/repos/${cfg.ghOwner}/${cfg.ghRepo}/contents/${path}`;
       const base64Content = await blobToBase64Content(fileOrBlob);
+      const headers = {
+        'Authorization': `Bearer ${cfg.ghToken}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      };
+      const baseUrl = `https://api.github.com/repos/${cfg.ghOwner}/${cfg.ghRepo}`;
 
-      const res = await fetch(apiUrl, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${cfg.ghToken}`,
-          'Accept': 'application/vnd.github+json',
-          'Content-Type': 'application/json'
-        },
+      // 1. Files under 20MB -> Fast Contents API
+      if (fileOrBlob.size <= 20 * 1024 * 1024) {
+        const res = await fetch(`${baseUrl}/contents/${path}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            message: `Upload ${cleanName} via Sar Admin`,
+            content: base64Content,
+            branch: cfg.ghBranch
+          })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(`GitHub Upload Error: ${errData.message || res.status}`);
+        }
+        return `https://raw.githubusercontent.com/${cfg.ghOwner}/${cfg.ghRepo}/${cfg.ghBranch}/${path}`;
+      }
+
+      // 2. Large Files (20MB to 75MB) -> Git Data Blob API
+      const refRes = await fetch(`${baseUrl}/git/ref/heads/${cfg.ghBranch}`, { headers });
+      if (!refRes.ok) throw new Error('GitHub Branch ရှာမတွေ့ပါ။');
+      const refData = await refRes.json();
+      const latestCommitSha = refData.object.sha;
+
+      const commitRes = await fetch(`${baseUrl}/git/commits/${latestCommitSha}`, { headers });
+      const commitData = await commitRes.json();
+
+      const blobRes = await fetch(`${baseUrl}/git/blobs`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ content: base64Content, encoding: 'base64' })
+      });
+      if (!blobRes.ok) {
+        const errData = await blobRes.json().catch(() => ({}));
+        throw new Error(`ဖိုင်ဆိုဒ်ကြီးလွန်းပါသည်: ${errData.message || blobRes.status}`);
+      }
+      const blobData = await blobRes.json();
+
+      const treeRes = await fetch(`${baseUrl}/git/trees`, {
+        method: 'POST',
+        headers,
         body: JSON.stringify({
-          message: `Upload ${cleanName} via Sar Admin`,
-          content: base64Content,
-          branch: cfg.ghBranch
+          base_tree: commitData.tree.sha,
+          tree: [{ path, mode: '100644', type: 'blob', sha: blobData.sha }]
         })
       });
+      const treeData = await treeRes.json();
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(`GitHub Upload Error: ${errData.message || res.status}`);
-      }
+      const newCommitRes = await fetch(`${baseUrl}/git/commits`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: `Upload large file ${cleanName}`,
+          tree: treeData.sha,
+          parents: [latestCommitSha]
+        })
+      });
+      const newCommitData = await newCommitRes.json();
+
+      const updateRefRes = await fetch(`${baseUrl}/git/refs/heads/${cfg.ghBranch}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ sha: newCommitData.sha })
+      });
+      if (!updateRefRes.ok) throw new Error('GitHub Branch Commit မအောင်မြင်ပါ။');
 
       return `https://raw.githubusercontent.com/${cfg.ghOwner}/${cfg.ghRepo}/${cfg.ghBranch}/${path}`;
     }
 
-    // Always prioritize GitHub Storage first!
     async function uploadFileSmart(fileOrBlob, fileName, folder = 'books') {
       return await uploadFileToGitHubRepo(fileOrBlob, fileName, folder);
     }
@@ -462,7 +513,8 @@
       const file = e.target.files?.[0];
       if (!file) return;
       selectedPdfFile = file;
-      document.getElementById('pdfFileNameLabel').textContent = `${file.name} (ဖတ်နေသည်...)`;
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      document.getElementById('pdfFileNameLabel').textContent = `${file.name} (${sizeMb} MB - ဖတ်နေသည်...)`;
 
       const titleInput = document.getElementById('bookTitle');
       if (!titleInput.value.trim()) {
@@ -473,7 +525,7 @@
         const buf = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
         document.getElementById('bookPages').value = pdf.numPages;
-        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name} (${pdf.numPages} မျက်နှာ)`;
+        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name} (${pdf.numPages} မျက်နှာ • ${sizeMb} MB)`;
 
         if (!document.getElementById('coverFileInput').files?.[0]) {
           const page = await pdf.getPage(1);
@@ -486,7 +538,7 @@
           selectedCoverBlob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
         }
       } catch (err) {
-        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name}`;
+        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name} (${sizeMb} MB)`;
       }
     }
 
@@ -499,6 +551,17 @@
         document.getElementById('coverPreviewBox').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover" />`;
       };
       reader.readAsDataURL(file);
+    }
+
+    // Safe insert/update that automatically retries without legacy columns if needed
+    async function saveBookToSupabaseSafe(payload, editId) {
+      if (editId) {
+        const { error } = await supabaseClient.from('books').update(payload).eq('id', editId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('books').insert([payload]);
+        if (error) throw error;
+      }
     }
 
     async function handleBookSubmit(e) {
@@ -529,7 +592,10 @@
         statusBox.classList.remove('hidden');
 
         if (selectedPdfFile) {
-          stepText.textContent = '🐙 PDF စာအုပ်ဖိုင်ကို GitHub သို့ တင်နေပါသည်...';
+          const isLarge = selectedPdfFile.size > 20 * 1024 * 1024;
+          stepText.textContent = isLarge
+            ? '🐙 ဖိုင်ဆိုဒ်ကြီးသော PDF ကို GitHub Large Blob စနစ်ဖြင့် တင်နေပါသည် (ခေတ္တစောင့်ပါ)...'
+            : '🐙 PDF စာအုပ်ဖိုင်ကို GitHub သို့ တင်နေပါသည်...';
           pctText.textContent = '45%';
           bar.style.width = '45%';
           pdfUrl = await uploadFileSmart(selectedPdfFile, selectedPdfFile.name, 'pdfs');
@@ -546,7 +612,7 @@
         pctText.textContent = '100%';
         bar.style.width = '100%';
 
-        const payload = {
+        const basePayload = {
           title: document.getElementById('bookTitle').value.trim(),
           author: document.getElementById('bookAuthor').value.trim(),
           category_id: document.getElementById('bookCategory').value || null,
@@ -557,12 +623,10 @@
           description: document.getElementById('bookDesc').value.trim() || null
         };
 
-        if (editId) {
-          const { error } = await supabaseClient.from('books').update(payload).eq('id', editId);
-          if (error) throw error;
-        } else {
-          const { error } = await supabaseClient.from('books').insert([payload]);
-          if (error) throw error;
+        try {
+          await saveBookToSupabaseSafe({ ...basePayload, pdf_path: pdfUrl, cover_path: coverUrl || '' }, editId);
+        } catch (colErr) {
+          await saveBookToSupabaseSafe(basePayload, editId);
         }
 
         resetBookForm();
