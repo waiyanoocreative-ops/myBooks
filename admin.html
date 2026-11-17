@@ -2,26 +2,23 @@
 <html lang="my">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>စာ — Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>စာ — Admin Panel (GitHub Primary Storage)</title>
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Playfair+Display:wght@700&display=swap');
 
     body {
       font-family: 'Padauk', sans-serif;
-      background-color: #0F1319;
-      color: #F8FAFC;
+      background-color: #FAF8F5;
+      color: #1E1916;
       line-height: 1.7;
     }
     .font-serif-display {
       font-family: 'Playfair Display', 'Padauk', serif;
-    }
-    .admin-card {
-      background-color: #181F29;
-      border: 1px solid #283242;
     }
     .tactile-btn {
       transition: transform 0.12s ease, opacity 0.15s ease;
@@ -29,698 +26,814 @@
     .tactile-btn:active {
       transform: scale(0.95);
     }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col pb-20">
-
-  <!-- ADMIN PIN LOCK MODAL -->
-  <div id="adminLockScreen" class="fixed inset-0 z-[100] bg-[#0F1319] flex items-center justify-center p-4">
-    <div class="admin-card rounded-3xl max-w-xs w-full p-6 text-center space-y-4 shadow-2xl border border-amber-500/30">
-      <div class="w-16 h-16 rounded-2xl bg-[#6B141A] text-white flex items-center justify-center font-serif-display font-bold text-3xl mx-auto shadow-lg">စာ</div>
-      <div>
-        <h2 class="font-bold text-lg text-white">Admin Control Center</h2>
-        <p class="text-xs text-slate-400">ရှေ့ဆက်ရန် Admin PIN နံပါတ် ရိုက်ထည့်ပါ</p>
-      </div>
-      <form onsubmit="unlockAdminPanel(event)" class="space-y-3">
-        <input id="adminPinInput" type="password" inputmode="numeric" placeholder="PIN နံပါတ် (Default: 1234)" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-center text-white font-mono text-base tracking-widest focus:outline-none focus:border-amber-500" />
-        <p id="pinErrorMsg" class="text-xs text-red-400 hidden">❌ PIN နံပါတ် မှားယွင်းနေပါသည်။</p>
-        <button type="submit" class="tactile-btn w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-lg">🔓 ဝင်ရောက်မည်</button>
-      </form>
-    </div>
-  </div>
+<body class="min-h-screen pb-16">
 
   <!-- TOP HEADER -->
-  <header class="sticky top-0 z-30 bg-[#0F1319]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#6B141A] text-white flex items-center justify-center font-serif-display font-bold text-xl shadow">စာ</div>
+  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5DEC9] px-4 py-3">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#6B141A] text-white flex items-center justify-center font-serif-display font-bold text-lg shadow-sm">စာ</div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-bold text-base sm:text-lg text-white">စာ — Admin Dashboard</h1>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span id="adminLiveOnline">1 online</span>
-            </span>
+            <h1 class="font-serif-display font-bold text-lg leading-none text-[#1E1916]">စာ — Admin Panel</h1>
+            <button type="button" onclick="openConfigModal()" id="storageBadgePill" class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-600/30 text-[10px] font-bold text-emerald-800 cursor-pointer">
+              🐙 GitHub Primary Storage
+            </button>
           </div>
-          <p class="text-[11px] text-slate-400">စာအုပ်စင်၊ မှတ်ချက်၊ တောင်းဆိုမှုနှင့် VIP စီမံခန့်ခွဲရေး</p>
+          <p class="text-[11px] text-[#786E65] mt-0.5">GitHub ဖိုင်သိမ်းဆည်းမှုစနစ်နှင့် စာကြည့်တိုက် စီမံခန့်ခွဲရေး</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button type="button" onclick="refreshAllAdminData()" class="tactile-btn px-3 py-1.5 rounded-xl admin-card text-xs font-bold text-amber-300 hover:border-amber-500/50">🔄 Refresh</button>
-        <a href="index.html" class="tactile-btn px-3.5 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold shadow">📖 စာကြည့်တိုက်သို့</a>
+        <button type="button" onclick="openConfigModal()" class="tactile-btn px-3.5 py-2 rounded-full bg-[#F3EFE6] border border-[#E5DEC9] text-xs font-bold text-[#1E1916] flex items-center gap-1.5 shadow-xs">
+          <span>⚙️</span>
+          <span>GitHub Token & Settings</span>
+        </button>
+        <a href="index.html" class="tactile-btn px-4 py-2 rounded-full bg-[#6B141A] text-white text-xs font-bold shadow-sm hover:opacity-95 transition">📖 စာကြည့်တိုက်သို့</a>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
-  <main class="max-w-6xl w-full mx-auto px-4 pt-5 space-y-6 flex-1">
-
-    <!-- OVERVIEW STATS CARDS -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">📚 စုစုပေါင်းစာအုပ်</span>
-        <p id="statTotalBooks" class="text-xl font-bold text-white">0</p>
-      </div>
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">👁 စုစုပေါင်းဖတ်ရှုမှု</span>
-        <p id="statTotalReads" class="text-xl font-bold text-amber-400">0</p>
-      </div>
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">📩 စာအုပ်တောင်းဆိုမှု</span>
-        <p id="statPendingReqs" class="text-xl font-bold text-sky-400">0</p>
-      </div>
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">⭐ စာဖတ်သူမှတ်ချက်</span>
-        <p id="statTotalReviews" class="text-xl font-bold text-emerald-400">0</p>
-      </div>
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">👑 Active VIP</span>
-        <p id="statActiveVips" class="text-xl font-bold text-purple-400">0</p>
-      </div>
-      <div class="admin-card rounded-2xl p-3.5 space-y-1">
-        <span class="text-xs text-slate-400">☁️ Cloud Sync ဖုန်းများ</span>
-        <p id="statSyncedDevices" class="text-xl font-bold text-rose-400">0</p>
-      </div>
-    </div>
-
-    <!-- NAVIGATION TABS -->
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-slate-800 pb-2.5 text-xs font-bold">
-      <button type="button" onclick="switchAdminTab('books')" id="tabBtn_books" class="tactile-btn px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shrink-0">📚 စာအုပ်များ စီမံရန်</button>
-      <button type="button" onclick="switchAdminTab('requests')" id="tabBtn_requests" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">📩 စာအုပ်တောင်းဆိုမှုများ</button>
-      <button type="button" onclick="switchAdminTab('reviews')" id="tabBtn_reviews" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">⭐ မှတ်ချက်များ (Reviews)</button>
-      <button type="button" onclick="switchAdminTab('categories')" id="tabBtn_categories" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">🏷️ အမျိုးအစားများ</button>
-      <button type="button" onclick="switchAdminTab('vip')" id="tabBtn_vip" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">👑 VIP Codes</button>
-      <button type="button" onclick="switchAdminTab('ads')" id="tabBtn_ads" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">📢 ကြော်ငြာ (Ads)</button>
-      <button type="button" onclick="switchAdminTab('settings')" id="tabBtn_settings" class="tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0">⚙️ Admin PIN</button>
-    </div>
-
-    <!-- TAB 1: BOOKS MANAGEMENT -->
-    <section id="adminTab_books" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="admin-card rounded-3xl p-5 space-y-4 h-fit">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 id="bookFormHeading" class="font-bold text-sm text-amber-400">➕ စာအုပ်အသစ် တင်ရန်</h3>
-          <button type="button" onclick="resetBookForm()" class="text-xs text-slate-400 hover:text-white">Reset</button>
+  <!-- GITHUB PRIMARY STORAGE CONFIG MODAL -->
+  <div id="configModal" style="display: none;" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-[#FAF8F5] border border-[#E5DEC9] rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#E5DEC9] pb-3">
+        <div>
+          <h3 class="font-bold text-base text-[#6B141A]">🐙 GitHub Storage ချိတ်ဆက်မှု</h3>
+          <p class="text-[11px] text-[#786E65]">PDF နှင့် ပုံများကို GitHub သို့ တိုက်ရိုက်တင်ရန်</p>
         </div>
-        <form id="adminBookForm" onsubmit="saveBookRecord(event)" class="space-y-3 text-xs">
-          <input type="hidden" id="editBookId" value="" />
+        <button type="button" onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <form onsubmit="saveConfigSettings(event)" class="space-y-3.5 text-xs">
+        <!-- PRIMARY: GITHUB STORAGE -->
+        <div class="p-3.5 rounded-2xl bg-[#F3EFE6] border-2 border-[#6B141A]/30 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <p class="font-bold text-[#6B141A] uppercase tracking-wider">🐙 GITHUB STORAGE (အဓိက စနစ်)</p>
+            <a href="https://github.com/settings/tokens/new?scopes=repo&description=Sar_Library_Admin" target="_blank" class="px-2 py-0.5 rounded-lg bg-[#6B141A] text-white text-[10px] font-bold">🔑 Token ထုတ်ရန် နှိပ်ပါ</a>
+          </div>
           <div>
-            <label class="block text-slate-300 font-bold mb-1">စာအုပ်အမည် *</label>
-            <input id="bkTitle" type="text" required placeholder="စာအုပ်အမည်..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+            <label class="block font-bold mb-1">GitHub Personal Access Token (ghp_...) *</label>
+            <input id="cfgGhToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs focus:outline-none focus:border-[#6B141A]" />
+            <p class="text-[10px] text-[#786E65] mt-1">အပေါ်ရှိ "🔑 Token ထုတ်ရန် နှိပ်ပါ" လင့်ခ်သို့ဝင်ပြီး အောက်ဆုံးမှ Generate token နှိပ်ကာ ရလာသည့်ကုဒ်ကို ထည့်ပါ။</p>
           </div>
-          <div class="grid grid-cols-2 gap-2.5">
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-slate-300 font-bold mb-1">စာရေးဆရာ *</label>
-              <input id="bkAuthor" type="text" required placeholder="စာရေးဆရာ..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+              <label class="block font-bold mb-1">GitHub Owner</label>
+              <input id="cfgGhOwner" type="text" value="waiyanoocreative-ops" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs" />
             </div>
             <div>
-              <label class="block text-slate-300 font-bold mb-1">အမျိုးအစား</label>
-              <select id="bkCategory" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500"></select>
+              <label class="block font-bold mb-1">Repository Name</label>
+              <input id="cfgGhRepo" type="text" value="myBooks" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs" />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block font-bold mb-1">Branch အမည်</label>
+            <input id="cfgGhBranch" type="text" value="main" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs" />
+          </div>
+        </div>
+
+        <!-- SECONDARY: SUPABASE DATABASE -->
+        <div class="p-3.5 rounded-2xl bg-[#F3EFE6] border border-[#E5DEC9] space-y-2.5">
+          <p class="font-bold text-emerald-800 uppercase tracking-wider">⚡ SUPABASE DATABASE (စာရင်းမှတ်တမ်းအတွက်သာ)</p>
+          <div>
+            <label class="block font-bold mb-1">Supabase Project URL</label>
+            <input id="cfgSbUrl" type="url" required class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold mb-1">Supabase Key</label>
+            <input id="cfgSbKey" type="text" required class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono text-xs" />
+          </div>
+        </div>
+
+        <button type="submit" class="tactile-btn w-full py-3 rounded-2xl bg-[#6B141A] text-white font-bold text-xs shadow-md">
+          💾 သိမ်းဆည်းမည်
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- MAIN GRID: UPLOAD BOOK & CATEGORIES -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT: BOOK UPLOAD FORM -->
+      <div class="lg:col-span-2 bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5DEC9] pb-3">
+          <h2 id="formHeading" class="font-bold text-base text-[#6B141A]">📤 စာအုပ်အသစ် တင်ရန် (GitHub Storage)</h2>
+          <button type="button" onclick="resetBookForm()" class="text-xs font-bold text-[#786E65] hover:text-[#1E1916]">အသစ်ပြန်စမည်</button>
+        </div>
+
+        <form id="bookUploadForm" onsubmit="handleBookSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+          <input type="hidden" id="editingBookId" value="" />
+          <input type="hidden" id="existingPdfUrl" value="" />
+          <input type="hidden" id="existingCoverUrl" value="" />
+
+          <!-- FILE UPLOAD BOXES (PDF + COVER) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- PDF File Box -->
+            <label class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-[#6B141A]/40 bg-white/80 hover:bg-white cursor-pointer transition text-center space-y-1.5">
+              <span class="text-2xl">📄</span>
+              <span class="font-bold text-xs text-[#6B141A]">PDF စာအုပ်ဖိုင် ရွေးရန် *</span>
+              <span id="pdfFileNameLabel" class="text-[11px] text-[#786E65] line-clamp-1">ဖိုင်ရွေးချယ်ထားခြင်း မရှိသေးပါ</span>
+              <input id="pdfFileInput" type="file" accept="application/pdf,.pdf" onchange="onPdfSelected(event)" class="hidden" />
+            </label>
+
+            <!-- Cover Image Box -->
+            <label class="flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed border-[#C4B59B] bg-white/80 hover:bg-white cursor-pointer transition">
+              <div id="coverPreviewBox" class="w-14 h-20 rounded-lg bg-[#E5DEC9] overflow-hidden shrink-0 flex items-center justify-center text-[10px] text-[#786E65] text-center p-1">
+                Cover
+              </div>
+              <div class="space-y-1 min-w-0">
+                <span class="block font-bold text-xs text-[#1E1916]">🖼️ မျက်နှာဖုံးပုံ ရွေးရန်</span>
+                <span class="block text-[10px] text-[#786E65]">မရွေးပါက PDF ပထမစာမျက်နှာကို အလိုအလျောက် သုံးပေးပါမည်</span>
+              </div>
+              <input id="coverFileInput" type="file" accept="image/*" onchange="onCoverSelected(event)" class="hidden" />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label class="block text-slate-300 font-bold mb-1">စာမျက်နှာအရေအတွက်</label>
-              <input id="bkPages" type="number" min="1" value="100" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+              <label class="block font-bold text-xs mb-1">စာအုပ်အမည် *</label>
+              <input id="bookTitle" type="text" required placeholder="ဥပမာ - ဓားတောင်ကိုကျော်၍ မီးပင်လယ်ကိုဖြတ်မည်" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]" />
             </div>
             <div>
-              <label class="block text-slate-300 font-bold mb-1">အခြေအနေ (Status)</label>
-              <select id="bkStatus" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500">
-                <option value="published">✅ Published (လွှင့်တင်မည်)</option>
-                <option value="draft">📝 Draft (သိမ်းထားမည်)</option>
+              <label class="block font-bold text-xs mb-1">စာရေးဆရာအမည် *</label>
+              <input id="bookAuthor" type="text" required placeholder="ဥပမာ - မြသန်းတင့်" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="block font-bold text-xs mb-1">အမျိုးအစား (Category)</label>
+              <select id="bookCategory" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]"></select>
+            </div>
+            <div>
+              <label class="block font-bold text-xs mb-1">စာမျက်နှာအရေအတွက်</label>
+              <input id="bookPages" type="number" min="1" value="1" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]" />
+            </div>
+            <div>
+              <label class="block font-bold text-xs mb-1">အခြေအနေ (Status)</label>
+              <select id="bookStatus" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]">
+                <option value="published">Published (လွှင့်တင်မည်)</option>
+                <option value="draft">Draft (သိမ်းထားမည်)</option>
               </select>
             </div>
           </div>
+
           <div>
-            <label class="block text-slate-300 font-bold mb-1">မျက်နှာဖုံးပုံ (Cover Image URL)</label>
-            <input id="bkCoverUrl" type="url" placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+            <label class="block font-bold text-xs mb-1">စာအုပ်အညွှန်း (Description)</label>
+            <textarea id="bookDesc" rows="3" placeholder="စာအုပ်အကြောင်း အကျဉ်းချုပ်..." class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none focus:border-[#6B141A]"></textarea>
           </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">PDF ဖိုင်လင့်ခ် (PDF File URL) *</label>
-            <input id="bkPdfUrl" type="url" required placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">စာအုပ်အညွှန်း (Description)</label>
-            <textarea id="bkDesc" rows="3" placeholder="စာအုပ်အကြောင်း အကျဉ်းချုပ်..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500"></textarea>
-          </div>
-          <button type="submit" id="bkSubmitBtn" class="tactile-btn w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold shadow-md">💾 စာအုပ် သိမ်းဆည်းမည်</button>
-        </form>
-      </div>
 
-      <div class="lg:col-span-2 admin-card rounded-3xl p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <h3 class="font-bold text-sm text-white">📚 တင်ထားသော စာအုပ်စာရင်း</h3>
-          <input id="adminBookSearch" type="text" oninput="renderAdminBooksTable()" placeholder="စာအုပ် သို့မဟုတ် စာရေးဆရာ ရှာရန်..." class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500" />
-        </div>
-        <div id="adminBooksList" class="space-y-2.5 max-h-[620px] overflow-y-auto pr-1"></div>
-      </div>
-    </section>
-
-    <!-- TAB 2: BOOK REQUESTS MANAGEMENT -->
-    <section id="adminTab_requests" class="hidden admin-card rounded-3xl p-5 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 class="font-bold text-sm text-amber-400">📩 စာဖတ်သူများ တောင်းဆိုထားသော စာအုပ်များ</h3>
-          <p class="text-xs text-slate-400">စာအုပ်တင်ပေးပြီးပါက "✅ တင်ပေးပြီး" ခလုတ်ကို နှိပ်၍ အမှတ်အသားပြောင်းနိုင်ပါသည်</p>
-        </div>
-      </div>
-      <div id="adminRequestsList" class="space-y-2.5"></div>
-    </section>
-
-    <!-- TAB 3: REVIEWS & RATINGS MODERATION -->
-    <section id="adminTab_reviews" class="hidden admin-card rounded-3xl p-5 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 class="font-bold text-sm text-amber-400">⭐ စာဖတ်သူများ၏ မှတ်ချက်နှင့် အမှတ်ပေးမှုများ</h3>
-          <p class="text-xs text-slate-400">မသင့်လျော်သော မှတ်ချက်များကို စစ်ဆေးဖျက်သိမ်းနိုင်ပါသည်</p>
-        </div>
-      </div>
-      <div id="adminReviewsList" class="space-y-2.5"></div>
-    </section>
-
-    <!-- TAB 4: CATEGORIES MANAGEMENT -->
-    <section id="adminTab_categories" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="admin-card rounded-3xl p-5 space-y-4 h-fit">
-        <h3 class="font-bold text-sm text-amber-400 border-b border-slate-800 pb-2.5">➕ အမျိုးအစားအသစ် ထည့်ရန်</h3>
-        <form onsubmit="addCategoryRecord(event)" class="flex gap-2 text-xs">
-          <input id="newCategoryName" type="text" required placeholder="ဥပမာ - ဝတ္ထုတို၊ သုတ၊ သမိုင်း..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          <button type="submit" class="tactile-btn px-5 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0">ထည့်မည်</button>
-        </form>
-      </div>
-      <div class="admin-card rounded-3xl p-5 space-y-3">
-        <h3 class="font-bold text-sm text-white border-b border-slate-800 pb-2.5">🏷️ လက်ရှိ အမျိုးအစားများ</h3>
-        <div id="adminCategoriesList" class="space-y-2"></div>
-      </div>
-    </section>
-
-    <!-- TAB 5: VIP CODES MANAGEMENT -->
-    <section id="adminTab_vip" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="admin-card rounded-3xl p-5 space-y-4 h-fit">
-        <h3 class="font-bold text-sm text-amber-400 border-b border-slate-800 pb-2.5">👑 VIP Code အသစ် ထုတ်ပေးရန်</h3>
-        <form onsubmit="createVipCodeRecord(event)" class="space-y-3 text-xs">
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">VIP အဖွဲ့ဝင်အမည် *</label>
-            <input id="vipMemberName" type="text" required placeholder="ဥပမာ - Ko Aung" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          </div>
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-slate-300 font-bold mb-1">Plan အမည်</label>
-              <input id="vipPlanName" type="text" value="1 Month VIP" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+          <!-- UPLOAD PROGRESS -->
+          <div id="uploadStatusBox" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-300 space-y-1.5">
+            <div class="flex justify-between text-xs font-bold text-amber-900">
+              <span id="uploadStepText">GitHub သို့ ဖိုင်တင်နေပါသည်...</span>
+              <span id="uploadPctText">50%</span>
             </div>
-            <div>
-              <label class="block text-slate-300 font-bold mb-1">သက်တမ်း (ရက်)</label>
-              <input id="vipDurationDays" type="number" min="1" value="30" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+            <div class="w-full h-2 rounded-full bg-amber-200 overflow-hidden">
+              <div id="uploadProgressBar" class="h-full bg-[#6B141A] transition-all duration-300" style="width: 40%;"></div>
             </div>
           </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">VIP Code (အလိုအလျောက် သို့မဟုတ် စိတ်ကြိုက်)</label>
-            <div class="flex gap-2">
-              <input id="vipCodeInput" type="text" required class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono uppercase focus:outline-none focus:border-amber-500" />
-              <button type="button" onclick="generateRandomVipCodeString()" class="tactile-btn px-3 py-2 rounded-xl bg-slate-800 text-slate-200 font-bold">🎲 အသစ်</button>
-            </div>
-          </div>
-          <button type="submit" class="tactile-btn w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold shadow-md">✨ VIP Code ထုတ်မည်</button>
+
+          <button type="submit" id="submitBookBtn" class="tactile-btn w-full py-3 rounded-2xl bg-[#6B141A] text-white font-bold text-sm shadow-md hover:opacity-95 transition">
+            💾 စာအုပ် တင်မည်
+          </button>
         </form>
       </div>
 
-      <div class="lg:col-span-2 admin-card rounded-3xl p-5 space-y-3">
-        <h3 class="font-bold text-sm text-white border-b border-slate-800 pb-2.5">👑 ထုတ်ပေးထားသော VIP Codes စာရင်း</h3>
-        <div id="adminVipList" class="space-y-2.5 max-h-[550px] overflow-y-auto pr-1"></div>
-      </div>
-    </section>
-
-    <!-- TAB 6: SPONSOR ADS MANAGEMENT -->
-    <section id="adminTab_ads" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="admin-card rounded-3xl p-5 space-y-4 h-fit">
-        <h3 class="font-bold text-sm text-amber-400 border-b border-slate-800 pb-2.5">📢 16:9 ကြော်ငြာဘန်နာ အသစ်ထည့်ရန်</h3>
-        <form onsubmit="createSponsorAdRecord(event)" class="space-y-3 text-xs">
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">ကြော်ငြာခေါင်းစဉ် / လုပ်ငန်းအမည် *</label>
-            <input id="adTitleInput" type="text" required placeholder="ဥပမာ - Ventura Connect" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">ပုံလင့်ခ် (16:9 Image URL) *</label>
-            <input id="adImageUrlInput" type="url" required placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label class="block text-slate-300 font-bold mb-1">နှိပ်လျှင်သွားမည့်လင့်ခ် (Target URL) *</label>
-            <input id="adTargetUrlInput" type="url" required placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
-          </div>
-          <button type="submit" class="tactile-btn w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold shadow-md">🚀 ကြော်ငြာ လွှင့်တင်မည်</button>
-        </form>
-      </div>
-
-      <div class="lg:col-span-2 admin-card rounded-3xl p-5 space-y-3">
-        <h3 class="font-bold text-sm text-white border-b border-slate-800 pb-2.5">📢 လက်ရှိ ကြော်ငြာဘန်နာများနှင့် Click မှတ်တမ်း</h3>
-        <div id="adminAdsList" class="space-y-2.5 max-h-[550px] overflow-y-auto pr-1"></div>
-      </div>
-    </section>
-
-    <!-- TAB 7: ADMIN SETTINGS -->
-    <section id="adminTab_settings" class="hidden max-w-md mx-auto admin-card rounded-3xl p-6 space-y-4">
-      <h3 class="font-bold text-sm text-amber-400 border-b border-slate-800 pb-2.5">⚙️ Admin လုံခြုံရေး PIN ပြောင်းလဲရန်</h3>
-      <form onsubmit="changeAdminPin(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-300 font-bold mb-1">PIN နံပါတ်အသစ်</label>
-          <input id="newAdminPinInput" type="password" inputmode="numeric" required placeholder="PIN အသစ်ရိုက်ထည့်ပါ..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-amber-500" />
+      <!-- RIGHT: CATEGORIES & REQUESTS -->
+      <div class="space-y-6">
+        <!-- Categories Card -->
+        <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 shadow-sm space-y-3">
+          <h3 class="font-bold text-sm text-[#6B141A] border-b border-[#E5DEC9] pb-2">🏷️ အမျိုးအစားများ (Categories)</h3>
+          <form onsubmit="handleAddCategory(event)" class="flex gap-2 text-xs">
+            <input id="newCatInput" type="text" required placeholder="အမျိုးအစားအသစ်..." class="flex-1 px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] focus:outline-none" />
+            <button type="submit" class="tactile-btn px-4 py-2 rounded-xl bg-[#6B141A] text-white font-bold shrink-0">ထည့်မည်</button>
+          </form>
+          <div id="categoriesListBox" class="space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs"></div>
         </div>
-        <button type="submit" class="tactile-btn w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">💾 PIN အသစ် သိမ်းဆည်းမည်</button>
-      </form>
-    </section>
+
+        <!-- Book Requests Card -->
+        <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 shadow-sm space-y-3">
+          <h3 class="font-bold text-sm text-[#6B141A] border-b border-[#E5DEC9] pb-2">📩 စာအုပ်တောင်းဆိုမှုများ</h3>
+          <div id="requestsListBox" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOOKS LIST TABLE -->
+    <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5DEC9] pb-3">
+        <h3 class="font-bold text-base text-[#1E1916]">📚 တင်ထားသော စာအုပ်များ (<span id="booksCountLabel">0</span>)</h3>
+        <input id="searchBooksInput" type="text" oninput="renderBooksList()" placeholder="စာအုပ်ရှာရန်..." class="px-3.5 py-1.5 rounded-full bg-white border border-[#E5DEC9] text-xs focus:outline-none" />
+      </div>
+      <div id="booksListBox" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </div>
+
+    <!-- READER REVIEWS MODERATION -->
+    <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 sm:p-6 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-b border-[#E5DEC9] pb-2">
+        <h3 class="font-bold text-sm text-[#6B141A]">⭐ စာဖတ်သူ မှတ်ချက်များ (Reader Reviews)</h3>
+        <span id="reviewsCountBadge" class="text-xs font-bold text-[#786E65]">0 မှတ်ချက်</span>
+      </div>
+      <div id="reviewsListBox" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1 text-xs"></div>
+    </div>
+
+    <!-- SPONSOR ADS & VIP CODES SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 16:9 Sponsor Banner Ads -->
+      <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 shadow-sm space-y-3">
+        <h3 class="font-bold text-sm text-[#6B141A] border-b border-[#E5DEC9] pb-2">📢 16:9 ကြော်ငြာဘန်နာများ (Sponsor Ads)</h3>
+        <form onsubmit="handleAddSponsorAd(event)" class="space-y-2.5 text-xs">
+          <input id="adTitle" type="text" required placeholder="ကြော်ငြာခေါင်းစဉ် / လုပ်ငန်းအမည်" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+          <input id="adImageFile" type="file" accept="image/*" class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#6B141A] file:text-white file:font-bold cursor-pointer" />
+          <input id="adTargetUrl" type="url" required placeholder="နှိပ်လျှင်သွားမည့် Link (https://...)" class="w-full px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+          <button type="submit" id="adSubmitBtn" class="tactile-btn w-full py-2.5 rounded-xl bg-[#6B141A] text-white font-bold">ကြော်ငြာ ထည့်မည်</button>
+        </form>
+        <div id="adsListBox" class="space-y-2 max-h-56 overflow-y-auto pt-2 text-xs"></div>
+      </div>
+
+      <!-- VIP Codes -->
+      <div class="bg-[#F3EFE6] border border-[#E5DEC9] rounded-3xl p-5 shadow-sm space-y-3">
+        <h3 class="font-bold text-sm text-[#6B141A] border-b border-[#E5DEC9] pb-2">👑 VIP Codes စီမံခန့်ခွဲရန်</h3>
+        <form onsubmit="handleCreateVipCode(event)" class="space-y-2.5 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <input id="vipMember" type="text" required placeholder="မန်ဘာအမည်" class="px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+            <input id="vipDays" type="number" min="1" value="30" placeholder="ရက် (30)" class="px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+          </div>
+          <div class="flex gap-2">
+            <input id="vipCodeStr" type="text" required class="flex-1 px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] font-mono font-bold uppercase" />
+            <button type="button" onclick="generateVipCode()" class="tactile-btn px-3 py-2 rounded-xl bg-stone-200 font-bold">🎲 Code အသစ်</button>
+          </div>
+          <button type="submit" class="tactile-btn w-full py-2.5 rounded-xl bg-amber-600 text-white font-bold">👑 VIP Code ထုတ်ပေးမည်</button>
+        </form>
+        <div id="vipListBox" class="space-y-2 max-h-56 overflow-y-auto pt-2 text-xs"></div>
+      </div>
+    </div>
 
   </main>
 
   <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
 
     let supabaseClient = null;
-    let adminBooks = [];
-    let adminCategories = [];
-    let adminRequests = [];
-    let adminReviews = [];
-    let adminVips = [];
-    let adminAds = [];
+    let categoriesData = [];
+    let booksData = [];
+    let selectedPdfFile = null;
+    let selectedCoverBlob = null;
 
-    function unlockAdminPanel(e) {
-      e.preventDefault();
-      const input = document.getElementById('adminPinInput').value.trim();
-      const savedPin = localStorage.getItem('SAR_ADMIN_PIN') || '1234';
-      if (input === savedPin) {
-        sessionStorage.setItem('SAR_ADMIN_UNLOCKED', '1');
-        document.getElementById('adminLockScreen').style.display = 'none';
-        initAdminApp();
+    // Scan localStorage for any saved GitHub Token
+    function findAnySavedGitHubToken() {
+      const direct = localStorage.getItem('GH_TOKEN') || localStorage.getItem('GITHUB_TOKEN') || localStorage.getItem('PAT') || '';
+      if (direct) return direct.trim();
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        const val = localStorage.getItem(k) || '';
+        if (val.startsWith('ghp_') || val.startsWith('github_pat_')) {
+          return val.trim();
+        }
+      }
+      return '';
+    }
+
+    function getStorageConfig() {
+      return {
+        ghToken: findAnySavedGitHubToken(),
+        ghOwner: localStorage.getItem('GH_OWNER') || 'waiyanoocreative-ops',
+        ghRepo: localStorage.getItem('GH_REPO') || 'myBooks',
+        ghBranch: localStorage.getItem('GH_BRANCH') || 'main',
+        sbUrl: localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL,
+        sbKey: localStorage.getItem('SB_KEY') || DEFAULT_SUPABASE_KEY
+      };
+    }
+
+    function updateHeaderBadgeUI() {
+      const badge = document.getElementById('storageBadgePill');
+      if (!badge) return;
+      const cfg = getStorageConfig();
+      if (cfg.ghToken) {
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-600/30 text-[10px] font-bold text-emerald-800 cursor-pointer';
+        badge.textContent = `🐙 GitHub Connected (${cfg.ghOwner}/${cfg.ghRepo})`;
       } else {
-        document.getElementById('pinErrorMsg').classList.remove('hidden');
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-600/40 text-[10px] font-bold text-amber-900 cursor-pointer animate-pulse';
+        badge.textContent = '⚠️ GitHub Token ထည့်ရန် နှိပ်ပါ';
       }
     }
 
-    function changeAdminPin(e) {
+    function openConfigModal() {
+      const cfg = getStorageConfig();
+      document.getElementById('cfgGhToken').value = cfg.ghToken;
+      document.getElementById('cfgGhOwner').value = cfg.ghOwner;
+      document.getElementById('cfgGhRepo').value = cfg.ghRepo;
+      document.getElementById('cfgGhBranch').value = cfg.ghBranch;
+      document.getElementById('cfgSbUrl').value = cfg.sbUrl;
+      document.getElementById('cfgSbKey').value = cfg.sbKey;
+      document.getElementById('configModal').style.display = 'flex';
+      setTimeout(() => document.getElementById('cfgGhToken').focus(), 100);
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').style.display = 'none';
+    }
+
+    async function saveConfigSettings(e) {
       e.preventDefault();
-      const newPin = document.getElementById('newAdminPinInput').value.trim();
-      if (!newPin) return;
-      localStorage.setItem('SAR_ADMIN_PIN', newPin);
-      document.getElementById('newAdminPinInput').value = '';
-      alert('✅ Admin PIN နံပါတ်အသစ် ပြောင်းလဲပြီးပါပြီ!');
+      const token = document.getElementById('cfgGhToken').value.trim();
+      const owner = document.getElementById('cfgGhOwner').value.trim() || 'waiyanoocreative-ops';
+      const repo = document.getElementById('cfgGhRepo').value.trim() || 'myBooks';
+      const branch = document.getElementById('cfgGhBranch').value.trim() || 'main';
+      const sbUrl = document.getElementById('cfgSbUrl').value.trim() || DEFAULT_SUPABASE_URL;
+      const sbKey = document.getElementById('cfgSbKey').value.trim() || DEFAULT_SUPABASE_KEY;
+
+      if (token) {
+        localStorage.setItem('GH_TOKEN', token);
+        localStorage.setItem('GITHUB_TOKEN', token);
+      } else {
+        localStorage.removeItem('GH_TOKEN');
+        localStorage.removeItem('GITHUB_TOKEN');
+      }
+      localStorage.setItem('GH_OWNER', owner);
+      localStorage.setItem('GH_REPO', repo);
+      localStorage.setItem('GH_BRANCH', branch);
+      localStorage.setItem('SB_URL', sbUrl);
+      localStorage.setItem('SB_KEY', sbKey);
+
+      closeConfigModal();
+      updateHeaderBadgeUI();
+      supabaseClient = window.supabase.createClient(sbUrl, sbKey);
+      await loadAllAdminData();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      generateRandomVipCodeString();
-      if (sessionStorage.getItem('SAR_ADMIN_UNLOCKED') === '1') {
-        document.getElementById('adminLockScreen').style.display = 'none';
-        initAdminApp();
-      }
+    window.addEventListener('DOMContentLoaded', async () => {
+      generateVipCode();
+      updateHeaderBadgeUI();
+      const cfg = getStorageConfig();
+      supabaseClient = window.supabase.createClient(cfg.sbUrl.trim(), cfg.sbKey.trim());
+      await loadAllAdminData();
     });
 
-    async function initAdminApp() {
-      const url = localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL;
-      const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY');
-      supabaseClient = window.supabase.createClient(url.trim(), key.trim());
-
-      try {
-        const room = supabaseClient.channel('online-library-readers');
-        room.on('presence', { event: 'sync' }, () => {
-          const count = Math.max(Object.keys(room.presenceState()).length, 1);
-          document.getElementById('adminLiveOnline').textContent = `${count} online`;
-        });
-        room.subscribe();
-      } catch (e) {}
-
-      await refreshAllAdminData();
-    }
-
-    function switchAdminTab(tabName) {
-      ['books', 'requests', 'reviews', 'categories', 'vip', 'ads', 'settings'].forEach((t) => {
-        const sec = document.getElementById('adminTab_' + t);
-        const btn = document.getElementById('tabBtn_' + t);
-        if (sec) sec.classList.toggle('hidden', t !== tabName);
-        if (btn) {
-          btn.className = t === tabName
-            ? 'tactile-btn px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shrink-0'
-            : 'tactile-btn px-4 py-2 rounded-xl admin-card text-slate-300 shrink-0';
-        }
-      });
-    }
-
-    async function refreshAllAdminData() {
+    async function loadAllAdminData() {
       if (!supabaseClient) return;
-
-      const [catRes, bookRes, reqRes, revRes, vipRes, adRes, syncRes] = await Promise.all([
+      const [catRes, bookRes, reqRes, revRes, adRes, vipRes] = await Promise.all([
         supabaseClient.from('categories').select('*').order('name'),
         supabaseClient.from('books').select('*, categories(name)').order('created_at', { ascending: false }),
         supabaseClient.from('book_requests').select('*').order('upvotes', { ascending: false }),
         supabaseClient.from('book_reviews').select('*').order('created_at', { ascending: false }),
-        supabaseClient.from('vip_codes').select('*').order('created_at', { ascending: false }),
         supabaseClient.from('ads').select('*').order('created_at', { ascending: false }),
-        supabaseClient.from('user_sync_data').select('id', { count: 'exact', head: true })
+        supabaseClient.from('vip_codes').select('*').order('created_at', { ascending: false })
       ]);
 
-      adminCategories = catRes.data || [];
-      adminBooks = bookRes.data || [];
-      adminRequests = reqRes.data || [];
-      adminReviews = revRes.data || [];
-      adminVips = vipRes.data || [];
-      adminAds = adRes.data || [];
+      categoriesData = catRes.data || [];
+      booksData = bookRes.data || [];
 
-      // Update Top Stats
-      const totalReads = adminBooks.reduce((sum, b) => sum + (b.read_count || 0), 0);
-      const pendingReqs = adminRequests.filter((r) => r.status !== 'uploaded').length;
-      const activeVips = adminVips.filter((v) => v.is_active && (!v.expires_at || new Date(v.expires_at).getTime() > Date.now())).length;
-
-      document.getElementById('statTotalBooks').textContent = adminBooks.length;
-      document.getElementById('statTotalReads').textContent = totalReads;
-      document.getElementById('statPendingReqs').textContent = pendingReqs;
-      document.getElementById('statTotalReviews').textContent = adminReviews.length;
-      document.getElementById('statActiveVips').textContent = activeVips;
-      document.getElementById('statSyncedDevices').textContent = syncRes.count || 0;
-
-      renderCategorySelectAndList();
-      renderAdminBooksTable();
-      renderAdminRequestsList();
-      renderAdminReviewsList();
-      renderAdminVipList();
-      renderAdminAdsList();
+      renderCategoriesUI();
+      renderBooksList();
+      renderRequestsUI(reqRes.data || []);
+      renderReviewsUI(revRes.data || []);
+      renderAdsUI(adRes.data || []);
+      renderVipUI(vipRes.data || []);
     }
 
-    // ================= 1. BOOKS CRUD =================
-    function renderCategorySelectAndList() {
-      const sel = document.getElementById('bkCategory');
-      if (sel) {
-        sel.innerHTML = `<option value="">-- အမျိုးအစား ရွေးပါ --</option>` +
-          adminCategories.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    // ================= GITHUB PRIMARY STORAGE UPLOAD ENGINE =================
+    function blobToBase64Content(fileOrBlob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          resolve(result.includes(',') ? result.split(',')[1] : result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(fileOrBlob);
+      });
+    }
+
+    async function uploadFileToGitHubRepo(fileOrBlob, fileName, folder = 'books') {
+      const cfg = getStorageConfig();
+      if (!cfg.ghToken) {
+        openConfigModal();
+        throw new Error('GitHub သို့ ဖိုင်တင်နိုင်ရန် GitHub Token (ghp_...) အရင်ထည့်သွင်းပေးပါ။');
       }
-      const listEl = document.getElementById('adminCategoriesList');
-      if (listEl) {
-        if (adminCategories.length === 0) {
-          listEl.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">အမျိုးအစား မရှိသေးပါ။</p>`;
-        } else {
-          listEl.innerHTML = adminCategories.map((c) => `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
-              <span class="font-bold text-white">🏷️ ${c.name}</span>
-              <button type="button" onclick="deleteCategoryRecord('${c.id}')" class="px-2.5 py-1 rounded-lg bg-red-500/20 text-red-300 font-bold text-[11px]">ဖျက်မည်</button>
-            </div>
-          `).join('');
+
+      const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const path = `${folder}/${cleanName}`;
+      const apiUrl = `https://api.github.com/repos/${cfg.ghOwner}/${cfg.ghRepo}/contents/${path}`;
+      const base64Content = await blobToBase64Content(fileOrBlob);
+
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${cfg.ghToken}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Upload ${cleanName} via Sar Admin`,
+          content: base64Content,
+          branch: cfg.ghBranch
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(`GitHub Upload Error: ${errData.message || res.status}`);
+      }
+
+      return `https://raw.githubusercontent.com/${cfg.ghOwner}/${cfg.ghRepo}/${cfg.ghBranch}/${path}`;
+    }
+
+    // Always prioritize GitHub Storage first!
+    async function uploadFileSmart(fileOrBlob, fileName, folder = 'books') {
+      return await uploadFileToGitHubRepo(fileOrBlob, fileName, folder);
+    }
+
+    // ================= PDF & COVER SELECTION =================
+    async function onPdfSelected(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      selectedPdfFile = file;
+      document.getElementById('pdfFileNameLabel').textContent = `${file.name} (ဖတ်နေသည်...)`;
+
+      const titleInput = document.getElementById('bookTitle');
+      if (!titleInput.value.trim()) {
+        titleInput.value = file.name.replace(/\.pdf$/i, '');
+      }
+
+      try {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        document.getElementById('bookPages').value = pdf.numPages;
+        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name} (${pdf.numPages} မျက်နှာ)`;
+
+        if (!document.getElementById('coverFileInput').files?.[0]) {
+          const page = await pdf.getPage(1);
+          const vp = page.getViewport({ scale: 1.2 });
+          const canvas = document.createElement('canvas');
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+          document.getElementById('coverPreviewBox').innerHTML = `<img src="${canvas.toDataURL('image/jpeg', 0.85)}" class="w-full h-full object-cover" />`;
+          selectedCoverBlob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
         }
+      } catch (err) {
+        document.getElementById('pdfFileNameLabel').textContent = `✅ ${file.name}`;
       }
     }
 
-    function renderAdminBooksTable() {
-      const box = document.getElementById('adminBooksList');
-      const q = (document.getElementById('adminBookSearch')?.value || '').trim().toLowerCase();
-      const filtered = q
-        ? adminBooks.filter((b) => (b.title || '').toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q))
-        : adminBooks;
+    function onCoverSelected(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      selectedCoverBlob = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('coverPreviewBox').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover" />`;
+      };
+      reader.readAsDataURL(file);
+    }
 
-      if (filtered.length === 0) {
-        box.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">စာအုပ် မတွေ့ရှိပါ။</p>`;
+    async function handleBookSubmit(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editingBookId').value.trim();
+      let pdfUrl = document.getElementById('existingPdfUrl').value.trim();
+      let coverUrl = document.getElementById('existingCoverUrl').value.trim();
+
+      if (!editId && !selectedPdfFile && !pdfUrl) {
+        alert('ကျေးဇူးပြု၍ PDF စာအုပ်ဖိုင် ရွေးချယ်ပေးပါ။');
         return;
       }
 
-      box.innerHTML = filtered.map((b) => `
-        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-11 h-16 rounded bg-slate-800 overflow-hidden shrink-0">
-              ${b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : ''}
-            </div>
-            <div class="min-w-0 space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold ${b.status === 'published' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-300'}">${b.status || 'published'}</span>
-                <span class="text-[11px] text-amber-400 font-bold">${b.categories?.name || 'အထွေထွေ'}</span>
-              </div>
-              <h4 class="font-bold text-white truncate">${b.title}</h4>
-              <p class="text-[11px] text-slate-400 truncate">✍️ ${b.author} • 📄 ${b.page_count || 1} မျက်နှာ • 👁 ${b.read_count || 0}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="populateBookForEdit('${b.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-[11px]">ပြင်မည်</button>
-            <button type="button" onclick="deleteBookRecord('${b.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-500/20 text-red-300 font-bold text-[11px]">ဖျက်မည်</button>
-          </div>
-        </div>
-      `).join('');
+      if ((selectedPdfFile || selectedCoverBlob) && !findAnySavedGitHubToken()) {
+        openConfigModal();
+        alert('GitHub သို့ ဖိုင်တင်နိုင်ရန် GitHub Token (ghp_...) အရင်ထည့်သွင်းပေးပါ။');
+        return;
+      }
+
+      const statusBox = document.getElementById('uploadStatusBox');
+      const stepText = document.getElementById('uploadStepText');
+      const pctText = document.getElementById('uploadPctText');
+      const bar = document.getElementById('uploadProgressBar');
+      const btn = document.getElementById('submitBookBtn');
+
+      try {
+        btn.disabled = true;
+        statusBox.classList.remove('hidden');
+
+        if (selectedPdfFile) {
+          stepText.textContent = '🐙 PDF စာအုပ်ဖိုင်ကို GitHub သို့ တင်နေပါသည်...';
+          pctText.textContent = '45%';
+          bar.style.width = '45%';
+          pdfUrl = await uploadFileSmart(selectedPdfFile, selectedPdfFile.name, 'pdfs');
+        }
+
+        if (selectedCoverBlob) {
+          stepText.textContent = '🖼️ မျက်နှာဖုံးပုံကို GitHub သို့ တင်နေပါသည်...';
+          pctText.textContent = '80%';
+          bar.style.width = '80%';
+          coverUrl = await uploadFileSmart(selectedCoverBlob, selectedCoverBlob.name || 'cover.jpg', 'covers');
+        }
+
+        stepText.textContent = '💾 စာအုပ်စာရင်းကို သိမ်းဆည်းနေပါသည်...';
+        pctText.textContent = '100%';
+        bar.style.width = '100%';
+
+        const payload = {
+          title: document.getElementById('bookTitle').value.trim(),
+          author: document.getElementById('bookAuthor').value.trim(),
+          category_id: document.getElementById('bookCategory').value || null,
+          page_count: parseInt(document.getElementById('bookPages').value || '1', 10),
+          status: document.getElementById('bookStatus').value,
+          cover_url: coverUrl || null,
+          pdf_url: pdfUrl,
+          description: document.getElementById('bookDesc').value.trim() || null
+        };
+
+        if (editId) {
+          const { error } = await supabaseClient.from('books').update(payload).eq('id', editId);
+          if (error) throw error;
+        } else {
+          const { error } = await supabaseClient.from('books').insert([payload]);
+          if (error) throw error;
+        }
+
+        resetBookForm();
+        await loadAllAdminData();
+      } catch (err) {
+        alert(err.message || err);
+      } finally {
+        btn.disabled = false;
+        statusBox.classList.add('hidden');
+      }
     }
 
-    function populateBookForEdit(bookId) {
-      const b = adminBooks.find((x) => String(x.id) === String(bookId));
+    function editBook(id) {
+      const b = booksData.find((x) => String(x.id) === String(id));
       if (!b) return;
-      document.getElementById('editBookId').value = b.id;
-      document.getElementById('bkTitle').value = b.title || '';
-      document.getElementById('bkAuthor').value = b.author || '';
-      document.getElementById('bkCategory').value = b.category_id || '';
-      document.getElementById('bkPages').value = b.page_count || 100;
-      document.getElementById('bkStatus').value = b.status || 'published';
-      document.getElementById('bkCoverUrl').value = b.cover_url || '';
-      document.getElementById('bkPdfUrl').value = b.pdf_url || '';
-      document.getElementById('bkDesc').value = b.description || '';
-      document.getElementById('bookFormHeading').textContent = '✏️ စာအုပ်အချက်အလက် ပြင်ဆင်ရန်';
-      document.getElementById('bkSubmitBtn').textContent = '💾 ပြင်ဆင်ချက် သိမ်းဆည်းမည်';
+      selectedPdfFile = null;
+      selectedCoverBlob = null;
+      document.getElementById('editingBookId').value = b.id;
+      document.getElementById('existingPdfUrl').value = b.pdf_url || '';
+      document.getElementById('existingCoverUrl').value = b.cover_url || '';
+      document.getElementById('bookTitle').value = b.title || '';
+      document.getElementById('bookAuthor').value = b.author || '';
+      document.getElementById('bookCategory').value = b.category_id || '';
+      document.getElementById('bookPages').value = b.page_count || 1;
+      document.getElementById('bookStatus').value = b.status || 'published';
+      document.getElementById('bookDesc').value = b.description || '';
+      document.getElementById('pdfFileNameLabel').textContent = 'လက်ရှိ PDF ဖိုင် ရှိပြီးသားဖြစ်သည်';
+      document.getElementById('coverPreviewBox').innerHTML = b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : 'Cover';
+      document.getElementById('formHeading').textContent = '✏️ စာအုပ် ပြင်ဆင်ရန်';
+      document.getElementById('submitBookBtn').textContent = '💾 ပြင်ဆင်ချက် သိမ်းမည်';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function resetBookForm() {
-      document.getElementById('adminBookForm').reset();
-      document.getElementById('editBookId').value = '';
-      document.getElementById('bookFormHeading').textContent = '➕ စာအုပ်အသစ် တင်ရန်';
-      document.getElementById('bkSubmitBtn').textContent = '💾 စာအုပ် သိမ်းဆည်းမည်';
+      document.getElementById('bookUploadForm').reset();
+      selectedPdfFile = null;
+      selectedCoverBlob = null;
+      document.getElementById('editingBookId').value = '';
+      document.getElementById('existingPdfUrl').value = '';
+      document.getElementById('existingCoverUrl').value = '';
+      document.getElementById('pdfFileNameLabel').textContent = 'ဖိုင်ရွေးချယ်ထားခြင်း မရှိသေးပါ';
+      document.getElementById('coverPreviewBox').innerHTML = 'Cover';
+      document.getElementById('formHeading').textContent = '📤 စာအုပ်အသစ် တင်ရန် (GitHub Storage)';
+      document.getElementById('submitBookBtn').textContent = '💾 စာအုပ် တင်မည်';
     }
 
-    async function saveBookRecord(e) {
-      e.preventDefault();
-      if (!supabaseClient) return;
-      const editId = document.getElementById('editBookId').value.trim();
-      const payload = {
-        title: document.getElementById('bkTitle').value.trim(),
-        author: document.getElementById('bkAuthor').value.trim(),
-        category_id: document.getElementById('bkCategory').value || null,
-        page_count: parseInt(document.getElementById('bkPages').value || '1', 10),
-        status: document.getElementById('bkStatus').value,
-        cover_url: document.getElementById('bkCoverUrl').value.trim() || null,
-        pdf_url: document.getElementById('bkPdfUrl').value.trim(),
-        description: document.getElementById('bkDesc').value.trim() || null
-      };
-
-      if (editId) {
-        await supabaseClient.from('books').update(payload).eq('id', editId);
-      } else {
-        await supabaseClient.from('books').insert([payload]);
-      }
-      resetBookForm();
-      await refreshAllAdminData();
+    async function deleteBook(id) {
+      if (!confirm('ဤစာအုပ်ကို ဖျက်မည်မှာ သေချာပါသလား?')) return;
+      await supabaseClient.from('books').delete().eq('id', id);
+      await loadAllAdminData();
     }
 
-    async function deleteBookRecord(bookId) {
-      if (!confirm('ဤစာအုပ်ကို ဖျက်သိမ်းရန် သေချာပါသလား?')) return;
-      await supabaseClient.from('books').delete().eq('id', bookId);
-      await refreshAllAdminData();
-    }
+    function renderBooksList() {
+      const box = document.getElementById('booksListBox');
+      const q = (document.getElementById('searchBooksInput')?.value || '').trim().toLowerCase();
+      const filtered = q ? booksData.filter((b) => (b.title || '').toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q)) : booksData;
+      document.getElementById('booksCountLabel').textContent = filtered.length;
 
-    // ================= 2. BOOK REQUESTS MANAGEMENT =================
-    function renderAdminRequestsList() {
-      const box = document.getElementById('adminRequestsList');
-      if (adminRequests.length === 0) {
-        box.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`;
+      if (filtered.length === 0) {
+        box.innerHTML = `<p class="text-xs text-[#786E65] py-6 text-center col-span-2">စာအုပ် မရှိသေးပါ။</p>`;
         return;
       }
-      box.innerHTML = adminRequests.map((r) => {
-        const isUploaded = r.status === 'uploaded';
+
+      box.innerHTML = filtered.map((b) => {
+        const isGh = (b.pdf_url || '').includes('github') || (b.pdf_url || '').includes('jsdelivr');
         return `
-          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUploaded ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
-                  ${isUploaded ? '✅ တင်ပေးပြီး' : '⏳ တောင်းဆိုထားဆဲ'}
-                </span>
-                <span class="text-amber-400 font-bold">👍 ${r.upvotes || 1} Upvotes</span>
+          <div class="bg-white border border-[#E5DEC9] rounded-2xl p-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-11 h-16 rounded bg-[#E5DEC9] overflow-hidden shrink-0">
+                ${b.cover_url ? `<img src="${b.cover_url}" class="w-full h-full object-cover" />` : ''}
               </div>
-              <h4 class="font-bold text-sm text-white">${r.book_title}</h4>
-              <p class="text-[11px] text-slate-400">✍️ စာရေးဆရာ: ${r.author_name || 'မသိရှိပါ'}</p>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold text-[#6B141A]">${b.categories?.name || 'အထွေထွေ'} • 👁 ${b.read_count || 0}</span>
+                  <span class="px-1.5 py-0.2 rounded bg-stone-100 text-[9px] font-bold text-stone-600">${isGh ? '🐙 GitHub' : '⚡ Supabase'}</span>
+                </div>
+                <h4 class="font-bold text-xs truncate">${b.title}</h4>
+                <p class="text-[11px] text-[#786E65] truncate">✍️ ${b.author} (${b.page_count || 1} မျက်နှာ)</p>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="toggleRequestUploadedStatus('${r.id}', '${isUploaded ? 'pending' : 'uploaded'}')" class="tactile-btn px-3 py-1.5 rounded-xl font-bold text-[11px] ${isUploaded ? 'bg-slate-800 text-slate-300' : 'bg-emerald-500 text-slate-950'}">
-                ${isUploaded ? '⏳ Pending ပြန်ထားမည်' : '✅ တင်ပေးပြီးဟု မှတ်မည်'}
-              </button>
-              <button type="button" onclick="deleteRequestRecord('${r.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-500/20 text-red-300 font-bold text-[11px]">ဖျက်မည်</button>
+            <div class="flex items-center gap-1.5 shrink-0 text-xs">
+              <button type="button" onclick="editBook('${b.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-bold">ပြင်မည်</button>
+              <button type="button" onclick="deleteBook('${b.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-100 text-red-700 font-bold">ဖျက်မည်</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    async function toggleRequestUploadedStatus(reqId, nextStatus) {
-      await supabaseClient.from('book_requests').update({ status: nextStatus }).eq('id', reqId);
-      await refreshAllAdminData();
+    // ================= CATEGORIES =================
+    function renderCategoriesUI() {
+      const sel = document.getElementById('bookCategory');
+      sel.innerHTML = `<option value="">-- အမျိုးအစား ရွေးပါ --</option>` + categoriesData.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      const box = document.getElementById('categoriesListBox');
+      box.innerHTML = categoriesData.map((c) => `
+        <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-[#E5DEC9]">
+          <span class="font-bold">${c.name}</span>
+          <button type="button" onclick="deleteCategory('${c.id}')" class="text-red-600 font-bold text-[11px]">✕</button>
+        </div>
+      `).join('');
     }
 
-    async function deleteRequestRecord(reqId) {
-      if (!confirm('ဤစာအုပ်တောင်းဆိုမှုကို ဖျက်မည်လား?')) return;
-      await supabaseClient.from('book_requests').delete().eq('id', reqId);
-      await refreshAllAdminData();
-    }
-
-    // ================= 3. REVIEWS & RATINGS MODERATION =================
-    function renderAdminReviewsList() {
-      const box = document.getElementById('adminReviewsList');
-      if (adminReviews.length === 0) {
-        box.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">စာဖတ်သူ မှတ်ချက်များ မရှိသေးပါ။</p>`;
-        return;
-      }
-      box.innerHTML = adminReviews.map((rev) => {
-        const bookObj = adminBooks.find((b) => String(b.id) === String(rev.book_id));
-        const bookTitle = bookObj ? bookObj.title : `Book ID: ${rev.book_id}`;
-        const stars = '⭐'.repeat(Math.min(Math.max(Number(rev.rating) || 5, 1), 5));
-        return `
-          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-start justify-between gap-3 text-xs">
-            <div class="space-y-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="font-bold text-white">👤 ${rev.user_name || 'စာဖတ်သူ'}</span>
-                <span>${stars}</span>
-                <span class="px-2 py-0.2 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-bold">📖 ${bookTitle}</span>
-              </div>
-              <p class="text-slate-300 leading-relaxed">${rev.comment}</p>
-            </div>
-            <button type="button" onclick="deleteReviewRecord('${rev.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-500/20 text-red-300 font-bold text-[11px] shrink-0">ဖျက်မည်</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function deleteReviewRecord(revId) {
-      if (!confirm('ဤမှတ်ချက်ကို ဖျက်သိမ်းမည်လား?')) return;
-      await supabaseClient.from('book_reviews').delete().eq('id', revId);
-      await refreshAllAdminData();
-    }
-
-    // ================= 4. CATEGORIES MANAGEMENT =================
-    async function addCategoryRecord(e) {
+    async function handleAddCategory(e) {
       e.preventDefault();
-      const name = document.getElementById('newCategoryName').value.trim();
+      const name = document.getElementById('newCatInput').value.trim();
       if (!name) return;
       await supabaseClient.from('categories').insert([{ name }]);
-      document.getElementById('newCategoryName').value = '';
-      await refreshAllAdminData();
+      document.getElementById('newCatInput').value = '';
+      await loadAllAdminData();
     }
 
-    async function deleteCategoryRecord(catId) {
+    async function deleteCategory(id) {
       if (!confirm('ဤအမျိုးအစားကို ဖျက်မည်လား?')) return;
-      await supabaseClient.from('categories').delete().eq('id', catId);
-      await refreshAllAdminData();
+      await supabaseClient.from('categories').delete().eq('id', id);
+      await loadAllAdminData();
     }
 
-    // ================= 5. VIP CODES MANAGEMENT =================
-    function generateRandomVipCodeString() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let code = 'SAR-';
-      for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-      const el = document.getElementById('vipCodeInput');
-      if (el) el.value = code;
-    }
-
-    async function createVipCodeRecord(e) {
-      e.preventDefault();
-      const payload = {
-        code: document.getElementById('vipCodeInput').value.trim().toUpperCase(),
-        member_name: document.getElementById('vipMemberName').value.trim(),
-        plan_name: document.getElementById('vipPlanName').value.trim() || 'VIP Member',
-        duration_days: parseInt(document.getElementById('vipDurationDays').value || '30', 10),
-        is_active: true
-      };
-      await supabaseClient.from('vip_codes').insert([payload]);
-      document.getElementById('vipMemberName').value = '';
-      generateRandomVipCodeString();
-      await refreshAllAdminData();
-    }
-
-    function renderAdminVipList() {
-      const box = document.getElementById('adminVipList');
-      if (adminVips.length === 0) {
-        box.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">VIP Code မရှိသေးပါ။</p>`;
+    // ================= BOOK REQUESTS =================
+    function renderRequestsUI(list) {
+      const box = document.getElementById('requestsListBox');
+      if (!list.length) {
+        box.innerHTML = `<p class="text-[#786E65] text-center py-4">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`;
         return;
       }
-      box.innerHTML = adminVips.map((v) => {
-        const expText = v.expires_at ? `သက်တမ်းကုန်ရက်: ${new Date(v.expires_at).toLocaleDateString()}` : `${v.duration_days || 30} ရက် (မသုံးရသေး)`;
-        return `
-          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-sm text-amber-400">${v.code}</span>
-                <button type="button" onclick="navigator.clipboard.writeText('${v.code}')" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">📋 Copy</button>
-                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold ${v.is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">${v.is_active ? 'Active' : 'Disabled'}</span>
-              </div>
-              <p class="font-bold text-white">👑 ${v.member_name} (${v.plan_name})</p>
-              <p class="text-[11px] text-slate-400">${expText}</p>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <button type="button" onclick="toggleVipCodeStatus('${v.id}', ${!v.is_active})" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-[11px]">${v.is_active ? 'ပိတ်မည်' : 'ဖွင့်မည်'}</button>
-              <button type="button" onclick="deleteVipCodeRecord('${v.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-500/20 text-red-300 font-bold text-[11px]">ဖျက်မည်</button>
-            </div>
+      box.innerHTML = list.map((r) => `
+        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-bold truncate">${r.book_title} <span class="text-amber-700">(👍 ${r.upvotes || 1})</span></p>
+            <p class="text-[11px] text-[#786E65] truncate">✍️ ${r.author_name || ''}</p>
           </div>
-        `;
-      }).join('');
-    }
-
-    async function toggleVipCodeStatus(id, nextState) {
-      await supabaseClient.from('vip_codes').update({ is_active: nextState }).eq('id', id);
-      await refreshAllAdminData();
-    }
-
-    async function deleteVipCodeRecord(id) {
-      if (!confirm('ဤ VIP Code ကို ဖျက်မည်လား?')) return;
-      await supabaseClient.from('vip_codes').delete().eq('id', id);
-      await refreshAllAdminData();
-    }
-
-    // ================= 6. SPONSOR ADS MANAGEMENT =================
-    async function createSponsorAdRecord(e) {
-      e.preventDefault();
-      const payload = {
-        title: document.getElementById('adTitleInput').value.trim(),
-        image_url: document.getElementById('adImageUrlInput').value.trim(),
-        target_url: document.getElementById('adTargetUrlInput').value.trim(),
-        is_active: true,
-        clicks: 0
-      };
-      await supabaseClient.from('ads').insert([payload]);
-      e.target.reset();
-      await refreshAllAdminData();
-    }
-
-    function renderAdminAdsList() {
-      const box = document.getElementById('adminAdsList');
-      if (adminAds.length === 0) {
-        box.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">ကြော်ငြာဘန်နာ မရှိသေးပါ။</p>`;
-        return;
-      }
-      box.innerHTML = adminAds.map((ad) => `
-        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-3 min-w-0">
-            <img src="${ad.image_url}" class="w-24 aspect-video rounded-lg object-cover bg-slate-800 shrink-0" />
-            <div class="min-w-0 space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold ${ad.is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-400'}">${ad.is_active ? 'Active' : 'Hidden'}</span>
-                <span class="text-amber-400 font-bold">👆 ${ad.clicks || 0} Clicks</span>
-              </div>
-              <h4 class="font-bold text-white truncate">${ad.title}</h4>
-              <p class="text-[11px] text-slate-400 truncate">${ad.target_url}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="toggleSponsorAdStatus('${ad.id}', ${!ad.is_active})" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-[11px]">${ad.is_active ? 'ဖျောက်မည်' : 'ပြသမည်'}</button>
-            <button type="button" onclick="deleteSponsorAdRecord('${ad.id}')" class="tactile-btn px-2.5 py-1.5 rounded-xl bg-red-500/20 text-red-300 font-bold text-[11px]">ဖျက်မည်</button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="markRequestDone('${r.id}', '${r.status === 'uploaded' ? 'pending' : 'uploaded'}')" class="px-2 py-1 rounded-lg ${r.status === 'uploaded' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-800'} font-bold text-[10px]">
+              ${r.status === 'uploaded' ? '✅ တင်ပြီး' : 'မှတ်မည်'}
+            </button>
+            <button type="button" onclick="deleteRequest('${r.id}')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 font-bold text-[10px]">✕</button>
           </div>
         </div>
       `).join('');
     }
 
-    async function toggleSponsorAdStatus(id, nextState) {
-      await supabaseClient.from('ads').update({ is_active: nextState }).eq('id', id);
-      await refreshAllAdminData();
+    async function markRequestDone(id, status) {
+      await supabaseClient.from('book_requests').update({ status }).eq('id', id);
+      await loadAllAdminData();
     }
 
-    async function deleteSponsorAdRecord(id) {
-      if (!confirm('ဤကြော်ငြာကို ဖျက်သိမ်းမည်လား?')) return;
+    async function deleteRequest(id) {
+      await supabaseClient.from('book_requests').delete().eq('id', id);
+      await loadAllAdminData();
+    }
+
+    // ================= READER REVIEWS =================
+    function renderReviewsUI(list) {
+      const box = document.getElementById('reviewsListBox');
+      const badge = document.getElementById('reviewsCountBadge');
+      if (badge) badge.textContent = `${list.length} မှတ်ချက်`;
+      if (!box) return;
+      if (!list.length) {
+        box.innerHTML = `<p class="text-[#786E65] text-center py-4 col-span-2">စာဖတ်သူ မှတ်ချက် မရှိသေးပါ။</p>`;
+        return;
+      }
+      box.innerHTML = list.map((r) => {
+        const b = booksData.find((x) => String(x.id) === String(r.book_id));
+        return `
+          <div class="bg-white p-3 rounded-xl border border-[#E5DEC9] flex items-start justify-between gap-2">
+            <div class="min-w-0 space-y-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold">${r.user_name || 'စာဖတ်သူ'}</span>
+                <span class="text-amber-500 text-[10px]">${'⭐'.repeat(Math.min(Math.max(Number(r.rating) || 5, 1), 5))}</span>
+                <span class="text-[10px] text-[#6B141A] font-bold truncate">• ${b ? b.title : ''}</span>
+              </div>
+              <p class="text-[#1E1916] leading-snug">${r.comment}</p>
+            </div>
+            <button type="button" onclick="deleteReview('${r.id}')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 font-bold text-[10px] shrink-0">ဖျက်မည်</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function deleteReview(id) {
+      await supabaseClient.from('book_reviews').delete().eq('id', id);
+      await loadAllAdminData();
+    }
+
+    // ================= SPONSOR ADS =================
+    async function handleAddSponsorAd(e) {
+      e.preventDefault();
+      const file = document.getElementById('adImageFile').files?.[0];
+      if (!file) { alert('ကြော်ငြာပုံ ရွေးချယ်ပေးပါ။'); return; }
+      const btn = document.getElementById('adSubmitBtn');
+      try {
+        btn.disabled = true;
+        btn.textContent = 'GitHub သို့ တင်နေပါသည်...';
+        const imageUrl = await uploadFileSmart(file, file.name, 'ads');
+        await supabaseClient.from('ads').insert([{
+          title: document.getElementById('adTitle').value.trim(),
+          image_url: imageUrl,
+          target_url: document.getElementById('adTargetUrl').value.trim(),
+          is_active: true,
+          clicks: 0
+        }]);
+        e.target.reset();
+        await loadAllAdminData();
+      } catch (err) {
+        alert(err.message || err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ကြော်ငြာ ထည့်မည်';
+      }
+    }
+
+    function renderAdsUI(list) {
+      const box = document.getElementById('adsListBox');
+      box.innerHTML = list.map((a) => `
+        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="${a.image_url}" class="w-14 aspect-video rounded object-cover shrink-0" />
+            <div class="min-w-0">
+              <p class="font-bold truncate">${a.title}</p>
+              <p class="text-[10px] text-[#786E65]">👆 ${a.clicks || 0} Clicks</p>
+            </div>
+          </div>
+          <button type="button" onclick="deleteAd('${a.id}')" class="px-2.5 py-1 rounded-lg bg-red-100 text-red-700 font-bold text-[11px]">ဖျက်မည်</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteAd(id) {
       await supabaseClient.from('ads').delete().eq('id', id);
-      await refreshAllAdminData();
+      await loadAllAdminData();
+    }
+
+    // ================= VIP CODES =================
+    function generateVipCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'SAR-';
+      for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      const el = document.getElementById('vipCodeStr');
+      if (el) el.value = code;
+    }
+
+    async function handleCreateVipCode(e) {
+      e.preventDefault();
+      await supabaseClient.from('vip_codes').insert([{
+        code: document.getElementById('vipCodeStr').value.trim().toUpperCase(),
+        member_name: document.getElementById('vipMember').value.trim(),
+        plan_name: 'VIP Member',
+        duration_days: parseInt(document.getElementById('vipDays').value || '30', 10),
+        is_active: true
+      }]);
+      document.getElementById('vipMember').value = '';
+      generateVipCode();
+      await loadAllAdminData();
+    }
+
+    function renderVipUI(list) {
+      const box = document.getElementById('vipListBox');
+      box.innerHTML = list.map((v) => `
+        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
+          <div>
+            <span class="font-mono font-bold text-[#6B141A]">${v.code}</span>
+            <span class="text-[11px] text-[#786E65] ml-1">(${v.member_name} • ${v.duration_days} ရက်)</span>
+          </div>
+          <button type="button" onclick="deleteVip('${v.id}')" class="px-2 py-1 rounded-lg bg-red-100 text-red-700 font-bold text-[10px]">✕</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteVip(id) {
+      await supabaseClient.from('vip_codes').delete().eq('id', id);
+      await loadAllAdminData();
     }
   </script>
 </body>
