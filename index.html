@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="my">
 <head>
-
- 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
 
   <!-- PWA Manifest & Mobile App Meta Tags -->
-  <link rel="manifest" href="/myBooks/manifest.json" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/myBooks/icon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/myBooks/icon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
 
   <meta name="theme-color" content="#6B141A" id="metaThemeColor" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -379,7 +377,7 @@
         <input id="searchInput" type="text" placeholder="စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာဖွေရန်..." oninput="debounceLoadBooks()" class="w-full pl-9 pr-4 py-2.5 rounded-2xl theme-card text-xs sm:text-sm focus:outline-none" />
         <span class="absolute left-3.5 top-3 text-xs opacity-60">🔍</span>
       </div>
-      <select id="sortSelect" onchange="triggerHaptic(10); loadBooks();" class="px-3.5 py-2.5 rounded-2xl theme-card text-xs font-bold focus:outline-none">
+      <select id="sortSelect" onchange="triggerHaptic(10); currentShelfPage = 1; loadBooks();" class="px-3.5 py-2.5 rounded-2xl theme-card text-xs font-bold focus:outline-none">
         <option value="newest" class="text-stone-900">🕒 အသစ်ဆုံး</option>
         <option value="popular" class="text-stone-900">🔥 လူဖတ်အများဆုံး</option>
         <option value="pages_asc" class="text-stone-900">📄 စာမျက်နှာ (နည်း-များ)</option>
@@ -401,12 +399,13 @@
       <div id="recommendationsRow" class="flex gap-3.5 overflow-x-auto no-scrollbar pb-1"></div>
     </section>
 
-    <section class="space-y-4">
+    <section id="shelfCatalogSection" class="space-y-4">
       <div class="flex items-center justify-between">
         <h3 id="catalogSectionTitle" class="font-serif-display font-bold text-base sm:text-lg">စာအုပ်စင်</h3>
         <span id="totalBooksCountText" class="text-xs font-bold opacity-70">0 အုပ်</span>
       </div>
       <div id="cleanShelfRows" class="space-y-8 pt-2"></div>
+      <div id="shelfPaginationBox" class="pt-4 flex flex-wrap items-center justify-center gap-2"></div>
     </section>
   </main>
 
@@ -433,7 +432,7 @@
   </div>
 
   <!-- BOOK DETAIL MODAL -->
-  <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 flex-col overflow-y-auto" style="background-color: var(--bg-main); color: var(--text-primary);">
+  <div id="bookDetailModal" style="display: none; background-color: var(--bg-main); color: var(--text-primary);" class="fixed inset-0 z-40 flex-col overflow-y-auto">
     <div class="max-w-xl w-full mx-auto px-4 py-4 space-y-5 flex-1">
       <div class="flex items-center justify-between">
         <button type="button" onclick="closeBookDetail()" class="tactile-btn px-3.5 py-1.5 rounded-full theme-card text-xs font-bold flex items-center gap-1">
@@ -672,6 +671,18 @@
         </div>
       </div>
 
+      <!-- CLOUD SYNC DEVICE ID SECTION -->
+      <div class="space-y-2.5 bg-stone-950/60 p-4 rounded-2xl border border-white/5 text-xs">
+        <p class="font-bold text-amber-400 uppercase tracking-wider">☁️ Cloud Sync (ဖုန်းပြောင်းသုံးလျှင် ဒေတာချိတ်ဆက်ရန်)</p>
+        <p class="text-[11px] text-stone-400">သင်မှတ်သားထားသော စာအုပ်များနှင့် ဖတ်လက်စစာမျက်နှာများကို ဖုန်းအသစ်တွင် ပြန်ယူရန် ဤ Sync ID ကို သုံးနိုင်ပါသည်။</p>
+        <div class="flex items-center gap-2">
+          <input id="syncDeviceIdInput" type="text" class="flex-1 px-3 py-2 rounded-xl bg-stone-900 border border-stone-700 text-amber-200 font-mono text-[11px] focus:outline-none focus:border-amber-500" />
+          <button type="button" onclick="copySyncDeviceId()" class="tactile-btn px-3 py-2 rounded-xl bg-stone-800 text-stone-200 font-bold text-[11px] shrink-0">📋 Copy</button>
+          <button type="button" onclick="applyCustomSyncDeviceId()" class="tactile-btn px-3 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-[11px] shrink-0">🔄 ချိတ်မည်</button>
+        </div>
+        <p id="syncStatusMsg" class="text-[11px] text-emerald-400 hidden"></p>
+      </div>
+
       <div class="flex items-center justify-between pt-1">
         <button type="button" onclick="closeSettingsModal(); openThemeSelectorModal();" class="tactile-btn text-xs text-amber-400 font-bold">🎨 App Theme ပြောင်းရန်</button>
         <button type="button" onclick="closeSettingsModal()" class="tactile-btn px-5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs">ပြီးပြီ</button>
@@ -713,12 +724,17 @@
     let searchTimeout = null;
     let currentDetailBookId = null;
 
+    // Shelf Pagination State
+    let currentShelfPage = 1;
+    const booksPerPage = 12;
+
     let currentPdfDoc = null;
     let currentPageNum = 1;
     let zoomPercent = 100;
     let splitSpreadMode = false;
     let currentSpreadHalf = 'left';
     let currentReadingBookId = null;
+    let syncDebounceTimer = null;
 
     const userSettings = {
       flipSound: JSON.parse(localStorage.getItem('SET_FLIP_SOUND') ?? 'true'),
@@ -730,6 +746,129 @@
       themeMode: localStorage.getItem('APP_THEME_MODE') || 'auto',
       paperTheme: localStorage.getItem('PAPER_THEME') || 'sepia'
     };
+
+    // ================= DEVICE ID & SUPABASE CLOUD SYNC =================
+    function getOrInitDeviceId() {
+      let deviceId = localStorage.getItem('sar_device_id');
+      if (!deviceId) {
+        deviceId = 'sar_' + Math.random().toString(36).substring(2, 8) + '_' + Date.now().toString(36);
+        localStorage.setItem('sar_device_id', deviceId);
+      }
+      const inputEl = document.getElementById('syncDeviceIdInput');
+      if (inputEl) inputEl.value = deviceId;
+      return deviceId;
+    }
+
+    function collectLocalReadingProgress() {
+      const progress = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('BOOK_PAGE_')) {
+          const bookId = k.replace('BOOK_PAGE_', '');
+          progress[bookId] = parseInt(localStorage.getItem(k) || '1', 10);
+        }
+      }
+      const lastRaw = localStorage.getItem('LAST_READ_BOOK');
+      if (lastRaw) {
+        try { progress._last_read = JSON.parse(lastRaw); } catch (e) {}
+      }
+      return progress;
+    }
+
+    async function syncUserDataToSupabase() {
+      const deviceId = getOrInitDeviceId();
+      if (!supabaseClient || !deviceId) return;
+      const bookmarks = getFavoritesIds();
+      const progress = collectLocalReadingProgress();
+
+      try {
+        await supabaseClient
+          .from('user_sync_data')
+          .upsert({
+            device_id: deviceId,
+            bookmarks: bookmarks,
+            reading_progress: progress,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'device_id' });
+      } catch (err) {}
+    }
+
+    function scheduleCloudSync() {
+      clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => syncUserDataToSupabase(), 1200);
+    }
+
+    async function fetchUserDataFromSupabase() {
+      const deviceId = getOrInitDeviceId();
+      if (!supabaseClient || !deviceId) return false;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('user_sync_data')
+          .select('*')
+          .eq('device_id', deviceId)
+          .maybeSingle();
+
+        if (error || !data) {
+          // If no cloud record exists yet, push local data up
+          await syncUserDataToSupabase();
+          return false;
+        }
+
+        // Merge Cloud Bookmarks with Local Bookmarks
+        if (Array.isArray(data.bookmarks)) {
+          const localFavs = getFavoritesIds();
+          const mergedFavs = Array.from(new Set([...localFavs, ...data.bookmarks]));
+          localStorage.setItem('FAV_BOOKS', JSON.stringify(mergedFavs));
+        }
+
+        // Merge Cloud Reading Progress with Local Progress
+        if (data.reading_progress && typeof data.reading_progress === 'object') {
+          Object.entries(data.reading_progress).forEach(([key, val]) => {
+            if (key === '_last_read' && val && !localStorage.getItem('LAST_READ_BOOK')) {
+              localStorage.setItem('LAST_READ_BOOK', JSON.stringify(val));
+            } else if (key !== '_last_read') {
+              const localPage = parseInt(localStorage.getItem('BOOK_PAGE_' + key) || '0', 10);
+              if (val > localPage) {
+                localStorage.setItem('BOOK_PAGE_' + key, String(val));
+              }
+            }
+          });
+        }
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function copySyncDeviceId() {
+      const id = getOrInitDeviceId();
+      navigator.clipboard.writeText(id);
+      const msg = document.getElementById('syncStatusMsg');
+      if (msg) {
+        msg.textContent = '✅ Sync ID ကို Copy ကူးပြီးပါပြီ!';
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 3000);
+      }
+    }
+
+    async function applyCustomSyncDeviceId() {
+      const inputEl = document.getElementById('syncDeviceIdInput');
+      const newId = (inputEl?.value || '').trim();
+      if (!newId) return;
+      localStorage.setItem('sar_device_id', newId);
+      const msg = document.getElementById('syncStatusMsg');
+      if (msg) {
+        msg.textContent = '🔄 Cloud မှ ဒေတာများကို ပြန်လည်ချိတ်ဆက်နေပါသည်...';
+        msg.classList.remove('hidden');
+      }
+      await fetchUserDataFromSupabase();
+      await loadBooks();
+      if (msg) {
+        msg.textContent = '✅ မှတ်သားထားသော စာအုပ်များနှင့် ဖတ်လက်စစာမျက်နှာများ ပြန်လည်ရရှိပါပြီ!';
+        setTimeout(() => msg.classList.add('hidden'), 3500);
+      }
+    }
 
     function getSeasonalThemeForCurrentMonth() {
       const month = new Date().getMonth() + 1;
@@ -1144,6 +1283,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
+      getOrInitDeviceId();
       initBackNavigationGuard();
       applyThemeMode(userSettings.themeMode, false);
       applyAllSettingsToUI();
@@ -1157,6 +1297,7 @@
       document.getElementById('brightnessSlider').value = userSettings.brightness;
       updateToggleUI('toggleFlipSoundBtn', 'toggleFlipSoundDot', userSettings.flipSound);
       updateToggleUI('toggleHapticBtn', 'toggleHapticDot', userSettings.haptic);
+      getOrInitDeviceId();
     }
 
     function updateToggleUI(btnId, dotId, isOn) {
@@ -1193,7 +1334,11 @@
       });
     }
 
-    function openSettingsModal() { history.pushState({ modal: 'settings' }, ''); document.getElementById('settingsModal').style.display = 'flex'; }
+    function openSettingsModal() {
+      getOrInitDeviceId();
+      history.pushState({ modal: 'settings' }, '');
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
     function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
 
     async function startReaderApp(url, key) {
@@ -1201,6 +1346,9 @@
       initRealtimeBookNotifications();
       initReaderSponsorBanner();
       verifyVipWithServer();
+
+      // Sync Bookmarks & Reading Progress from Supabase Cloud
+      await fetchUserDataFromSupabase();
 
       const { data } = await supabaseClient.from('categories').select('*').order('name');
       categoriesList = data || [];
@@ -1221,6 +1369,7 @@
     function setBottomNavFilter(filterType) {
       activeBottomFilter = filterType;
       selectedCategoryId = null;
+      currentShelfPage = 1;
       const navMap = { all: 'bNavCollection', bookmarks: 'bNavBookmarks', progress: 'bNavMyBooks' };
       ['bNavCollection', 'bNavSearch', 'bNavBookmarks', 'bNavMyBooks'].forEach((id) => {
         const el = document.getElementById(id);
@@ -1256,13 +1405,17 @@
     function selectCategory(id) {
       selectedCategoryId = id;
       activeBottomFilter = 'all';
+      currentShelfPage = 1;
       renderCategoryTabs();
       loadBooks();
     }
 
     function debounceLoadBooks() {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => loadBooks(), 260);
+      searchTimeout = setTimeout(() => {
+        currentShelfPage = 1;
+        loadBooks();
+      }, 260);
     }
 
     async function loadBooks(isInitialLoad = false) {
@@ -1366,11 +1519,23 @@
 
     function renderCleanShelfRows(books) {
       const container = document.getElementById('cleanShelfRows');
-      if (books.length === 0) { container.innerHTML = `<div class="py-12 text-center text-xs opacity-60">စာအုပ် မတွေ့ရှိသေးပါ။</div>`; return; }
+      const pagerBox = document.getElementById('shelfPaginationBox');
+      if (books.length === 0) {
+        container.innerHTML = `<div class="py-12 text-center text-xs opacity-60">စာအုပ် မတွေ့ရှိသေးပါ။</div>`;
+        if (pagerBox) pagerBox.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.max(Math.ceil(books.length / booksPerPage), 1);
+      if (currentShelfPage > totalPages) currentShelfPage = totalPages;
+      const startIndex = (currentShelfPage - 1) * booksPerPage;
+      const pagedBooks = books.slice(startIndex, startIndex + booksPerPage);
 
       const booksPerRow = window.innerWidth >= 640 ? 4 : 3;
       const rows = [];
-      for (let i = 0; i < books.length; i += booksPerRow) rows.push(books.slice(i, i + booksPerRow));
+      for (let i = 0; i < pagedBooks.length; i += booksPerRow) {
+        rows.push(pagedBooks.slice(i, i + booksPerRow));
+      }
 
       container.innerHTML = rows.map((rowBooks) => `
         <div>
@@ -1392,6 +1557,32 @@
           <div class="premium-shelf-ledge w-full"></div>
         </div>
       `).join('');
+
+      if (pagerBox) {
+        if (totalPages <= 1) {
+          pagerBox.innerHTML = '';
+        } else {
+          let pagerHtml = `
+            <button type="button" onclick="goToShelfPage(${currentShelfPage - 1})" ${currentShelfPage === 1 ? 'disabled style="opacity:0.4;pointer-events:none;"' : ''} class="tactile-btn px-3 py-1.5 rounded-xl theme-card text-xs font-bold">‹ ရှေ့</button>
+          `;
+          for (let p = 1; p <= totalPages; p++) {
+            const activeClass = p === currentShelfPage ? 'theme-accent-btn shadow-md' : 'theme-card opacity-80';
+            pagerHtml += `<button type="button" onclick="goToShelfPage(${p})" class="tactile-btn w-8 h-8 rounded-xl text-xs font-bold ${activeClass}">${p}</button>`;
+          }
+          pagerHtml += `
+            <button type="button" onclick="goToShelfPage(${currentShelfPage + 1})" ${currentShelfPage === totalPages ? 'disabled style="opacity:0.4;pointer-events:none;"' : ''} class="tactile-btn px-3 py-1.5 rounded-xl theme-card text-xs font-bold">နောက် ›</button>
+          `;
+          pagerBox.innerHTML = pagerHtml;
+        }
+      }
+    }
+
+    function goToShelfPage(pageNum) {
+      triggerHaptic(12);
+      currentShelfPage = pageNum;
+      renderCleanShelfRows(currentBooksList);
+      const sec = document.getElementById('shelfCatalogSection');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function quickToggleFav(bookId, e) {
@@ -1401,6 +1592,7 @@
       if (idx >= 0) favs.splice(idx, 1); else favs.push(bookId);
       localStorage.setItem('FAV_BOOKS', JSON.stringify(favs));
       triggerHaptic(14);
+      scheduleCloudSync();
       loadBooks();
     }
 
@@ -1604,6 +1796,7 @@
       document.getElementById('pageJumpSlider').value = num;
       document.getElementById('zoomLabel').textContent = `${zoomPercent}%`;
       localStorage.setItem('BOOK_PAGE_' + currentReadingBookId, num);
+      scheduleCloudSync();
     }
 
     function changeZoom(deltaPct) {
@@ -1652,10 +1845,18 @@
       else wrapper.classList.add('bg-stone-200');
     }
 
-    function closePdfReader() { triggerHaptic(12); document.getElementById('pdfReaderModal').style.display = 'none'; loadBooks(); }
+    function closePdfReader() {
+      triggerHaptic(12);
+      document.getElementById('pdfReaderModal').style.display = 'none';
+      syncUserDataToSupabase();
+      loadBooks();
+    }
 
+    // Register Service Worker for Offline Support (works on both Vercel & GitHub Pages)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => { navigator.serviceWorker.register('/myBooks/sw.js').catch((e) => {}); });
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
     }
 
     function hideInstallBtnIfNativeApp() {
@@ -2153,7 +2354,7 @@
       });
     })();
 
-   // ================= 15. SMART iOS APP SUPPORT (SAFARI ADD TO HOME SCREEN GUIDE) =================
+    // ================= 15. SMART iOS APP SUPPORT (SAFARI ADD TO HOME SCREEN GUIDE) =================
     (function initIosAppExperience() {
       const vpMeta = document.querySelector('meta[name="viewport"]');
       if (vpMeta && !vpMeta.content.includes('viewport-fit=cover')) {
@@ -2179,13 +2380,12 @@
           window.matchMedia('(display-mode: standalone)').matches;
       };
 
-      // iPhone သုံးစွဲသူများအတွက် XML စာသား မပေါ်စေဘဲ လှပသော လမ်းညွှန် Popup ပေါ်လာစေရန်
       const iosModalHtml = `
         <div id="sarIosInstallModal" onclick="if(event.target===this) this.style.display='none'" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,7,0.78); backdrop-filter:blur(8px); align-items:flex-end; justify-content:center; padding:16px; font-family:'Padauk',sans-serif;">
           <div style="width:100%; max-width:410px; background:var(--bg-main, #FAF8F5); color:var(--text-primary, #1E1916); border-radius:26px; padding:22px 20px; border:1px solid rgba(217,119,6,0.35); box-shadow:0 20px 50px rgba(0,0,0,0.5); margin-bottom:env(safe-area-inset-bottom, 10px);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
               <div style="display:flex; align-items:center; gap:10px;">
-                <img src="/myBooks/icon.png" style="width:44px; height:44px; border-radius:11px; box-shadow:0 4px 10px rgba(0,0,0,0.2);" />
+                <img src="icon.png" style="width:44px; height:44px; border-radius:11px; box-shadow:0 4px 10px rgba(0,0,0,0.2);" />
                 <div>
                   <h3 style="margin:0; font-size:17px; font-weight:700;">"စာ" iOS App သွင်းယူရန်</h3>
                   <span style="font-size:11px; opacity:0.7;">iPhone / iPad Home Screen သို့ ထည့်သွင်းခြင်း</span>
@@ -2230,260 +2430,6 @@
         }
       };
     })();
-
-// ================= QUICK DARK / LIGHT MODE TOGGLE =================
-function toggleQuickDarkMode() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('sar_theme', newTheme);
-  
-  const btn = document.getElementById('darkModeToggleBtn');
-  if (btn) {
-    btn.innerHTML = newTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
-  }
-}
-
-// Page Load အချိန်မှာ Theme သိမ်းဆည်းမှုကို စစ်ဆေးရန်
-window.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('sar_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  const btn = document.getElementById('darkModeToggleBtn');
-  if (btn) {
-    btn.innerHTML = savedTheme === 'dark' ? '☀️ အလင်းစနစ်' : '🌙 ညဘက်စနစ်';
-  }
-  
-  // Service Worker မှတ်ပုံတင်ခြင်း (Offline Support အတွက်)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/myBooks/sw.js')
-      .then(() => console.log('Service Worker Registered Successfully'))
-      .catch((err) => console.log('Service Worker Registration Failed:', err));
-  }
-  
-  // Device ID ဖန်တီးခြင်း သို့မဟုတ် ယူခြင်း (Sync အတွက်)
-  let deviceId = localStorage.getItem('sar_device_id');
-  if (!deviceId) {
-    deviceId = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem('sar_device_id', deviceId);
-  }
-});
-
-
-// ================= SUPABASE BOOKMARKS & PROGRESS SYNC =================
-async function syncUserDataToSupabase(bookmarks, progress) {
-  const deviceId = localStorage.getItem('sar_device_id');
-  if (!window.supabaseClient || !deviceId) return;
-
-  try {
-    const { error } = await window.supabaseClient
-      .from('user_sync_data')
-      .upsert({
-        device_id: deviceId,
-        bookmarks: bookmarks,
-        reading_progress: progress,
-        updated_at: new Date()
-      }, { onConflict: 'device_id' });
-
-    if (error) console.error('Sync Error:', error.message);
-  } catch (err) {
-    console.error('Sync Exception:', err);
-  }
-}
-
-async function fetchUserDataFromSupabase() {
-  const deviceId = localStorage.getItem('sar_device_id');
-  if (!window.supabaseClient || !deviceId) return null;
-
-  try {
-    const { data, error } = await window.supabaseClient
-      .from('user_sync_data')
-      .select('*')
-      .eq('device_id', deviceId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Fetch Sync Error:', error.message);
-      return null;
-    }
-    return data;
-  } catch (err) {
-    return null;
-  }
-}
-
-
-// ================= CATEGORY FILTER & PAGINATION =================
-let currentPage = 1;
-const itemsPerPage = 8; // တစ်မျက်နှာလျှင် ပြမည့် စာအုပ်အရေအတွက်
-let currentCategory = 'all';
-let allBooksData = []; // Supabase မှ ယူလာမည့် စာအုပ်စာရင်း အားလုံး
-
-function filterByCategory(category) {
-  currentCategory = category;
-  currentPage = 1;
-  renderPagedBooks();
-}
-
-function renderPagedBooks() {
-  const container = document.getElementById('booksGridContainer'); // သင့်ရဲ့ စာအုပ်ပြမည့် Element ID
-  if (!container) return;
-
-  // Category အလိုက် စစ်ထုတ်ခြင်း
-  let filtered = allBooksData;
-  if (currentCategory !== 'all') {
-    filtered = allBooksData.filter(b => b.category === currentCategory);
-  }
-
-  // Pagination တွက်ချက်ခြင်း
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = filtered.slice(startIndex, endIndex);
-
-  // HTML ထုတ်ပေးခြင်း (သင့် project ရဲ့ UI ဒီဇိုင်းအတိုင်း ပြန်ပြင်နိုင်သည်)
-  let html = '';
-  if (paginatedItems.length === 0) {
-    html = '<p style="text-align:center; padding:20px; opacity:0.6;">စာအုပ် မရှိသေးပါ။</p>';
-  } else {
-    paginatedItems.forEach(book => {
-      html += `
-        <div class="book-card" style="padding:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-col);">
-          <h3>${book.title}</h3>
-          <p>${book.author || ''}</p>
-          <button onclick="openBook('${book.id}')">ဖတ်မည်</button>
-        </div>
-      `;
-    });
-  }
-
-  // Pagination Buttons တွေ ထည့်ရန်
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  let paginationHtml = '<div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">';
-  for (let i = 1; i <= totalPages; i++) {
-    paginationHtml += `<button onclick="goToPage(${i})" style="padding:6px 12px; background:${i === currentPage ? 'var(--accent)' : '#ccc'}; color:#fff; border:none; border-radius:6px; cursor:pointer;">${i}</button>`;
-  }
-  paginationHtml += '</div>';
-
-  container.innerHTML = html + (totalPages > 1 ? paginationHtml : '');
-}
-
-function goToPage(page) {
-  currentPage = page;
-  renderPagedBooks();
-}
-// ================= INITIALIZATION (OFFLINE SW & DEVICE ID) =================
-window.addEventListener('DOMContentLoaded', () => {
-  // Service Worker မှတ်ပုံတင်ခြင်း (Offline Support အတွက်)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/myBooks/sw.js')
-      .then(() => console.log('Service Worker Registered Successfully'))
-      .catch((err) => console.log('Service Worker Registration Failed:', err));
-  }
-  
-  // Device ID ဖန်တီးခြင်း သို့မဟုတ် ယူခြင်း (Sync အတွက်)
-  let deviceId = localStorage.getItem('sar_device_id');
-  if (!deviceId) {
-    deviceId = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem('sar_device_id', deviceId);
-  }
-});
-
-// ================= SUPABASE BOOKMARKS & PROGRESS SYNC =================
-async function syncUserDataToSupabase(bookmarks, progress) {
-  const deviceId = localStorage.getItem('sar_device_id');
-  if (!window.supabaseClient || !deviceId) return;
-
-  try {
-    const { error } = await window.supabaseClient
-      .from('user_sync_data')
-      .upsert({
-        device_id: deviceId,
-        bookmarks: bookmarks,
-        reading_progress: progress,
-        updated_at: new Date()
-      }, { onConflict: 'device_id' });
-
-    if (error) console.error('Sync Error:', error.message);
-  } catch (err) {
-    console.error('Sync Exception:', err);
-  }
-}
-
-async function fetchUserDataFromSupabase() {
-  const deviceId = localStorage.getItem('sar_device_id');
-  if (!window.supabaseClient || !deviceId) return null;
-
-  try {
-    const { data, error } = await window.supabaseClient
-      .from('user_sync_data')
-      .select('*')
-      .eq('device_id', deviceId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Fetch Sync Error:', error.message);
-      return null;
-    }
-    return data;
-  } catch (err) {
-    return null;
-  }
-}
-
-// ================= CATEGORY FILTER & PAGINATION =================
-let currentPage = 1;
-const itemsPerPage = 8; // တစ်မျက်နှာလျှင် ပြမည့် စာအုပ်အရေအတွက်
-let currentCategory = 'all';
-let allBooksData = []; // Supabase မှ ယူလာမည့် စာအုပ်စာရင်း အားလုံး
-
-function filterByCategory(category) {
-  currentCategory = category;
-  currentPage = 1;
-  renderPagedBooks();
-}
-
-function renderPagedBooks() {
-  const container = document.getElementById('booksGridContainer');
-  if (!container) return;
-
-  let filtered = allBooksData;
-  if (currentCategory !== 'all') {
-    filtered = allBooksData.filter(b => b.category === currentCategory);
-  }
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = filtered.slice(startIndex, endIndex);
-
-  let html = '';
-  if (paginatedItems.length === 0) {
-    html = '<p style="text-align:center; padding:20px; opacity:0.6;">စာအုပ် မရှိသေးပါ။</p>';
-  } else {
-    paginatedItems.forEach(book => {
-      html += `
-        <div class="book-card" style="padding:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-col);">
-          <h3>${book.title}</h3>
-          <p>${book.author || ''}</p>
-          <button onclick="openBook('${book.id}')">ဖတ်မည်</button>
-        </div>
-      `;
-    });
-  }
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  let paginationHtml = '<div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">';
-  for (let i = 1; i <= totalPages; i++) {
-    paginationHtml += `<button onclick="goToPage(${i})" style="padding:6px 12px; background:${i === currentPage ? 'var(--accent)' : '#ccc'}; color:#fff; border:none; border-radius:6px; cursor:pointer;">${i}</button>`;
-  }
-  paginationHtml += '</div>';
-
-  container.innerHTML = html + (totalPages > 1 ? paginationHtml : '');
-}
-
-function goToPage(page) {
-  currentPage = page;
-  renderPagedBooks();
-}
-    
   </script>
 </body>
 </html>
