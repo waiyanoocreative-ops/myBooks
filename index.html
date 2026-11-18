@@ -59,7 +59,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Book Cover 3D Styling */
     .book-cover-frame {
       box-shadow: 0 10px 22px -4px rgba(0, 0, 0, 0.7), -2px 0 6px rgba(0, 0, 0, 0.4);
       transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
@@ -69,7 +68,6 @@
       box-shadow: 0 16px 28px -4px rgba(0, 0, 0, 0.85);
     }
 
-    /* 3D Shelf Plank & Hanging Fairy Lights */
     .shelf-plank-bar {
       height: 12px;
       background: linear-gradient(180deg, #2B3242 0%, #1B202C 65%, #10131B 100%);
@@ -115,7 +113,6 @@
       50% { opacity: 1; transform: scale(1.2); }
     }
 
-    /* Reader Themes */
     .reader-theme-paper { background-color: #F5EFE6; color: #1E1916; }
     .reader-theme-sepia { background-color: #EADBC8; color: #2B2118; }
     .reader-theme-night { background-color: #141416; color: #D4D4D8; }
@@ -124,7 +121,7 @@
 </head>
 <body class="min-h-screen pb-32">
 
-  <!-- ================= 1. SMART INSTANT SPLASH LOADER ================= -->
+  <!-- ================= 1. SMART INSTANT SPLASH LOADER (WITH FAIL-SAFE) ================= -->
   <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0D0F14] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-200">
     <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0D0F14] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
       စာ
@@ -161,9 +158,6 @@
         </button>
         <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-900/40 border border-amber-500/40 text-amber-300 text-xs font-bold">
           👑 VIP
-        </button>
-        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500 text-[#0D0F14] text-xs font-bold">
-          📲 App
         </button>
         <a href="admin.html" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs" title="Admin Panel">
           ⚙️
@@ -206,8 +200,10 @@
         <span id="totalBooksCountText" class="text-xs font-bold text-gray-400">စာအုပ် (0) အုပ်</span>
       </div>
 
-      <!-- WOODEN BOOKSHELF ROWS WITH FAIRY LIGHTS + CLEAR BOOK TITLES & AUTHORS -->
-      <div id="cleanShelfRows" class="space-y-8"></div>
+      <!-- WOODEN BOOKSHELF ROWS -->
+      <div id="cleanShelfRows" class="space-y-8">
+        <div class="py-16 text-center text-xs text-gray-400">⏳ စာအုပ်များ ရယူနေပါသည်...</div>
+      </div>
 
       <!-- PAGINATION BAR -->
       <div id="shelfPaginationBar" class="flex items-center justify-center gap-2 pt-2"></div>
@@ -225,7 +221,7 @@
         <span class="text-base">🔍</span><span>ရှာဖွေရန်</span>
       </button>
       <button onclick="switchBottomTab('bookmarks')" id="navBtnBookmarks" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5">
-        <span class="text-base">🔖</span><span>မှတ်သားထားသော</span>
+        <span class="text-base">🔖</span><span>မှတ်ထားသော</span>
       </button>
       <button onclick="switchBottomTab('progress')" id="navBtnProgress" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5">
         <span class="text-base">📖</span><span>ဖတ်လက်စ</span>
@@ -233,7 +229,7 @@
     </div>
   </nav>
 
-  <!-- ================= 5. BOOK DETAIL & REVIEWS MODAL ================= -->
+  <!-- ================= 5. BOOK DETAIL MODAL ================= -->
   <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-[#FAF8F5] text-[#1E1916] border-t sm:border border-[#E5DEC9] rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-start justify-between gap-3">
@@ -270,6 +266,7 @@
         </div>
       </div>
 
+      <!-- Reader Reviews Section -->
       <div class="border-t border-[#E5DEC9] pt-4 space-y-3">
         <h4 class="font-bold text-xs text-[#6B141A]">⭐ စာဖတ်သူ မှတ်ချက်များ</h4>
         <form onsubmit="submitBookReview(event)" class="space-y-2 text-xs">
@@ -279,8 +276,6 @@
               <option value="5">⭐⭐⭐⭐⭐ (5)</option>
               <option value="4">⭐⭐⭐⭐ (4)</option>
               <option value="3">⭐⭐⭐ (3)</option>
-              <option value="2">⭐⭐ (2)</option>
-              <option value="1">⭐ (1)</option>
             </select>
           </div>
           <div class="flex gap-2">
@@ -366,8 +361,8 @@
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V4';
-    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V4';
+    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V5';
+    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V5';
     const OFFLINE_BOOKS_META_KEY = 'SAR_OFFLINE_BOOKS_IDS_V1';
     const BOOKS_PER_PAGE = 12;
 
@@ -380,7 +375,6 @@
     let currentShelfPage = 1;
     let currentDetailBook = null;
     let activeSponsorAd = null;
-    let deferredPwaPrompt = null;
 
     let activePdfDoc = null;
     let activePdfPage = 1;
@@ -397,35 +391,14 @@
         if ('caches' in window) {
           const keys = await caches.keys();
           for (const k of keys) {
-            if (k.includes('sar-library') || k.includes('sar-static-v3') || k.includes('sar-static-v4') || k.includes('sar-static-v5')) {
-              await caches.delete(k);
-            }
+            if (k.includes('sar-library') || k.includes('sar-static')) await caches.delete(k);
           }
         }
         if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          for (const reg of regs) {
-            reg.update();
-          }
           navigator.serviceWorker.register('./sw.js').catch(() => {});
         }
       } catch (e) {}
     })();
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPwaPrompt = e;
-    });
-
-    async function triggerPwaInstall() {
-      if (!deferredPwaPrompt) {
-        alert('Browser Menu (⋮) မှ "Add to Home screen" သို့မဟုတ် "Install app" ကို နှိပ်၍ သွင်းယူနိုင်ပါသည်။');
-        return;
-      }
-      deferredPwaPrompt.prompt();
-      await deferredPwaPrompt.userChoice;
-      deferredPwaPrompt = null;
-    }
 
     function toggleSiteTheme() {
       document.body.classList.toggle('theme-paper');
@@ -480,7 +453,7 @@
       };
     }
 
-    // ================= 3. ZERO-WAIT INSTANT STARTUP =================
+    // ================= 3. FAIL-SAFE ZERO-WAIT INSTANT STARTUP =================
     window.addEventListener('DOMContentLoaded', () => {
       runInstantSplashAndPreload();
     });
@@ -490,6 +463,14 @@
       const bar = document.getElementById('splashProgressBar');
       const pctText = document.getElementById('splashPctText');
       const statusText = document.getElementById('splashStatusText');
+
+      // FAIL-SAFE: အင်တာနက် ဘယ်လောက်နှေးနှေး ၃.၅ စက္ကန့်ပြည့်လျှင် Splash ကို အတင်းပိတ်ချမည်
+      const forceHideSplash = setTimeout(() => {
+        if (splash.style.display !== 'none') {
+          splash.style.opacity = '0';
+          setTimeout(() => { splash.style.display = 'none'; }, 300);
+        }
+      }, 3500);
 
       const cachedBooksRaw = localStorage.getItem(SAR_CACHE_BOOKS_KEY);
       const cachedCatsRaw = localStorage.getItem(SAR_CACHE_CATS_KEY);
@@ -505,10 +486,11 @@
             renderCategoryTabs();
             renderBooksFromMemory(allPublishedBooks);
 
+            clearTimeout(forceHideSplash);
             setTimeout(() => {
               splash.style.opacity = '0';
-              setTimeout(() => { splash.style.display = 'none'; }, 180);
-            }, 80);
+              setTimeout(() => { splash.style.display = 'none'; }, 200);
+            }, 50);
 
             startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
             return;
@@ -516,16 +498,19 @@
         } catch (e) {}
       }
 
+      // No Cache available (First load or Cache cleared)
       bar.style.width = '75%';
       pctText.textContent = '75%';
-      statusText.textContent = 'စာအုပ်စင် ရယူနေပါသည်...';
+      statusText.textContent = 'အင်တာနက်မှ ရယူနေပါသည်...';
 
-      await startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
-
-      bar.style.width = '100%';
-      pctText.textContent = '100%';
-      splash.style.opacity = '0';
-      setTimeout(() => { splash.style.display = 'none'; }, 200);
+      // အင်တာနက်နှေး၍ စောင့်နေရလျှင် Splash ပိတ်သွားပြီးနောက် Shelf တွင် "Loading..." စာသားပြရန်
+      startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY).then(() => {
+        clearTimeout(forceHideSplash);
+        bar.style.width = '100%';
+        pctText.textContent = '100%';
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 250);
+      });
     }
 
     async function startReaderAppBackground(url, key) {
@@ -556,21 +541,30 @@
         renderBooksFromMemory(allPublishedBooks);
         return;
       }
+      
       if (!supabaseClient) return;
 
-      const { data: books } = await supabaseClient
-        .from('books')
-        .select('id,title,author,category_id,page_count,read_count,cover_url,pdf_url,description,status,created_at,categories(name)')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
+      try {
+        const { data: books, error } = await supabaseClient
+          .from('books')
+          .select('id,title,author,category_id,page_count,read_count,cover_url,pdf_url,description,status,created_at,categories(name)')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
 
-      if (books && books.length > 0) {
-        allPublishedBooks = books;
-        localStorage.setItem(SAR_CACHE_BOOKS_KEY, JSON.stringify(books));
-        renderBooksFromMemory(allPublishedBooks);
-      } else if (allPublishedBooks.length === 0) {
-        document.getElementById('totalBooksCountText').textContent = 'စာအုပ် (0) အုပ်';
-        renderCleanShelfRows([]);
+        if (books && books.length > 0) {
+          allPublishedBooks = books;
+          localStorage.setItem(SAR_CACHE_BOOKS_KEY, JSON.stringify(books));
+          renderBooksFromMemory(allPublishedBooks);
+        } else if (allPublishedBooks.length === 0) {
+          document.getElementById('totalBooksCountText').textContent = 'စာအုပ် (0) အုပ်';
+          document.getElementById('cleanShelfRows').innerHTML = `<div class="py-16 text-center text-xs text-gray-400">စာအုပ် မတွေ့ရှိပါ။</div>`;
+        }
+      } catch (err) {
+        if (allPublishedBooks.length === 0) {
+          document.getElementById('cleanShelfRows').innerHTML = `<div class="py-16 text-center text-xs text-red-400">⚠️ အင်တာနက်ချိတ်ဆက်မှု နှေးကွေးနေပါသည်။</div>`;
+        }
       }
     }
 
@@ -894,6 +888,13 @@
       spinner.style.display = 'flex';
       loadText.textContent = 'စာမျက်နှာ ဖွင့်နေပါသည်...';
 
+      // အင်တာနက် အရမ်းနှေးပါက Timeout ပြရန်
+      const slowTimeout = setTimeout(() => {
+        if (spinner.style.display !== 'none') {
+          loadText.textContent = 'အင်တာနက် နှေးနေပါသည် (ခေတ္တစောင့်ပါ)...';
+        }
+      }, 7000);
+
       activeBookIdForReader = book.id;
 
       if (supabaseClient) {
@@ -910,8 +911,10 @@
         slider.max = activePdfTotalPages;
         slider.value = activePdfPage;
 
+        clearTimeout(slowTimeout);
         await renderPdfPage(activePdfPage);
       } catch (err) {
+        clearTimeout(slowTimeout);
         alert('PDF ဖွင့်ရာတွင် အမှားရှိပါသည်: ' + (err.message || err));
         closePdfReader();
       }
@@ -922,243 +925,3 @@
       if (isRenderingPage) {
         pendingPageNum = pageNum;
         return;
-      }
-      isRenderingPage = true;
-      const spinner = document.getElementById('readerLoadingSpinner');
-      spinner.style.display = 'flex';
-
-      try {
-        const page = await activePdfDoc.getPage(pageNum);
-        const canvas = document.getElementById('pdfRenderCanvas');
-        const ctx = canvas.getContext('2d');
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const viewport = page.getViewport({ scale: activePdfScale * dpr });
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        canvas.style.width = `${viewport.width / dpr}px`;
-        canvas.style.height = `${viewport.height / dpr}px`;
-
-        await page.render({ canvasContext: ctx, viewport }).promise;
-
-        document.getElementById('readerPageIndicator').textContent = `${pageNum} / ${activePdfTotalPages}`;
-        document.getElementById('readerPageSlider').value = pageNum;
-        if (activeBookIdForReader) {
-          localStorage.setItem('BOOK_PAGE_' + activeBookIdForReader, String(pageNum));
-        }
-
-        if (pageNum < activePdfTotalPages) {
-          activePdfDoc.getPage(pageNum + 1).catch(() => {});
-        }
-      } catch (e) {} finally {
-        isRenderingPage = false;
-        spinner.style.display = 'none';
-        if (pendingPageNum !== null) {
-          const next = pendingPageNum;
-          pendingPageNum = null;
-          renderPdfPage(next);
-        }
-      }
-    }
-
-    function changePdfPage(delta) {
-      if (!activePdfDoc) return;
-      const next = activePdfPage + delta;
-      if (next < 1 || next > activePdfTotalPages) return;
-      activePdfPage = next;
-      renderPdfPage(activePdfPage);
-    }
-
-    function onPageSliderInput(val) {
-      activePdfPage = parseInt(val, 10) || 1;
-      renderPdfPage(activePdfPage);
-    }
-
-    function changeReaderZoom(delta) {
-      activePdfScale = Math.min(Math.max(activePdfScale + delta, 0.8), 2.6);
-      renderPdfPage(activePdfPage);
-    }
-
-    const readerThemes = ['reader-theme-paper', 'reader-theme-sepia', 'reader-theme-night'];
-    let currentThemeIdx = 0;
-    function cycleReaderTheme() {
-      const modal = document.getElementById('pdfReaderModal');
-      modal.classList.remove(...readerThemes);
-      currentThemeIdx = (currentThemeIdx + 1) % readerThemes.length;
-      modal.classList.add(readerThemes[currentThemeIdx]);
-    }
-
-    function closePdfReader() {
-      document.getElementById('pdfReaderModal').style.display = 'none';
-      activePdfDoc = null;
-      renderCleanShelfRows(currentBooksList);
-    }
-
-    // --- SWIPE & KEYBOARD NAVIGATION LOGIC ---
-    let touchStartX = 0;
-    let touchEndX = 0;
-    const readerCanvasContainer = document.getElementById('readerCanvasContainer');
-
-    if (readerCanvasContainer) {
-      readerCanvasContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-      }, { passive: true });
-
-      readerCanvasContainer.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipeGesture();
-      }, { passive: true });
-    }
-
-    function handleSwipeGesture() {
-      const swipeThreshold = 50; // Minimum pixel drag to trigger swipe
-      if (touchEndX < touchStartX - swipeThreshold) {
-        changePdfPage(1); // Swipe Left -> Next Page
-      }
-      if (touchEndX > touchStartX + swipeThreshold) {
-        changePdfPage(-1); // Swipe Right -> Prev Page
-      }
-    }
-
-    window.addEventListener('keydown', (e) => {
-      const modal = document.getElementById('pdfReaderModal');
-      if (modal && modal.style.display !== 'none') {
-        if (e.key === 'ArrowRight') {
-          changePdfPage(1);
-        } else if (e.key === 'ArrowLeft') {
-          changePdfPage(-1);
-        }
-      }
-    });
-
-    // ================= 7. REVIEWS, REQUESTS, ADS & VIP =================
-    async function loadBookReviews(bookId) {
-      const box = document.getElementById('detailReviewsList');
-      if (!supabaseClient || !box) return;
-      const { data } = await supabaseClient.from('book_reviews').select('*').eq('book_id', bookId).order('created_at', { ascending: false });
-      const list = data || [];
-      if (!list.length) {
-        box.innerHTML = `<p class="text-[#786E65] text-center py-2">မှတ်ချက် မရှိသေးပါ။ ပထမဆုံး မှတ်ချက်ရေးပေးပါ!</p>`;
-        return;
-      }
-      box.innerHTML = list.map((r) => `
-        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9]">
-          <div class="flex items-center justify-between">
-            <span class="font-bold">${r.user_name || 'စာဖတ်သူ'}</span>
-            <span class="text-amber-500 text-[10px]">${'⭐'.repeat(Math.min(Math.max(Number(r.rating) || 5, 1), 5))}</span>
-          </div>
-          <p class="text-[#1E1916] mt-0.5">${r.comment}</p>
-        </div>
-      `).join('');
-    }
-
-    async function submitBookReview(e) {
-      e.preventDefault();
-      if (!currentDetailBook || !supabaseClient) return;
-      const user_name = document.getElementById('reviewUserName').value.trim();
-      const rating = parseInt(document.getElementById('reviewRating').value || '5', 10);
-      const comment = document.getElementById('reviewComment').value.trim();
-      if (!user_name || !comment) return;
-      await supabaseClient.from('book_reviews').insert([{ book_id: currentDetailBook.id, user_name, rating, comment }]);
-      document.getElementById('reviewComment').value = '';
-      loadBookReviews(currentDetailBook.id);
-    }
-
-    async function openRequestModal() {
-      document.getElementById('requestModal').style.display = 'flex';
-      loadPublicRequests();
-    }
-    function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
-
-    async function loadPublicRequests() {
-      const box = document.getElementById('publicRequestsList');
-      if (!supabaseClient || !box) return;
-      const { data } = await supabaseClient.from('book_requests').select('*').order('upvotes', { ascending: false });
-      const list = data || [];
-      if (!list.length) {
-        box.innerHTML = `<p class="text-[#786E65] text-center py-3">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`;
-        return;
-      }
-      box.innerHTML = list.map((r) => `
-        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
-          <div class="min-w-0">
-            <p class="font-bold truncate">${r.book_title} ${r.status === 'uploaded' ? '<span class="text-emerald-700 text-[10px]">✅ တင်ပြီး</span>' : ''}</p>
-            <p class="text-[10px] text-[#786E65] truncate">✍️ ${r.author_name || '-'}</p>
-          </div>
-          <button onclick="upvoteBookRequest('${r.id}', ${r.upvotes || 1})" class="tactile-btn px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[11px] shrink-0">
-            👍 ${r.upvotes || 1}
-          </button>
-        </div>
-      `).join('');
-    }
-
-    async function submitBookRequest(e) {
-      e.preventDefault();
-      if (!supabaseClient) return;
-      const book_title = document.getElementById('reqBookTitle').value.trim();
-      const author_name = document.getElementById('reqAuthorName').value.trim();
-      if (!book_title) return;
-      await supabaseClient.from('book_requests').insert([{ book_title, author_name, upvotes: 1, status: 'pending' }]);
-      e.target.reset();
-      loadPublicRequests();
-    }
-
-    async function upvoteBookRequest(id, currentVotes) {
-      if (!supabaseClient) return;
-      await supabaseClient.from('book_requests').update({ upvotes: currentVotes + 1 }).eq('id', id);
-      loadPublicRequests();
-    }
-
-    function isVipActiveLocally() {
-      const exp = parseInt(localStorage.getItem('SAR_VIP_EXPIRY') || '0', 10);
-      return exp > Date.now();
-    }
-
-    async function initReaderSponsorBanner() {
-      if (isVipActiveLocally() || !supabaseClient) {
-        document.getElementById('sponsorBannerSection')?.classList.add('hidden');
-        return;
-      }
-      const { data } = await supabaseClient.from('ads').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1);
-      if (data && data.length > 0) {
-        activeSponsorAd = data[0];
-        document.getElementById('sponsorBannerImg').src = getFastCoverUrl(activeSponsorAd.image_url, 800);
-        document.getElementById('sponsorBannerLink').href = activeSponsorAd.target_url || '#';
-        document.getElementById('sponsorBannerSection').classList.remove('hidden');
-      }
-    }
-
-    function recordAdClick() {
-      if (!activeSponsorAd || !supabaseClient) return;
-      supabaseClient.from('ads').update({ clicks: (activeSponsorAd.clicks || 0) + 1 }).eq('id', activeSponsorAd.id).then(() => {});
-    }
-
-    function openVipModal() { document.getElementById('vipModal').style.display = 'flex'; }
-    function closeVipModal() { document.getElementById('vipModal').style.display = 'none'; }
-
-    async function verifyVipWithServer() {
-      if (isVipActiveLocally()) {
-        document.getElementById('sponsorBannerSection')?.classList.add('hidden');
-      }
-    }
-
-    async function activateVipCode(e) {
-      e.preventDefault();
-      if (!supabaseClient) return;
-      const code = document.getElementById('vipInputCode').value.trim().toUpperCase();
-      const { data } = await supabaseClient.from('vip_codes').select('*').eq('code', code).eq('is_active', true).limit(1);
-      if (!data || data.length === 0) {
-        alert('❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။');
-        return;
-      }
-      const vip = data[0];
-      const expiryMs = Date.now() + (vip.duration_days || 30) * 86400000;
-      localStorage.setItem('SAR_VIP_EXPIRY', String(expiryMs));
-      localStorage.setItem('SAR_VIP_CODE', code);
-      verifyVipWithServer();
-      closeVipModal();
-      alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
-    }
-  </script>
-</body>
-</html>
