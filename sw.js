@@ -1,12 +1,12 @@
-const STATIC_CACHE = 'sar-static-v5';
-const IMG_CACHE = 'sar-covers-webp-v5';
-const PDF_CACHE = 'sar-offline-pdfs-v5';
+const STATIC_CACHE = 'sar-static-v6';
+const IMG_CACHE = 'sar-covers-webp-v6';
+const PDF_CACHE = 'sar-offline-pdfs-v6';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// Cache အဟောင်းများ (v3, v4) အားလုံးကို အလိုအလျောက် ဖျက်ပစ်မည်
+// ယခင် Cache အဟောင်းအားလုံးကို အလိုအလျောက် ရှင်းလင်းမည်
 self.addEventListener('activate', (event) => {
   const allowed = [STATIC_CACHE, IMG_CACHE, PDF_CACHE];
   event.waitUntil(
@@ -37,10 +37,10 @@ self.addEventListener('fetch', (event) => {
 
   if (url.includes('supabase.co') || url.includes('api.github.com')) return;
 
-  // 1. HTML စာမျက်နှာများ -> Network-First (ကုဒ်ပြင်လိုက်သည်နှင့် ချက်ချင်းအသစ်ပေါ်စေရန်)
+  // HTML ဖိုင်များကို အမြဲတမ်း အသစ်အရင်ဆွဲယူမည် (Network-First)
   if (req.mode === 'navigate' || url.endsWith('.html') || url.endsWith('/')) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .then((netRes) => {
           const clone = netRes.clone();
           caches.open(STATIC_CACHE).then((c) => c.put(req, clone));
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. မျက်နှာဖုံးပုံများ -> Cache-First (0ms ဖြင့် ချက်ချင်းပွင့်စေရန်)
+  // မျက်နှာဖုံးပုံများ (WebP) -> Cache-First (0ms ဖြင့် ချက်ချင်းပွင့်မည်)
   if (isCoverOrImageRequest(url)) {
     event.respondWith(
       caches.open(IMG_CACHE).then(async (cache) => {
@@ -67,7 +67,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Offline PDF များ
+  // Offline PDF များ
   if (isPdfRequest(url)) {
     event.respondWith(caches.match(req).then((cached) => cached || fetch(req)));
     return;
