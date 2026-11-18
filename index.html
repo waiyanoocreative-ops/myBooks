@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
   <meta name="description" content="မြန်မာစာအုပ်ကောင်းများကို အင်တာနက်လိုင်းနှေးသည့်တိုင် လျင်မြန်ချောမွေ့စွာ အခမဲ့ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်" />
-  <meta name="theme-color" content="#6B141A" />
+  <meta name="theme-color" content="#0F1117" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
@@ -22,21 +22,31 @@
     @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Playfair+Display:wght@700&display=swap');
 
     :root {
-      --bg-paper: #FAF8F5;
-      --bg-card: #F3EFE6;
+      --bg-main: #0F1117;
+      --bg-surface: #181B24;
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-gold: #F59E0B;
+      --accent-crimson: #6B141A;
+    }
+
+    body.theme-paper {
+      --bg-main: #FAF8F5;
+      --bg-surface: #F3EFE6;
       --text-main: #1E1916;
       --text-muted: #786E65;
-      --accent-crimson: #6B141A;
-      --border-warm: #E5DEC9;
+      --border-color: #E5DEC9;
     }
 
     body {
       font-family: 'Padauk', sans-serif;
-      background-color: var(--bg-paper);
+      background-color: var(--bg-main);
       color: var(--text-main);
       line-height: 1.7;
       -webkit-tap-highlight-color: transparent;
       overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     .font-serif-display {
@@ -50,111 +60,127 @@
       transform: scale(0.95);
     }
 
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+    /* 3D Book Card & Shelf Plank with Fairy Lights */
     .book-card-3d {
-      box-shadow: 0 8px 20px -4px rgba(30, 25, 22, 0.18), -2px 0 4px rgba(0, 0, 0, 0.08);
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.55), -2px 0 6px rgba(0, 0, 0, 0.3);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
     }
     .group:hover .book-card-3d {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 26px -5px rgba(30, 25, 22, 0.25);
-    }
-    .wood-shelf-plank {
-      height: 12px;
-      background: linear-gradient(180deg, #D8CBB8 0%, #B8A68E 65%, #9B886E 100%);
-      border-radius: 4px;
-      box-shadow: 0 6px 12px rgba(30, 25, 22, 0.12);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 30px -5px rgba(0, 0, 0, 0.7);
     }
 
+    .shelf-plank-dark {
+      height: 14px;
+      background: linear-gradient(180deg, #2A303D 0%, #1B202B 60%, #10131A 100%);
+      border-radius: 6px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      position: relative;
+    }
+    body.theme-paper .shelf-plank-dark {
+      background: linear-gradient(180deg, #D8CBB8 0%, #B8A68E 65%, #9B886E 100%);
+      box-shadow: 0 6px 12px rgba(30, 25, 22, 0.16);
+    }
+
+    .fairy-light-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      background: #FDE68A;
+      box-shadow: 0 0 8px 2px rgba(251, 191, 36, 0.85);
+      animation: pulseGlow 2.4s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.65; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    /* Reader Themes */
     .reader-theme-paper { background-color: #F5EFE6; color: #1E1916; }
     .reader-theme-sepia { background-color: #EADBC8; color: #2B2118; }
     .reader-theme-night { background-color: #141416; color: #D4D4D8; }
     .reader-theme-night canvas { filter: invert(0.9) hue-rotate(180deg) contrast(0.95); }
   </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="min-h-screen pb-28">
 
   <!-- ================= 1. SMART INSTANT SPLASH LOADER ================= -->
-  <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#FAF8F5] flex flex-col items-center justify-center p-6 transition-opacity duration-300">
-    <div class="w-16 h-16 rounded-2xl bg-[#6B141A] text-white flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
+  <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0F1117] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-300">
+    <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0F1117] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
       စာ
     </div>
-    <h1 class="font-serif-display font-bold text-xl text-[#1E1916]">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
-    <p id="splashStatusText" class="text-xs text-[#786E65] mt-1">စာအုပ်စင် ပြင်ဆင်နေပါသည်...</p>
-    <div class="w-56 h-2 rounded-full bg-[#E5DEC9] overflow-hidden mt-4">
-      <div id="splashProgressBar" class="h-full bg-[#6B141A] transition-all duration-200" style="width: 35%;"></div>
+    <h1 class="font-serif-display font-bold text-xl">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
+    <p id="splashStatusText" class="text-xs text-gray-400 mt-1">စာအုပ်စင် ပြင်ဆင်နေပါသည်...</p>
+    <div class="w-56 h-2 rounded-full bg-white/10 overflow-hidden mt-4">
+      <div id="splashProgressBar" class="h-full bg-amber-500 transition-all duration-200" style="width: 40%;"></div>
     </div>
-    <span id="splashPctText" class="text-[10px] font-bold text-[#6B141A] mt-1">35%</span>
+    <span id="splashPctText" class="text-[10px] font-bold text-amber-400 mt-1">40%</span>
   </div>
 
   <!-- ================= 2. STICKY TOP NAVBAR ================= -->
-  <header class="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5DEC9] px-4 py-2.5">
+  <header class="sticky top-0 z-30 bg-[#0F1117]/90 backdrop-blur-md border-b border-white/10 px-4 py-2.5">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchBottomTab('all')">
-        <div class="w-9 h-9 rounded-xl bg-[#6B141A] text-white flex items-center justify-center font-serif-display font-bold text-lg shadow-sm">
+        <div class="w-9 h-9 rounded-full bg-amber-500 text-[#0F1117] flex items-center justify-center font-serif-display font-bold text-base shadow">
           စာ
         </div>
-        <div>
-          <div class="flex items-center gap-1.5">
-            <span class="font-serif-display font-bold text-base leading-none text-[#1E1916]">စာကြည့်တိုက်</span>
-            <span id="vipBadgeHeader" class="hidden px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-bold text-amber-900">👑 VIP</span>
-          </div>
-          <p id="totalBooksCountText" class="text-[11px] text-[#786E65] mt-0.5">စာအုပ်များ ရယူနေသည်...</p>
-        </div>
+        <span class="font-serif-display font-bold text-base">စာ</span>
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> 1 online
+        </span>
       </div>
 
       <div class="flex items-center gap-1.5">
-        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="hidden tactile-btn px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold">
-          📲 App သွင်းရန်
+        <button onclick="toggleSiteTheme()" id="siteThemeBtn" class="tactile-btn px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold flex items-center gap-1">
+          <span>🟣</span><span id="siteThemeText">Midnight</span>
         </button>
-        <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold">
+        <button onclick="openRequestModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs" title="စာအုပ်တောင်းဆိုရန်">
+          🔔
+        </button>
+        <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
           👑 VIP
         </button>
-        <button onclick="openRequestModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-[#F3EFE6] border border-[#E5DEC9] text-xs font-bold text-[#1E1916]">
-          📩 စာအုပ်တောင်းရန်
+        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500 text-[#0F1117] text-xs font-bold">
+          📲 App
         </button>
       </div>
     </div>
   </header>
 
   <!-- ================= 3. MAIN CONTENT AREA ================= -->
-  <main class="max-w-5xl mx-auto px-4 pt-4 space-y-5">
+  <main class="max-w-5xl mx-auto px-4 pt-5 space-y-5">
 
     <!-- HERO FEATURED BOOK & STATS BAR -->
-    <section id="heroBannerSection" class="bg-gradient-to-br from-[#6B141A] to-[#3B0A0E] text-white rounded-3xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="space-y-2 text-center sm:text-left flex-1">
-        <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/15 text-[10px] font-bold uppercase tracking-wider">✨ အသစ်ရောက် စာအုပ်</span>
+    <section id="heroBannerSection" class="bg-gradient-to-br from-[#6B141A] to-[#2A070A] text-white rounded-3xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
+      <div class="space-y-1.5 text-center sm:text-left flex-1">
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">✨ အသစ်ရောက် စာအုပ်</span>
         <h2 id="heroBookTitle" class="font-serif-display font-bold text-lg sm:text-xl line-clamp-1">စာအုပ်ကောင်းများ စုစည်းမှု</h2>
         <p id="heroBookAuthor" class="text-xs text-white/80">အင်တာနက်လိုင်းနှေးသည့်တိုင် ချက်ချင်းဖွင့်ဖတ်နိုင်ပါသည်</p>
-        <div class="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-          <button id="heroReadBtn" class="tactile-btn px-4 py-2 rounded-full bg-white text-[#6B141A] text-xs font-bold shadow">📖 ယခုဖတ်မည်</button>
-          <span id="readingStatsPill" class="px-3 py-1.5 rounded-full bg-black/25 text-[11px] text-white/90">📚 ဖတ်လက်စ 0 အုပ်</span>
+        <div class="pt-1.5 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <button id="heroReadBtn" class="tactile-btn px-4 py-2 rounded-full bg-amber-400 text-[#1E1916] text-xs font-bold shadow">📖 ယခုဖတ်မည်</button>
+          <span id="readingStatsPill" class="px-3 py-1.5 rounded-full bg-black/30 text-[11px] text-white/90">📚 ဖတ်လက်စ 0 အုပ်</span>
         </div>
       </div>
       <div id="heroFanCovers" class="flex items-center justify-center -space-x-4 shrink-0 py-1"></div>
     </section>
 
-    <!-- 16:9 SPONSOR BANNER AD (HIDDEN FOR VIP) -->
+    <!-- 16:9 SPONSOR BANNER AD -->
     <section id="sponsorBannerSection" class="hidden">
-      <a id="sponsorBannerLink" href="#" target="_blank" rel="noopener" onclick="recordAdClick()" class="block relative rounded-2xl overflow-hidden border border-[#E5DEC9] shadow-xs group">
+      <a id="sponsorBannerLink" href="#" target="_blank" rel="noopener" onclick="recordAdClick()" class="block relative rounded-2xl overflow-hidden border border-white/15 shadow-xs group">
         <img id="sponsorBannerImg" src="" alt="Sponsor Ad" class="w-full max-h-40 object-cover transition-transform duration-300 group-hover:scale-[1.01]" loading="lazy" />
-        <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/60 text-white text-[9px] font-bold">ကြော်ငြာ</span>
+        <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">ကြော်ငြာ</span>
       </a>
     </section>
 
     <!-- SEARCH BAR & SORT CONTROLS -->
-    <section class="flex flex-col sm:flex-row gap-2.5">
+    <section id="searchSectionBox" class="flex flex-col sm:flex-row gap-2.5">
       <div class="relative flex-1">
-        <input id="searchInput" type="search" oninput="renderBooksFromMemory(allPublishedBooks)" placeholder="🔍 စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာရန်..." class="w-full pl-4 pr-9 py-2.5 rounded-2xl bg-white border border-[#E5DEC9] text-xs sm:text-sm focus:outline-none focus:border-[#6B141A] shadow-2xs" />
+        <input id="searchInput" type="search" oninput="onFilterOrSearchChange()" placeholder="🔍 စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာရန်..." class="w-full pl-4 pr-9 py-2.5 rounded-2xl bg-white/10 border border-white/15 text-xs sm:text-sm focus:outline-none focus:border-amber-400" />
       </div>
-      <select id="sortSelect" onchange="renderBooksFromMemory(allPublishedBooks)" class="px-3.5 py-2.5 rounded-2xl bg-white border border-[#E5DEC9] text-xs font-bold text-[#1E1916] focus:outline-none focus:border-[#6B141A]">
+      <select id="sortSelect" onchange="onFilterOrSearchChange()" class="px-3.5 py-2.5 rounded-2xl bg-[#181B24] border border-white/15 text-xs font-bold text-amber-400 focus:outline-none">
         <option value="newest">🕒 အသစ်ဆုံး စာအုပ်များ</option>
         <option value="popular">🔥 လူဖတ်အများဆုံး</option>
         <option value="pages_asc">📄 စာမျက်နှာ အနည်းမှအများ</option>
@@ -165,42 +191,43 @@
     <!-- CATEGORY PILLS -->
     <div id="categoryTabsBox" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
 
-    <!-- POPULAR / RECOMMENDED HORIZONTAL ROW -->
-    <section id="recommendationsSection" class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-[#6B141A]">🔥 လူကြိုက်များသော စာအုပ်များ</h3>
+    <!-- SHELF HEADER -->
+    <section class="space-y-5">
+      <div class="flex items-center justify-between px-1">
+        <h3 class="font-bold text-base sm:text-lg">စာအုပ်စင်</h3>
+        <span id="totalBooksCountText" class="text-xs font-bold text-gray-400">စာအုပ် (0) အုပ်</span>
       </div>
-      <div id="recommendationsRow" class="flex items-stretch gap-3.5 overflow-x-auto no-scrollbar pb-2"></div>
-    </section>
 
-    <!-- MAIN WOODEN BOOKSHELF ROWS -->
-    <section class="space-y-6">
-      <div id="cleanShelfRows" class="space-y-8"></div>
+      <!-- WOODEN BOOKSHELF WITH FAIRY LIGHTS + BOOK TITLES & AUTHORS -->
+      <div id="cleanShelfRows" class="space-y-10"></div>
+
+      <!-- PAGINATION BAR -->
+      <div id="shelfPaginationBar" class="flex items-center justify-center gap-2 pt-2"></div>
     </section>
 
   </main>
 
-  <!-- ================= 4. BOTTOM NAVIGATION BAR ================= -->
-  <nav class="fixed bottom-0 inset-x-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-t border-[#E5DEC9] px-4 py-2">
-    <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center text-[11px] font-bold">
-      <button onclick="switchBottomTab('all')" id="navBtnAll" class="tactile-btn py-1.5 rounded-xl bg-[#6B141A] text-white flex flex-col items-center">
+  <!-- ================= 4. FLOATING BOTTOM NAVIGATION DOCK ================= -->
+  <nav class="fixed bottom-3 inset-x-0 z-30 px-4 pointer-events-none">
+    <div class="max-w-md mx-auto bg-[#181B24]/95 backdrop-blur-md border border-white/15 rounded-3xl px-3 py-2 shadow-2xl grid grid-cols-4 gap-1 text-center text-[11px] font-bold pointer-events-auto">
+      <button onclick="switchBottomTab('all')" id="navBtnAll" class="tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center">
         <span>📚</span><span>စာအုပ်စင်</span>
       </button>
-      <button onclick="switchBottomTab('progress')" id="navBtnProgress" class="tactile-btn py-1.5 rounded-xl text-[#786E65] flex flex-col items-center">
-        <span>📖</span><span>ဖတ်လက်စ</span>
+      <button onclick="focusSearchInput()" id="navBtnSearch" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
+        <span>🔍</span><span>ရှာဖွေရန်</span>
       </button>
-      <button onclick="switchBottomTab('bookmarks')" id="navBtnBookmarks" class="tactile-btn py-1.5 rounded-xl text-[#786E65] flex flex-col items-center">
+      <button onclick="switchBottomTab('bookmarks')" id="navBtnBookmarks" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
         <span>🔖</span><span>မှတ်သားထားသော</span>
       </button>
-      <button onclick="switchBottomTab('offline')" id="navBtnOffline" class="tactile-btn py-1.5 rounded-xl text-[#786E65] flex flex-col items-center">
-        <span>📥</span><span>Offline</span>
+      <button onclick="switchBottomTab('progress')" id="navBtnProgress" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
+        <span>📖</span><span>ဖတ်လက်စ</span>
       </button>
     </div>
   </nav>
 
   <!-- ================= 5. BOOK DETAIL & REVIEWS MODAL ================= -->
-  <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-[#FAF8F5] border-t sm:border border-[#E5DEC9] rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
+  <div id="bookDetailModal" style="display: none;" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-[#FAF8F5] text-[#1E1916] border-t sm:border border-[#E5DEC9] rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-start justify-between gap-3">
         <div class="flex gap-4">
           <div class="w-24 h-36 rounded-xl bg-[#E5DEC9] overflow-hidden shrink-0 book-card-3d">
@@ -235,7 +262,6 @@
         </div>
       </div>
 
-      <!-- Reader Reviews Section -->
       <div class="border-t border-[#E5DEC9] pt-4 space-y-3">
         <h4 class="font-bold text-xs text-[#6B141A]">⭐ စာဖတ်သူ မှတ်ချက်များ</h4>
         <form onsubmit="submitBookReview(event)" class="space-y-2 text-xs">
@@ -293,7 +319,7 @@
 
   <!-- ================= 7. BOOK REQUEST MODAL ================= -->
   <div id="requestModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
-    <div class="bg-[#FAF8F5] border border-[#E5DEC9] rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
+    <div class="bg-[#FAF8F5] text-[#1E1916] border border-[#E5DEC9] rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-[#E5DEC9] pb-3">
         <h3 class="font-bold text-base text-[#6B141A]">📩 လိုချင်သော စာအုပ်တောင်းဆိုရန်</h3>
         <button onclick="closeRequestModal()" class="w-8 h-8 rounded-full bg-black/5 font-bold text-sm">✕</button>
@@ -312,10 +338,10 @@
 
   <!-- ================= 8. VIP CODE MODAL ================= -->
   <div id="vipModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
-    <div class="bg-[#FAF8F5] border border-[#E5DEC9] rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+    <div class="bg-[#FAF8F5] text-[#1E1916] border border-[#E5DEC9] rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
       <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto shadow">👑</div>
-      <h3 class="font-bold text-base text-[#1E1916]">VIP Member Code ထည့်ရန်</h3>
-      <p id="vipStatusDesc" class="text-xs text-[#786E65]">VIP Code ထည့်သွင်းပြီး ကြော်ငြာကင်းစင်စွာ ဖတ်ရှုနိုင်ပါသည်</p>
+      <h3 class="font-bold text-base">VIP Member Code ထည့်ရန်</h3>
+      <p class="text-xs text-[#786E65]">VIP Code ထည့်သွင်းပြီး ကြော်ငြာကင်းစင်စွာ ဖတ်ရှုနိုင်ပါသည်</p>
       <form onsubmit="activateVipCode(event)" class="space-y-3 text-xs">
         <input id="vipInputCode" type="text" required placeholder="SAR-XXXXXX" class="w-full px-4 py-3 rounded-xl bg-white border border-[#E5DEC9] text-center font-mono font-bold uppercase tracking-widest" />
         <button type="submit" class="tactile-btn w-full py-3 rounded-xl bg-amber-600 text-white font-bold shadow">👑 အတည်ပြုမည်</button>
@@ -331,9 +357,10 @@
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V2';
-    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V2';
+    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V3';
+    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V3';
     const OFFLINE_BOOKS_META_KEY = 'SAR_OFFLINE_BOOKS_IDS_V1';
+    const BOOKS_PER_PAGE = 12;
 
     let supabaseClient = null;
     let allPublishedBooks = [];
@@ -341,6 +368,7 @@
     let categoriesList = [];
     let selectedCategoryId = '';
     let activeBottomFilter = 'all';
+    let currentShelfPage = 1;
     let currentDetailBook = null;
     let activeSponsorAd = null;
     let deferredPwaPrompt = null;
@@ -354,29 +382,52 @@
     let pendingPageNum = null;
     const _prewarmedPdfPromises = new Map();
 
-    // ================= 1. PWA & SERVICE WORKER REGISTRATION =================
+    // ================= 1. AUTO-BUST OLD HTML CACHE & REGISTER SW =================
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        keys.forEach((k) => {
+          if (k.includes('sar-library') || k.includes('sar-static-v4')) caches.delete(k);
+        });
+      });
+    }
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').then((reg) => reg.update()).catch(() => {});
       });
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPwaPrompt = e;
-      document.getElementById('pwaInstallBtn')?.classList.remove('hidden');
     });
 
     async function triggerPwaInstall() {
-      if (!deferredPwaPrompt) return;
+      if (!deferredPwaPrompt) {
+        alert('Browser Menu (⋮) မှ "Add to Home screen" သို့မဟုတ် "Install app" ကို နှိပ်၍ သွင်းယူနိုင်ပါသည်။');
+        return;
+      }
       deferredPwaPrompt.prompt();
       await deferredPwaPrompt.userChoice;
       deferredPwaPrompt = null;
-      document.getElementById('pwaInstallBtn')?.classList.add('hidden');
+    }
+
+    function toggleSiteTheme() {
+      document.body.classList.toggle('theme-paper');
+      const isPaper = document.body.classList.contains('theme-paper');
+      document.getElementById('siteThemeText').textContent = isPaper ? 'Paper' : 'Midnight';
+      renderCleanShelfRows(currentBooksList);
+    }
+
+    function focusSearchInput() {
+      const el = document.getElementById('searchInput');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => el.focus(), 300);
+      }
     }
 
     // ================= 2. WEBP THUMBNAIL & 64KB PDF STREAMING ENGINE =================
-    function getFastCoverUrl(url, width = 240) {
+    function getFastCoverUrl(url, width = 260) {
       if (!url) return '';
       let cleanUrl = url.trim();
       const rawMatch = cleanUrl.match(/^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
@@ -394,9 +445,7 @@
       window.pdfjsLib.getDocument = function(src) {
         let targetUrl = typeof src === 'string' ? src : (src && src.url ? src.url : null);
         if (targetUrl && typeof targetUrl === 'string' && !targetUrl.startsWith('blob:') && !targetUrl.startsWith('data:')) {
-          if (_prewarmedPdfPromises.has(targetUrl)) {
-            return _prewarmedPdfPromises.get(targetUrl);
-          }
+          if (_prewarmedPdfPromises.has(targetUrl)) return _prewarmedPdfPromises.get(targetUrl);
           const streamConfig = {
             ...(typeof src === 'object' ? src : {}),
             url: targetUrl,
@@ -442,8 +491,8 @@
 
             setTimeout(() => {
               splash.style.opacity = '0';
-              setTimeout(() => { splash.style.display = 'none'; }, 220);
-            }, 120);
+              setTimeout(() => { splash.style.display = 'none'; }, 200);
+            }, 100);
 
             startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
             return;
@@ -460,7 +509,7 @@
       bar.style.width = '100%';
       pctText.textContent = '100%';
       splash.style.opacity = '0';
-      setTimeout(() => { splash.style.display = 'none'; }, 250);
+      setTimeout(() => { splash.style.display = 'none'; }, 220);
     }
 
     async function startReaderAppBackground(url, key) {
@@ -482,9 +531,7 @@
 
         const params = new URLSearchParams(window.location.search);
         const sharedBookId = params.get('book');
-        if (sharedBookId) {
-          setTimeout(() => openBookDetail(sharedBookId), 150);
-        }
+        if (sharedBookId) setTimeout(() => openBookDetail(sharedBookId), 150);
       } catch (e) {}
     }
 
@@ -511,7 +558,7 @@
       }
     }
 
-    // ================= 4. SHELF, HERO & FILTER RENDERING (WITH CLEAR TITLE & AUTHOR) =================
+    // ================= 4. FAIRY-LIGHT SHELF WITH CLEAR BOOK TITLE & AUTHOR =================
     function getFavoritesIds() {
       try { return JSON.parse(localStorage.getItem('SAR_FAV_BOOKS') || '[]'); } catch { return []; }
     }
@@ -522,9 +569,9 @@
     function renderCategoryTabs() {
       const box = document.getElementById('categoryTabsBox');
       if (!box) return;
-      const allBtn = `<button onclick="selectCategory('')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${selectedCategoryId === '' ? 'bg-[#6B141A] text-white shadow-xs' : 'bg-[#F3EFE6] text-[#1E1916] border border-[#E5DEC9]'}">အားလုံး</button>`;
+      const allBtn = `<button onclick="selectCategory('')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${selectedCategoryId === '' ? 'bg-amber-500 text-[#0F1117]' : 'bg-white/10 border border-white/15'}">အားလုံး</button>`;
       const catBtns = categoriesList.map((c) => `
-        <button onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${String(selectedCategoryId) === String(c.id) ? 'bg-[#6B141A] text-white shadow-xs' : 'bg-[#F3EFE6] text-[#1E1916] border border-[#E5DEC9]'}">
+        <button onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${String(selectedCategoryId) === String(c.id) ? 'bg-amber-500 text-[#0F1117]' : 'bg-white/10 border border-white/15'}">
           ${c.name}
         </button>
       `).join('');
@@ -533,18 +580,25 @@
 
     function selectCategory(catId) {
       selectedCategoryId = catId;
+      currentShelfPage = 1;
       renderCategoryTabs();
+      renderBooksFromMemory(allPublishedBooks);
+    }
+
+    function onFilterOrSearchChange() {
+      currentShelfPage = 1;
       renderBooksFromMemory(allPublishedBooks);
     }
 
     function switchBottomTab(tab) {
       activeBottomFilter = tab;
-      ['all', 'progress', 'bookmarks', 'offline'].forEach((t) => {
+      currentShelfPage = 1;
+      ['all', 'bookmarks', 'progress'].forEach((t) => {
         const btn = document.getElementById('navBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         if (btn) {
           btn.className = t === tab
-            ? 'tactile-btn py-1.5 rounded-xl bg-[#6B141A] text-white flex flex-col items-center'
-            : 'tactile-btn py-1.5 rounded-xl text-[#786E65] flex flex-col items-center';
+            ? 'tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center'
+            : 'tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center';
         }
       });
       renderBooksFromMemory(allPublishedBooks);
@@ -577,35 +631,6 @@
       if (pill) pill.textContent = `📚 ဖတ်လက်စ ${inProgressCount} အုပ်`;
     }
 
-    function renderRecommendationsHorizontal(books) {
-      const row = document.getElementById('recommendationsRow');
-      const sec = document.getElementById('recommendationsSection');
-      if (!row || !sec) return;
-      if (!books || books.length === 0 || activeBottomFilter !== 'all') {
-        sec.classList.add('hidden');
-        return;
-      }
-      sec.classList.remove('hidden');
-      const topBooks = [...books].sort((a, b) => (b.read_count || 0) - (a.read_count || 0)).slice(0, 8);
-      row.innerHTML = topBooks.map((b) => {
-        const fastSrc = getFastCoverUrl(b.cover_url, 200);
-        const titleText = b.title || 'အမည်မသိ စာအုပ်';
-        const authorText = b.author || 'အမည်မသိ စာရေးဆရာ';
-        return `
-          <div onclick="openBookDetail('${b.id}')" class="w-32 shrink-0 cursor-pointer bg-white/80 hover:bg-white p-2 rounded-2xl border border-[#E5DEC9] shadow-2xs flex flex-col items-center group">
-            <div class="w-28 h-40 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative shrink-0">
-              ${b.cover_url ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" loading="lazy" class="w-full h-full object-cover" />` : ''}
-              <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">👁 ${b.read_count || 0}</span>
-            </div>
-            <div class="w-full mt-2 pt-1.5 border-t border-[#E5DEC9]/70 text-center">
-              <p class="font-bold text-xs text-[#1E1916] leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">${titleText}</p>
-              <p class="text-[10px] font-bold text-[#6B141A] truncate mt-0.5" title="${authorText}">✍️ ${authorText}</p>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
     function renderBooksFromMemory(sourceBooks) {
       const sortBy = document.getElementById('sortSelect')?.value || 'newest';
       const search = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
@@ -629,16 +654,12 @@
 
       updateHeroBanner(sourceBooks);
       renderReadingStatsBar();
-      renderRecommendationsHorizontal(sourceBooks);
 
       if (activeBottomFilter === 'bookmarks') {
         const favs = getFavoritesIds();
         filtered = filtered.filter((b) => favs.includes(String(b.id)));
       } else if (activeBottomFilter === 'progress') {
         filtered = filtered.filter((b) => localStorage.getItem('BOOK_PAGE_' + b.id));
-      } else if (activeBottomFilter === 'offline') {
-        const offIds = getOfflineBookIds();
-        filtered = filtered.filter((b) => offIds.includes(String(b.id)));
       }
 
       currentBooksList = filtered;
@@ -647,50 +668,71 @@
       renderCleanShelfRows(currentBooksList);
     }
 
+    function changeShelfPage(p) {
+      currentShelfPage = p;
+      renderCleanShelfRows(currentBooksList);
+      document.getElementById('cleanShelfRows')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function renderCleanShelfRows(books) {
       const container = document.getElementById('cleanShelfRows');
+      const pagBar = document.getElementById('shelfPaginationBar');
       if (!container) return;
+
       if (!books || books.length === 0) {
-        container.innerHTML = `<div class="py-16 text-center text-xs text-[#786E65]">စာအုပ် မတွေ့ရှိပါ။</div>`;
+        container.innerHTML = `<div class="py-16 text-center text-xs text-gray-400">စာအုပ် မတွေ့ရှိပါ။</div>`;
+        if (pagBar) pagBar.innerHTML = '';
         return;
       }
 
+      const totalPages = Math.ceil(books.length / BOOKS_PER_PAGE);
+      if (currentShelfPage > totalPages) currentShelfPage = 1;
+      const startIdx = (currentShelfPage - 1) * BOOKS_PER_PAGE;
+      const pageBooks = books.slice(startIdx, startIdx + BOOKS_PER_PAGE);
+
       const offIds = getOfflineBookIds();
+      const isPaper = document.body.classList.contains('theme-paper');
       const rows = [];
-      for (let i = 0; i < books.length; i += 4) {
-        rows.push(books.slice(i, i + 4));
+      for (let i = 0; i < pageBooks.length; i += 4) {
+        rows.push(pageBooks.slice(i, i + 4));
       }
 
       container.innerHTML = rows.map((rowBooks, rowIdx) => `
-        <div class="space-y-3">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-5 px-2 items-start">
+        <div class="space-y-2">
+          <!-- Books Grid Row -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 px-2 items-end">
             ${rowBooks.map((b, idx) => {
               const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
               const isOffline = offIds.includes(String(b.id));
-              const fastSrc = getFastCoverUrl(b.cover_url, 240);
+              const fastSrc = getFastCoverUrl(b.cover_url, 260);
               const highPrio = rowIdx === 0 && idx < 4 ? 'fetchpriority="high"' : 'loading="lazy"';
               const titleText = b.title || 'အမည်မသိ စာအုပ်';
               const authorText = b.author || 'အမည်မသိ စာရေးဆရာ';
+              const isFirstSlot = rowIdx === 0 && idx === 0 && currentShelfPage === 1;
 
               return `
-                <div onclick="openBookDetail('${b.id}')" class="flex flex-col items-center cursor-pointer group bg-white/85 hover:bg-white p-2.5 rounded-2xl border border-[#E5DEC9] shadow-xs transition">
-                  <!-- 3D Book Cover -->
-                  <div class="w-28 sm:w-32 h-40 sm:h-44 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative shrink-0">
+                <div onclick="openBookDetail('${b.id}')" class="flex flex-col items-center cursor-pointer group">
+                  <!-- Book Cover Image -->
+                  <div class="w-full max-w-[155px] aspect-[2/3] rounded-xl bg-[#252A37] overflow-hidden book-card-3d relative">
                     ${b.cover_url
                       ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" ${highPrio} class="w-full h-full object-cover" />`
-                      : `<div class="w-full h-full flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B141A]">${titleText}</div>`
+                      : `<div class="w-full h-full flex items-center justify-center p-2 text-center text-xs font-bold text-amber-400">${titleText}</div>`
                     }
-                    ${savedPage ? `<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#6B141A] text-white text-[9px] font-bold shadow">စာ-${savedPage}</span>` : ''}
-                    ${isOffline ? `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold shadow">📥</span>` : ''}
-                    <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">${b.page_count || 1}p</span>
+                    <!-- Read Count Pill -->
+                    <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full bg-black/75 text-amber-300 text-[10px] font-bold flex items-center gap-1 shadow">
+                      👁 ${b.read_count || 0}
+                    </span>
+                    ${isOffline ? `<span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-bold shadow">✅ Offline</span>` : ''}
+                    ${savedPage ? `<span class="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-500 text-black text-[9px] font-bold shadow">စာ-${savedPage}</span>` : ''}
+                    ${isFirstSlot ? `<span class="absolute bottom-1 right-1 text-2xl select-none drop-shadow-md" title="စာဖတ်ဖော်">🐱</span>` : ''}
                   </div>
 
-                  <!-- Clear Book Title & Author Name Box -->
-                  <div class="w-full mt-2.5 pt-2 border-t border-[#E5DEC9]/80 text-center space-y-0.5">
-                    <h4 class="font-bold text-xs sm:text-[13px] text-[#1E1916] leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">
+                  <!-- CLEAR BOOK TITLE & AUTHOR NAME PLATE -->
+                  <div class="w-full max-w-[155px] mt-2 px-2 py-1.5 rounded-xl ${isPaper ? 'bg-white border border-[#E5DEC9] text-[#1E1916]' : 'bg-[#181B24]/95 border border-amber-500/25 text-white'} text-center shadow-md">
+                    <h4 class="font-bold text-[11px] sm:text-xs leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">
                       ${titleText}
                     </h4>
-                    <p class="text-[11px] font-bold text-[#6B141A] truncate" title="${authorText}">
+                    <p class="text-[10px] font-bold ${isPaper ? 'text-[#6B141A]' : 'text-amber-400'} truncate mt-0.5" title="${authorText}">
                       ✍️ ${authorText}
                     </p>
                   </div>
@@ -698,9 +740,31 @@
               `;
             }).join('')}
           </div>
-          <div class="wood-shelf-plank"></div>
+
+          <!-- 3D Shelf Plank with Glowing Fairy Lights -->
+          <div class="shelf-plank-dark flex items-center justify-around px-6">
+            <span class="fairy-light-dot"></span>
+            <span class="fairy-light-dot" style="animation-delay: 0.4s"></span>
+            <span class="fairy-light-dot" style="animation-delay: 0.8s"></span>
+            <span class="fairy-light-dot" style="animation-delay: 1.2s"></span>
+            <span class="fairy-light-dot" style="animation-delay: 1.6s"></span>
+            <span class="fairy-light-dot" style="animation-delay: 2.0s"></span>
+          </div>
         </div>
       `).join('');
+
+      // Render Pagination Buttons
+      if (pagBar) {
+        if (totalPages <= 1) {
+          pagBar.innerHTML = '';
+        } else {
+          let btns = '';
+          for (let p = 1; p <= totalPages; p++) {
+            btns += `<button onclick="changeShelfPage(${p})" class="tactile-btn w-8 h-8 rounded-xl font-bold text-xs ${p === currentShelfPage ? 'bg-amber-500 text-[#0F1117] shadow' : 'bg-white/10 text-gray-300'}">${p}</button>`;
+          }
+          pagBar.innerHTML = btns;
+        }
+      }
     }
 
     // ================= 5. BOOK DETAIL, PRE-WARM & OFFLINE SAVE =================
@@ -771,7 +835,7 @@
       try {
         btn.disabled = true;
         btn.textContent = '⏳ သိမ်းဆည်းနေသည်...';
-        const cache = await caches.open('sar-offline-pdfs-v4');
+        const cache = await caches.open('sar-offline-pdfs-v5');
         const [baseUrl, partsHash] = currentDetailBook.pdf_url.split('#parts=');
         const totalParts = partsHash ? parseInt(partsHash, 10) : 1;
 
@@ -937,6 +1001,7 @@
       document.getElementById('pdfReaderModal').style.display = 'none';
       activePdfDoc = null;
       renderReadingStatsBar();
+      renderCleanShelfRows(currentBooksList);
     }
 
     // ================= 7. REVIEWS, REQUESTS, ADS & VIP =================
@@ -1046,7 +1111,6 @@
 
     async function verifyVipWithServer() {
       if (isVipActiveLocally()) {
-        document.getElementById('vipBadgeHeader')?.classList.remove('hidden');
         document.getElementById('sponsorBannerSection')?.classList.add('hidden');
       }
     }
@@ -1068,255 +1132,6 @@
       closeVipModal();
       alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
     }
-
-    // ================= AUTO BOOK TITLE & AUTHOR ON SHELF (DARK SHELF COMPATIBLE) =================
-    (function enableShelfBookLabels() {
-      // Clear old Service Worker HTML cache so updates appear immediately
-      if ('caches' in window) {
-        caches.keys().then((keys) => {
-          keys.forEach((k) => {
-            if (k.includes('static') || k.includes('library')) caches.delete(k);
-          });
-        });
-      }
-
-      // Inject CSS for Book Title & Author Labels under each book on the shelf
-      if (!document.getElementById('sarShelfLabelStyles')) {
-        const style = document.createElement('style');
-        style.id = 'sarShelfLabelStyles';
-        style.textContent = `
-          .sar-shelf-caption {
-            width: 100%;
-            margin-top: 6px;
-            padding: 5px 6px;
-            border-radius: 10px;
-            background: rgba(20, 20, 26, 0.88);
-            border: 1px solid rgba(251, 191, 36, 0.25);
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(4px);
-          }
-          .sar-shelf-caption-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #FAF8F5;
-            line-height: 1.35;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            word-break: break-word;
-          }
-          .sar-shelf-caption-author {
-            font-size: 10px;
-            font-weight: 700;
-            color: #FBBF24;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-        `;
-        document.head.appendChild(style);
-      }
-
-      function attachTitlesToShelfBooks() {
-        const booksPool = (typeof allPublishedBooks !== 'undefined' && allPublishedBooks.length)
-          ? allPublishedBooks
-          : (typeof currentBooksList !== 'undefined' ? currentBooksList : []);
-
-        if (!booksPool || !booksPool.length) return;
-
-        const shelfArea = document.getElementById('cleanShelfRows') || document.body;
-        const bookEls = shelfArea.querySelectorAll('[onclick*="openBookDetail"]');
-
-        bookEls.forEach((el) => {
-          if (el.closest('#heroBannerSection') || el.closest('#bookDetailModal')) return;
-
-          const onclickAttr = el.getAttribute('onclick') || '';
-          const match = onclickAttr.match(/openBookDetail\(\s*['"]([^'"]+)['"]\s*\)/);
-          if (!match) return;
-
-          const bookId = match[1];
-          const book = booksPool.find((b) => String(b.id) === String(bookId));
-          if (!book) return;
-
-          // Determine best container so label sits cleanly below the book cover
-          let targetCard = el;
-          const computed = window.getComputedStyle(el);
-          if (computed.overflow === 'hidden' && el.parentElement && !window.getComputedStyle(el.parentElement).display.includes('grid')) {
-            targetCard = el.parentElement;
-          } else if (computed.overflow === 'hidden') {
-            el.style.overflow = 'visible';
-          }
-
-          let caption = targetCard.querySelector('.sar-shelf-caption');
-          if (!caption) {
-            caption = document.createElement('div');
-            caption.className = 'sar-shelf-caption';
-            targetCard.appendChild(caption);
-          }
-
-          const titleText = book.title || 'အမည်မသိ စာအုပ်';
-          const authorText = book.author || 'အမည်မသိ စာရေးဆရာ';
-          const nextHtml = `
-            <div class="sar-shelf-caption-title" title="${titleText}">${titleText}</div>
-            <div class="sar-shelf-caption-author" title="${authorText}">✍️ ${authorText}</div>
-          `;
-          if (caption.innerHTML !== nextHtml) {
-            caption.innerHTML = nextHtml;
-          }
-        });
-      }
-
-      // Run automatically whenever the shelf updates
-      const observer = new MutationObserver(() => attachTitlesToShelfBooks());
-      window.addEventListener('DOMContentLoaded', () => {
-        const target = document.getElementById('cleanShelfRows') || document.body;
-        observer.observe(target, { childList: true, subtree: true });
-        setTimeout(attachTitlesToShelfBooks, 300);
-        setTimeout(attachTitlesToShelfBooks, 1000);
-      });
-
-      attachTitlesToShelfBooks();
-    })();
-
-// ================= FORCE BOOK TITLE & AUTHOR BELOW EVERY SHELF COVER =================
-    (function initShelfLabelsV2() {
-      let booksLookup = [];
-
-      // Inject styling that sits cleanly between the book cover and the fairy-light shelf plank
-      if (!document.getElementById('sarShelfLabelStyleV2')) {
-        const st = document.createElement('style');
-        st.id = 'sarShelfLabelStyleV2';
-        st.textContent = `
-          .sar-book-col-wrap {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            width: 100% !important;
-          }
-          .sar-shelf-label-box {
-            width: 100%;
-            margin-top: 6px;
-            margin-bottom: 4px;
-            padding: 5px 6px;
-            border-radius: 8px;
-            background: rgba(15, 15, 20, 0.92);
-            border: 1px solid rgba(251, 191, 36, 0.35);
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 25;
-            pointer-events: none;
-          }
-          .sar-shelf-label-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #FFFFFF;
-            line-height: 1.35;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          }
-          .sar-shelf-label-author {
-            font-size: 10px;
-            font-weight: 700;
-            color: #FBBF24;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-        `;
-        document.head.appendChild(st);
-      }
-
-      async function ensureBooksDataLoaded() {
-        if (typeof allPublishedBooks !== 'undefined' && Array.isArray(allPublishedBooks) && allPublishedBooks.length) {
-          booksLookup = allPublishedBooks;
-          return;
-        }
-        if (booksLookup.length) return;
-        try {
-          const sbUrl = localStorage.getItem('SB_URL') || 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
-          const sbKey = localStorage.getItem('SB_KEY') || 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-          if (window.supabase) {
-            const client = window.supabase.createClient(sbUrl, sbKey);
-            const { data } = await client.from('books').select('id,title,author,cover_url');
-            if (data && data.length) booksLookup = data;
-          }
-        } catch (e) {}
-      }
-
-      function findBookForElement(el) {
-        const pool = (typeof allPublishedBooks !== 'undefined' && allPublishedBooks.length) ? allPublishedBooks : booksLookup;
-        if (!pool || !pool.length) return null;
-
-        // 1. Match by onclick ID (quoted or unquoted)
-        const onclickStr = el.getAttribute('onclick') || '';
-        const idMatch = onclickStr.match(/openBookDetail\(\s*['"]?([^)'"\s]+)['"]?\s*\)/);
-        if (idMatch) {
-          const found = pool.find((b) => String(b.id) === String(idMatch[1]));
-          if (found) return found;
-        }
-
-        // 2. Match by image URL filename
-        const img = el.querySelector('img');
-        if (img && img.src) {
-          const decodedSrc = decodeURIComponent(img.src);
-          const foundByImg = pool.find((b) => {
-            if (!b.cover_url) return false;
-            const filePart = b.cover_url.split('/').pop();
-            return filePart && decodedSrc.includes(filePart);
-          });
-          if (foundByImg) return foundByImg;
-        }
-        return null;
-      }
-
-      async function applyShelfLabels() {
-        await ensureBooksDataLoaded();
-        const clickableBooks = document.querySelectorAll('[onclick*="openBookDetail"]');
-
-        clickableBooks.forEach((bookEl) => {
-          if (bookEl.closest('#heroBannerSection') || bookEl.closest('#bookDetailModal') || bookEl.closest('header')) return;
-
-          const book = findBookForElement(bookEl);
-          if (!book) return;
-
-          // Wrap book cover in a vertical column wrapper so overflow:hidden never clips the label
-          let wrapper = bookEl.parentElement;
-          if (!wrapper || !wrapper.classList.contains('sar-book-col-wrap')) {
-            wrapper = document.createElement('div');
-            wrapper.className = 'sar-book-col-wrap';
-            bookEl.parentNode.insertBefore(wrapper, bookEl);
-            wrapper.appendChild(bookEl);
-          }
-
-          let labelBox = wrapper.querySelector('.sar-shelf-label-box');
-          if (!labelBox) {
-            labelBox = document.createElement('div');
-            labelBox.className = 'sar-shelf-label-box';
-            wrapper.appendChild(labelBox);
-          }
-
-          const title = book.title || 'အမည်မသိ စာအုပ်';
-          const author = book.author || 'အမည်မသိ စာရေးဆရာ';
-          const html = `
-            <div class="sar-shelf-label-title">${title}</div>
-            <div class="sar-shelf-label-author">✍️ ${author}</div>
-          `;
-          if (labelBox.innerHTML !== html) {
-            labelBox.innerHTML = html;
-          }
-        });
-      }
-
-      setInterval(applyShelfLabels, 800);
-      window.addEventListener('load', applyShelfLabels);
-    })();
-    
   </script>
 </body>
 </html>
