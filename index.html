@@ -1068,6 +1068,119 @@
       closeVipModal();
       alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
     }
+
+    // ================= AUTO BOOK TITLE & AUTHOR ON SHELF (DARK SHELF COMPATIBLE) =================
+    (function enableShelfBookLabels() {
+      // Clear old Service Worker HTML cache so updates appear immediately
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((k) => {
+            if (k.includes('static') || k.includes('library')) caches.delete(k);
+          });
+        });
+      }
+
+      // Inject CSS for Book Title & Author Labels under each book on the shelf
+      if (!document.getElementById('sarShelfLabelStyles')) {
+        const style = document.createElement('style');
+        style.id = 'sarShelfLabelStyles';
+        style.textContent = `
+          .sar-shelf-caption {
+            width: 100%;
+            margin-top: 6px;
+            padding: 5px 6px;
+            border-radius: 10px;
+            background: rgba(20, 20, 26, 0.88);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(4px);
+          }
+          .sar-shelf-caption-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #FAF8F5;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+          }
+          .sar-shelf-caption-author {
+            font-size: 10px;
+            font-weight: 700;
+            color: #FBBF24;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      function attachTitlesToShelfBooks() {
+        const booksPool = (typeof allPublishedBooks !== 'undefined' && allPublishedBooks.length)
+          ? allPublishedBooks
+          : (typeof currentBooksList !== 'undefined' ? currentBooksList : []);
+
+        if (!booksPool || !booksPool.length) return;
+
+        const shelfArea = document.getElementById('cleanShelfRows') || document.body;
+        const bookEls = shelfArea.querySelectorAll('[onclick*="openBookDetail"]');
+
+        bookEls.forEach((el) => {
+          if (el.closest('#heroBannerSection') || el.closest('#bookDetailModal')) return;
+
+          const onclickAttr = el.getAttribute('onclick') || '';
+          const match = onclickAttr.match(/openBookDetail\(\s*['"]([^'"]+)['"]\s*\)/);
+          if (!match) return;
+
+          const bookId = match[1];
+          const book = booksPool.find((b) => String(b.id) === String(bookId));
+          if (!book) return;
+
+          // Determine best container so label sits cleanly below the book cover
+          let targetCard = el;
+          const computed = window.getComputedStyle(el);
+          if (computed.overflow === 'hidden' && el.parentElement && !window.getComputedStyle(el.parentElement).display.includes('grid')) {
+            targetCard = el.parentElement;
+          } else if (computed.overflow === 'hidden') {
+            el.style.overflow = 'visible';
+          }
+
+          let caption = targetCard.querySelector('.sar-shelf-caption');
+          if (!caption) {
+            caption = document.createElement('div');
+            caption.className = 'sar-shelf-caption';
+            targetCard.appendChild(caption);
+          }
+
+          const titleText = book.title || 'အမည်မသိ စာအုပ်';
+          const authorText = book.author || 'အမည်မသိ စာရေးဆရာ';
+          const nextHtml = `
+            <div class="sar-shelf-caption-title" title="${titleText}">${titleText}</div>
+            <div class="sar-shelf-caption-author" title="${authorText}">✍️ ${authorText}</div>
+          `;
+          if (caption.innerHTML !== nextHtml) {
+            caption.innerHTML = nextHtml;
+          }
+        });
+      }
+
+      // Run automatically whenever the shelf updates
+      const observer = new MutationObserver(() => attachTitlesToShelfBooks());
+      window.addEventListener('DOMContentLoaded', () => {
+        const target = document.getElementById('cleanShelfRows') || document.body;
+        observer.observe(target, { childList: true, subtree: true });
+        setTimeout(attachTitlesToShelfBooks, 300);
+        setTimeout(attachTitlesToShelfBooks, 1000);
+      });
+
+      attachTitlesToShelfBooks();
+    })();
+    
   </script>
 </body>
 </html>
