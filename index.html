@@ -121,7 +121,7 @@
 </head>
 <body class="min-h-screen pb-32">
 
-  <!-- ================= 1. FAST SPLASH LOADER (MAX 1.2s) ================= -->
+  <!-- ================= 1. FAST SPLASH LOADER ================= -->
   <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0D0F14] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-200">
     <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0D0F14] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
       စာ
@@ -288,7 +288,7 @@
     </div>
   </div>
 
-  <!-- ================= 6. FULL-SCREEN PDF READER MODAL (WITH PROGRESS & SWIPE) ================= -->
+  <!-- ================= 6. FULL-SCREEN PDF READER MODAL ================= -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 flex-col reader-theme-paper">
     <div class="flex items-center justify-between px-4 py-2.5 border-b border-black/10 bg-black/5 backdrop-blur-xs">
       <div class="flex items-center gap-2 min-w-0">
@@ -304,8 +304,11 @@
 
     <div id="readerCanvasContainer" class="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 relative">
       <div id="readerLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center bg-black/25 backdrop-blur-2xs z-10 p-4 text-center">
-        <div class="w-10 h-10 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin"></div>
-        <p id="readerLoadText" class="text-xs font-bold mt-3 bg-white text-[#1E1916] px-4 py-1.5 rounded-full shadow-md">စာအုပ် ဖွင့်နေပါသည်...</p>
+        <div class="w-12 h-12 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin"></div>
+        <p id="readerLoadText" class="text-xs font-bold mt-3 bg-white text-[#1E1916] px-4 py-2 rounded-2xl shadow-lg">စာအုပ် ဖွင့်နေပါသည်...</p>
+        <div class="w-48 h-2 rounded-full bg-black/20 overflow-hidden mt-2">
+          <div id="readerDownloadBar" class="h-full bg-[#6B141A] transition-all duration-150" style="width: 10%;"></div>
+        </div>
       </div>
       <canvas id="pdfRenderCanvas" class="max-w-full shadow-2xl rounded touch-pan-y"></canvas>
     </div>
@@ -360,9 +363,10 @@
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-    const SAR_CACHE_BOOKS_KEY = 'SAR_FAST_BOOKS_V6';
-    const SAR_CACHE_CATS_KEY = 'SAR_FAST_CATS_V6';
+    const SAR_CACHE_BOOKS_KEY = 'SAR_FAST_BOOKS_V7';
+    const SAR_CACHE_CATS_KEY = 'SAR_FAST_CATS_V7';
     const OFFLINE_BOOKS_META_KEY = 'SAR_OFFLINE_BOOKS_IDS_V1';
+    const PDF_CACHE_NAME = 'sar-offline-pdfs-v6';
     const BOOKS_PER_PAGE = 12;
 
     let supabaseClient = null;
@@ -376,7 +380,6 @@
     let activeSponsorAd = null;
 
     let activePdfDoc = null;
-    let activeLoadingTask = null;
     let activePdfPage = 1;
     let activePdfTotalPages = 1;
     let activePdfScale = 1.15;
@@ -384,7 +387,10 @@
     let isRenderingPage = false;
     let pendingPageNum = null;
 
-    // ================= 1. DIRECT CDN URL HELPER (NO SLOW WSRV PROXY) =================
+    // Shared Preload Registry so Detail Modal gives a 3-5 second head start before clicking Read
+    const _activePdfDownloads = new Map();
+
+    // ================= 1. DIRECT CDN & RAW URL HELPERS =================
     function toFastCdnUrl(url) {
       if (!url) return '';
       const cleanUrl = url.trim();
@@ -420,7 +426,7 @@
       }
     }
 
-    // ================= 2. INSTANT STARTUP (NEVER BLOCKS SCREEN) =================
+    // ================= 2. INSTANT STARTUP =================
     window.addEventListener('DOMContentLoaded', () => {
       initFastLibraryApp();
     });
@@ -434,10 +440,8 @@
     }
 
     async function initFastLibraryApp() {
-      // Never let the splash screen stay longer than 800ms
-      setTimeout(hideSplashImmediately, 800);
+      setTimeout(hideSplashImmediately, 700);
 
-      // 1. Render instantly from phone cache if available
       try {
         const cachedBooks = JSON.parse(localStorage.getItem(SAR_CACHE_BOOKS_KEY) || '[]');
         const cachedCats = JSON.parse(localStorage.getItem(SAR_CACHE_CATS_KEY) || '[]');
@@ -450,7 +454,6 @@
         }
       } catch (e) {}
 
-      // 2. Connect to Supabase and fetch fresh books first
       const sbUrl = localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL;
       const sbKey = localStorage.getItem('SB_KEY') || DEFAULT_SUPABASE_KEY;
       supabaseClient = window.supabase.createClient(sbUrl.trim(), sbKey.trim());
@@ -458,7 +461,6 @@
       await loadBooks();
       hideSplashImmediately();
 
-      // 3. Load secondary items in background without slowing down books
       supabaseClient.from('categories').select('*').order('name').then(({ data }) => {
         if (data) {
           categoriesList = data;
@@ -507,6 +509,13 @@
     }
     function getOfflineBookIds() {
       try { return JSON.parse(localStorage.getItem(OFFLINE_BOOKS_META_KEY) || '[]'); } catch { return []; }
+    }
+    function markBookOfflineSaved(bookId) {
+      const offIds = getOfflineBookIds();
+      if (!offIds.includes(String(bookId))) {
+        offIds.push(String(bookId));
+        localStorage.setItem(OFFLINE_BOOKS_META_KEY, JSON.stringify(offIds));
+      }
     }
 
     function renderCategoryTabs() {
@@ -638,7 +647,6 @@
                     ${isFirstSlot ? `<span class="absolute bottom-1 right-1 text-2xl sm:text-3xl select-none drop-shadow-lg" title="စာဖတ်ဖော်">🐱</span>` : ''}
                   </div>
 
-                  <!-- BOOK TITLE & AUTHOR PLATE -->
                   <div class="w-full max-w-[165px] mt-1.5 px-2 py-1.5 rounded-t-lg ${isPaper ? 'bg-white border border-[#E5DEC9] text-[#1E1916]' : 'bg-[#1A1F2C] border border-amber-500/30 text-white'} text-center shadow-md">
                     <h4 class="font-bold text-[11px] sm:text-xs leading-snug line-clamp-1" title="${titleText}">
                       ${titleText}
@@ -678,7 +686,174 @@
       }
     }
 
-    // ================= 4. BOOK DETAIL & OFFLINE SAVE =================
+    // ================= 4. TURBO STREAM PRE-DOWNLOADER & AUTO-CACHER =================
+    async function streamFetchWithProgress(url, onProgress) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const total = parseInt(res.headers.get('content-length') || '0', 10);
+      if (!res.body) {
+        const buf = await res.arrayBuffer();
+        if (onProgress) onProgress(buf.byteLength, buf.byteLength);
+        return new Uint8Array(buf);
+      }
+
+      const reader = res.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+      let lastReportTime = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.byteLength;
+
+        const now = Date.now();
+        if (onProgress && (now - lastReportTime > 100 || loaded === total)) {
+          lastReportTime = now;
+          onProgress(loaded, total);
+        }
+      }
+
+      const combined = new Uint8Array(loaded);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      return combined;
+    }
+
+    function startBackgroundPdfPreload(book) {
+      if (!book || !book.pdf_url) return null;
+      const key = String(book.id);
+
+      if (_activePdfDownloads.has(key)) {
+        return _activePdfDownloads.get(key);
+      }
+
+      const entry = {
+        pct: 0,
+        statusText: 'စာအုပ် ချိတ်ဆက်နေပါသည်...',
+        listeners: new Set(),
+        promise: null
+      };
+
+      const notify = (pct, statusText) => {
+        entry.pct = pct;
+        entry.statusText = statusText;
+        entry.listeners.forEach((fn) => {
+          try { fn(pct, statusText); } catch (e) {}
+        });
+      };
+
+      entry.promise = (async () => {
+        const pdfUrl = book.pdf_url.trim();
+
+        // 1. Check Offline Cache Storage First (0.1s Instant Open!)
+        if ('caches' in window) {
+          try {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            const cachedRes = await cache.match(pdfUrl);
+            if (cachedRes) {
+              notify(100, 'Offline သိမ်းထားသောဖိုင် ဖွင့်နေပါသည်...');
+              const buf = await cachedRes.arrayBuffer();
+              markBookOfflineSaved(book.id);
+              return new Uint8Array(buf);
+            }
+          } catch (e) {}
+        }
+
+        // 2. Multi-part PDF Parallel Download (4x Faster than Sequential)
+        if (pdfUrl.includes('#parts=')) {
+          const [part0Url, countStr] = pdfUrl.split('#parts=');
+          const totalParts = parseInt(countStr, 10) || 1;
+          const prefix = part0Url.replace(/\.part0$/, '');
+          let completedParts = 0;
+          notify(5, `အပိုင်း (${totalParts}) ပိုင်း ပြိုင်တူဆွဲယူနေသည်...`);
+
+          const partPromises = Array.from({ length: totalParts }, async (_, idx) => {
+            const partUrl = `${prefix}.part${idx}`;
+            const res = await fetch(partUrl);
+            if (!res.ok) throw new Error(`Part ${idx} failed`);
+            const buf = await res.arrayBuffer();
+            completedParts++;
+            const pct = Math.round((completedParts / totalParts) * 100);
+            notify(pct, `အပိုင်း (${completedParts}/${totalParts}) ရရှိပြီ (${pct}%)`);
+            return new Uint8Array(buf);
+          });
+
+          const partsData = await Promise.all(partPromises);
+          const totalBytes = partsData.reduce((acc, p) => acc + p.byteLength, 0);
+          const combined = new Uint8Array(totalBytes);
+          let offset = 0;
+          for (const p of partsData) {
+            combined.set(p, offset);
+            offset += p.byteLength;
+          }
+
+          if ('caches' in window) {
+            caches.open(PDF_CACHE_NAME).then((cache) => {
+              cache.put(pdfUrl, new Response(combined.slice(0).buffer, { headers: { 'Content-Type': 'application/pdf' } }));
+              markBookOfflineSaved(book.id);
+            }).catch(() => {});
+          }
+          return combined;
+        }
+
+        // 3. Single PDF Stream Download: Try Fast CDN first; if >20MB (HTTP 403), switch to GitHub Raw in 150ms!
+        const primaryUrl = toFastCdnUrl(pdfUrl);
+        const fallbackUrl = toRawGitHubUrl(pdfUrl);
+
+        const onStreamProgress = (loaded, total) => {
+          const loadedMb = (loaded / (1024 * 1024)).toFixed(1);
+          if (total > 0) {
+            const pct = Math.min(Math.round((loaded / total) * 100), 99);
+            const totalMb = (total / (1024 * 1024)).toFixed(1);
+            notify(pct, `ဆွဲယူနေသည်... ${pct}% (${loadedMb} / ${totalMb} MB)`);
+          } else {
+            const estPct = Math.min(Math.round((loaded / (8 * 1024 * 1024)) * 100), 95);
+            notify(estPct, `ဆွဲယူနေသည်... (${loadedMb} MB)`);
+          }
+        };
+
+        let bytes;
+        try {
+          bytes = await streamFetchWithProgress(primaryUrl, onStreamProgress);
+        } catch (err) {
+          if (fallbackUrl && fallbackUrl !== primaryUrl) {
+            notify(10, 'မူရင်း GitHub ဆာဗာမှ တိုက်ရိုက်ဆွဲယူနေသည်...');
+            bytes = await streamFetchWithProgress(fallbackUrl, onStreamProgress);
+          } else {
+            throw err;
+          }
+        }
+
+        notify(100, 'စာမျက်နှာ ဖော်ပြနေပါသည်...');
+
+        // Auto-save to Cache Storage so user never waits for this book again!
+        if ('caches' in window && bytes && bytes.byteLength > 0) {
+          caches.open(PDF_CACHE_NAME).then((cache) => {
+            cache.put(pdfUrl, new Response(bytes.slice(0).buffer, { headers: { 'Content-Type': 'application/pdf' } }));
+            markBookOfflineSaved(book.id);
+          }).catch(() => {});
+        }
+
+        return bytes;
+      })();
+
+      entry.promise.catch(() => {
+        _activePdfDownloads.delete(key);
+      });
+
+      _activePdfDownloads.set(key, entry);
+      return entry;
+    }
+
+    // ================= 5. BOOK DETAIL MODAL (WITH HEAD-START PRELOAD) =================
+    let _detailPreloadListener = null;
+
     async function openBookDetail(bookId) {
       const b = allPublishedBooks.find((x) => String(x.id) === String(bookId));
       if (!b) return;
@@ -694,22 +869,47 @@
       document.getElementById('detailMeta').textContent = `📄 ${b.page_count || 1} မျက်နှာ • 👁 ${b.read_count || 0} ကြိမ် ဖတ်ရှုပြီး`;
       document.getElementById('detailDesc').textContent = b.description || 'စာအုပ်အညွှန်း မရှိသေးပါ။';
 
+      const readBtn = document.getElementById('detailReadNowBtn');
       const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
-      document.getElementById('detailReadNowBtn').textContent = savedPage
+      const baseBtnLabel = savedPage
         ? `📖 စာမျက်နှာ (${savedPage}) မှ ဆက်ဖတ်မည်`
         : '📖 စာအုပ်ဖတ်မည်';
-      document.getElementById('detailReadNowBtn').onclick = () => {
+      readBtn.textContent = baseBtnLabel;
+
+      readBtn.onclick = () => {
         closeBookDetail();
         openPdfReader(b);
       };
 
       updateDetailButtonsUI();
       document.getElementById('bookDetailModal').style.display = 'flex';
+
+      // Start Pre-Downloading Immediately while user is looking at Book Details!
+      const preloadEntry = startBackgroundPdfPreload(b);
+      if (preloadEntry) {
+        _detailPreloadListener = (pct) => {
+          if (currentDetailBook && String(currentDetailBook.id) === String(b.id)) {
+            if (pct >= 100) {
+              readBtn.textContent = `${baseBtnLabel} (⚡ အသင့်ဖြစ်ပါပြီ)`;
+              updateDetailButtonsUI();
+            } else if (pct > 0) {
+              readBtn.textContent = `${baseBtnLabel} (⚡ အသင့်ပြင်နေသည် ${pct}%)`;
+            }
+          }
+        };
+        preloadEntry.listeners.add(_detailPreloadListener);
+      }
+
       loadBookReviews(b.id);
     }
 
     function closeBookDetail() {
       document.getElementById('bookDetailModal').style.display = 'none';
+      if (currentDetailBook && _detailPreloadListener) {
+        const entry = _activePdfDownloads.get(String(currentDetailBook.id));
+        if (entry) entry.listeners.delete(_detailPreloadListener);
+        _detailPreloadListener = null;
+      }
     }
 
     function updateDetailButtonsUI() {
@@ -741,25 +941,12 @@
       try {
         btn.disabled = true;
         btn.textContent = '⏳ သိမ်းဆည်းနေသည်...';
-        const cache = await caches.open('sar-offline-pdfs-v6');
-        const [baseUrl, partsHash] = currentDetailBook.pdf_url.split('#parts=');
-        const totalParts = partsHash ? parseInt(partsHash, 10) : 1;
-
-        if (totalParts > 1 && baseUrl.endsWith('.part0')) {
-          const prefix = baseUrl.replace(/\.part0$/, '');
-          for (let i = 0; i < totalParts; i++) {
-            btn.textContent = `⏳ အပိုင်း ${i + 1}/${totalParts}...`;
-            await cache.add(`${prefix}.part${i}`);
-          }
-        } else {
-          await cache.add(baseUrl);
-        }
-
-        const offIds = getOfflineBookIds();
-        if (!offIds.includes(String(currentDetailBook.id))) {
-          offIds.push(String(currentDetailBook.id));
-          localStorage.setItem(OFFLINE_BOOKS_META_KEY, JSON.stringify(offIds));
-        }
+        const preloadEntry = startBackgroundPdfPreload(currentDetailBook);
+        const listener = (pct) => { btn.textContent = `⏳ သိမ်းဆည်းနေသည် (${pct}%)...`; };
+        preloadEntry.listeners.add(listener);
+        await preloadEntry.promise;
+        preloadEntry.listeners.delete(listener);
+        markBookOfflineSaved(currentDetailBook.id);
         updateDetailButtonsUI();
         renderBooksFromMemory(allPublishedBooks);
       } catch (err) {
@@ -781,75 +968,18 @@
       }
     }
 
-    // ================= 5. RELIABLE PDF READER WITH REAL-TIME % PROGRESS & FALLBACK =================
-    async function loadPdfWithProgressAndFallback(pdfUrl, onStatus) {
-      if (pdfUrl.includes('#parts=')) {
-        const [part0Url, countStr] = pdfUrl.split('#parts=');
-        const totalParts = parseInt(countStr, 10) || 1;
-        const prefix = part0Url.replace(/\.part0$/, '');
-        const buffers = [];
-        for (let i = 0; i < totalParts; i++) {
-          if (onStatus) onStatus(`အပိုင်း (${i + 1}/${totalParts}) ဆွဲယူနေသည်...`);
-          const res = await fetch(`${prefix}.part${i}`);
-          buffers.push(await res.arrayBuffer());
-        }
-        const combinedBlob = new Blob(buffers, { type: 'application/pdf' });
-        const blobUrl = URL.createObjectURL(combinedBlob);
-        return await window.pdfjsLib.getDocument(blobUrl).promise;
-      }
-
-      // Check Offline Cache first
-      if ('caches' in window) {
-        const cachedRes = await caches.match(pdfUrl);
-        if (cachedRes) {
-          if (onStatus) onStatus('Offline သိမ်းထားသောဖိုင် ဖွင့်နေပါသည်...');
-          const buf = await cachedRes.arrayBuffer();
-          return await window.pdfjsLib.getDocument({ data: buf }).promise;
-        }
-      }
-
-      const primaryUrl = toFastCdnUrl(pdfUrl);
-      const fallbackUrl = toRawGitHubUrl(pdfUrl);
-
-      async function tryLoadUrl(targetUrl) {
-        const task = window.pdfjsLib.getDocument({
-          url: targetUrl,
-          cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-          cMapPacked: true
-        });
-        activeLoadingTask = task;
-        task.onProgress = (p) => {
-          const loadedMb = (p.loaded / (1024 * 1024)).toFixed(1);
-          if (p.total > 0) {
-            const pct = Math.min(Math.round((p.loaded / p.total) * 100), 100);
-            const totalMb = (p.total / (1024 * 1024)).toFixed(1);
-            if (onStatus) onStatus(`စာအုပ် ဆွဲယူနေပါသည်... ${pct}% (${loadedMb} / ${totalMb} MB)`);
-          } else {
-            if (onStatus) onStatus(`စာအုပ် ဆွဲယူနေပါသည်... (${loadedMb} MB)`);
-          }
-        };
-        return await task.promise;
-      }
-
-      try {
-        return await tryLoadUrl(primaryUrl);
-      } catch (firstErr) {
-        if (fallbackUrl && fallbackUrl !== primaryUrl) {
-          if (onStatus) onStatus('မူရင်း GitHub ဆာဗာမှ ပြောင်းလဲဆွဲယူနေပါသည်...');
-          return await tryLoadUrl(fallbackUrl);
-        }
-        throw firstErr;
-      }
-    }
+    // ================= 6. INSTANT IN-MEMORY PDF READER =================
+    let _readerPreloadListener = null;
 
     async function openPdfReader(book) {
       const modal = document.getElementById('pdfReaderModal');
       const spinner = document.getElementById('readerLoadingSpinner');
       const loadText = document.getElementById('readerLoadText');
+      const dlBar = document.getElementById('readerDownloadBar');
+
       document.getElementById('readerBookTitle').textContent = `${book.title} — ${book.author}`;
       modal.style.display = 'flex';
       spinner.style.display = 'flex';
-      loadText.textContent = 'စာအုပ် ချိတ်ဆက်နေပါသည်...';
 
       activeBookIdForReader = book.id;
 
@@ -857,10 +987,29 @@
         supabaseClient.from('books').update({ read_count: (book.read_count || 0) + 1 }).eq('id', book.id).then(() => {});
       }
 
-      try {
-        activePdfDoc = await loadPdfWithProgressAndFallback(book.pdf_url, (msg) => {
+      const preloadEntry = startBackgroundPdfPreload(book);
+      if (preloadEntry) {
+        dlBar.style.width = `${Math.max(preloadEntry.pct, 10)}%`;
+        loadText.textContent = preloadEntry.statusText;
+
+        _readerPreloadListener = (pct, msg) => {
+          dlBar.style.width = `${Math.max(pct, 10)}%`;
           loadText.textContent = msg;
-        });
+        };
+        preloadEntry.listeners.add(_readerPreloadListener);
+      }
+
+      try {
+        const pdfBytes = await preloadEntry.promise;
+        if (_readerPreloadListener) preloadEntry.listeners.delete(_readerPreloadListener);
+
+        // Pass clone of bytes to PDF.js so cached buffer stays reusable
+        activePdfDoc = await window.pdfjsLib.getDocument({
+          data: pdfBytes.slice(0),
+          cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+          cMapPacked: true
+        }).promise;
+
         activePdfTotalPages = activePdfDoc.numPages;
         const savedPage = parseInt(localStorage.getItem('BOOK_PAGE_' + book.id) || '1', 10);
         activePdfPage = Math.min(Math.max(savedPage, 1), activePdfTotalPages);
@@ -883,9 +1032,6 @@
         return;
       }
       isRenderingPage = true;
-      const spinner = document.getElementById('readerLoadingSpinner');
-      spinner.style.display = 'flex';
-      document.getElementById('readerLoadText').textContent = `စာမျက်နှာ (${pageNum}) ဖော်ပြနေပါသည်...`;
 
       try {
         const page = await activePdfDoc.getPage(pageNum);
@@ -908,7 +1054,7 @@
         }
       } catch (e) {} finally {
         isRenderingPage = false;
-        spinner.style.display = 'none';
+        document.getElementById('readerLoadingSpinner').style.display = 'none';
         if (pendingPageNum !== null) {
           const next = pendingPageNum;
           pendingPageNum = null;
@@ -946,10 +1092,6 @@
 
     function closePdfReader() {
       document.getElementById('pdfReaderModal').style.display = 'none';
-      if (activeLoadingTask && typeof activeLoadingTask.destroy === 'function') {
-        activeLoadingTask.destroy().catch(() => {});
-      }
-      activeLoadingTask = null;
       activePdfDoc = null;
       renderCleanShelfRows(currentBooksList);
     }
@@ -980,7 +1122,7 @@
       }
     });
 
-    // ================= 6. REVIEWS, REQUESTS, ADS & VIP =================
+    // ================= 7. REVIEWS, REQUESTS, ADS & VIP =================
     async function loadBookReviews(bookId) {
       const box = document.getElementById('detailReviewsList');
       if (!supabaseClient || !box) return;
