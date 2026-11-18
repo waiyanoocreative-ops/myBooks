@@ -1,75 +1,66 @@
-const STATIC_CACHE = 'sar-static-v6';
-const IMG_CACHE = 'sar-covers-webp-v6';
-const PDF_CACHE = 'sar-offline-pdfs-v6';
+// Cache နာမည် (ကုဒ်အသစ်တင်တိုင်း ဒီ Version နံပါတ်ကို v2, v3 စသဖြင့် ပြောင်းပေးရပါမည်)
+const CACHE_NAME = 'sar-app-shell-v4';
 
-self.addEventListener('install', () => {
+// App ပွင့်ရန် မရှိမဖြစ် လိုအပ်သောဖိုင်များ
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon.png'
+];
+
+// 1. Install Event (App ကို ဖုန်းထဲသွင်းချိန်တွင် အလုပ်လုပ်သည်)
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
+  // Service Worker အသစ်ကို ချက်ချင်း အသက်ဝင်စေသည်
   self.skipWaiting();
 });
 
-// ယခင် Cache အဟောင်းအားလုံးကို အလိုအလျောက် ရှင်းလင်းမည်
+// 2. Activate Event (App အဟောင်းများကို ရှင်းလင်းသည်)
 self.addEventListener('activate', (event) => {
-  const allowed = [STATIC_CACHE, IMG_CACHE, PDF_CACHE];
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (!allowed.includes(k) ? caches.delete(k) : null)))
-    )
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          // မှတ်ချက် - User များ Offline သိမ်းထားသော 'sar-offline-pdfs' ကို မဖျက်မိစေရန် ကာကွယ်ထားပါသည်
+          if (key !== CACHE_NAME && key.startsWith('sar-app-shell')) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
   );
   self.clients.claim();
 });
 
-function isCoverOrImageRequest(url) {
-  return (
-    url.includes('wsrv.nl') ||
-    url.includes('/covers/') ||
-    url.includes('/ads/') ||
-    /\.(webp|jpg|jpeg|png|gif|svg|ico)(\?.*)?$/i.test(url)
-  );
-}
-
-function isPdfRequest(url) {
-  return url.includes('/pdfs/') || /\.pdf(\.part\d+)?(\?.*)?$/i.test(url);
-}
-
+// 3. Fetch Event (အင်တာနက်မရှိချိန် အော့ဖ်လိုင်း ဖွင့်နိုင်ရန်)
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-  const url = req.url;
+  // Supabase Database သို့ လှမ်းသော POST, UPDATE များကို မသိမ်းပါ
+  if (event.request.method !== 'GET') return;
 
-  if (url.includes('supabase.co') || url.includes('api.github.com')) return;
+  // 🔴 အလွန်အရေးကြီးသည်! (PDF Byte-Streaming ပြတ်တောက်ခြင်းမှ ကာကွယ်ရန်)
+  // Range Request များကို Service Worker က ကြားဖြတ်မယူဘဲ ဆာဗာမှ တိုက်ရိုက် ဆွဲယူခွင့်ပြုပါသည်
+  if (event.request.headers.has('range')) return;
 
-  // HTML ဖိုင်များကို အမြဲတမ်း အသစ်အရင်ဆွဲယူမည် (Network-First)
-  if (req.mode === 'navigate' || url.endsWith('.html') || url.endsWith('/')) {
-    event.respondWith(
-      fetch(req, { cache: 'no-store' })
-        .then((netRes) => {
-          const clone = netRes.clone();
-          caches.open(STATIC_CACHE).then((c) => c.put(req, clone));
-          return netRes;
-        })
-        .catch(() => caches.match(req))
-    );
-    return;
-  }
-
-  // မျက်နှာဖုံးပုံများ (WebP) -> Cache-First (0ms ဖြင့် ချက်ချင်းပွင့်မည်)
-  if (isCoverOrImageRequest(url)) {
-    event.respondWith(
-      caches.open(IMG_CACHE).then(async (cache) => {
-        const cached = await cache.match(req);
-        if (cached) return cached;
-        const netRes = await fetch(req);
-        if (netRes && (netRes.status === 200 || netRes.type === 'opaque')) {
-          cache.put(req, netRes.clone());
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // အင်တာနက်ရနေချိန်တွင် ဖိုင်အသစ်များကို နောက်ကွယ်မှ Cache ထဲသို့ အမြဲ Update လုပ်ပေးမည်
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
         }
-        return netRes;
+        return response;
       })
-    );
-    return;
-  }
-
-  // Offline PDF များ
-  if (isPdfRequest(url)) {
-    event.respondWith(caches.match(req).then((cached) => cached || fetch(req)));
-    return;
-  }
+      .catch(() => {
+        // အင်တာနက် ပြတ်တောက်သွားပါက သိမ်းထားသော ဖိုင်များကို ဖွင့်ပေးမည်
+        return caches.match(event.request);
+      })
+  );
 });
