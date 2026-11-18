@@ -3049,6 +3049,180 @@
         }
       };
     })();
+
+    // ================= 16. INSTANT TURBO LOADER (ZERO-WAIT CACHE + WEBP THUMBNAILS) =================
+    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V1';
+    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V1';
+
+    // 1. Convert heavy cover images into 15KB-25KB ultra-fast WebP thumbnails via Global CDN
+    function getFastCoverUrl(url, width = 240) {
+      if (!url) return '';
+      let cleanUrl = url.trim();
+      const rawMatch = cleanUrl.match(/^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
+      if (rawMatch) {
+        cleanUrl = `https://cdn.jsdelivr.net/gh/${rawMatch[1]}/${rawMatch[2]}@${rawMatch[3]}/${rawMatch[4]}`;
+      }
+      if (cleanUrl.startsWith('data:')) return cleanUrl;
+      return `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=75&output=webp`;
+    }
+
+    // 2. Instant Splash Loader: Opens in 0.2s if cached, or immediately when first network request finishes
+    async function runThreeSecondSplashAndPreload() {
+      const splash = document.getElementById('smartSplashLoader');
+      const bar = document.getElementById('splashProgressBar');
+      const pctText = document.getElementById('splashPctText');
+      const statusText = document.getElementById('splashStatusText');
+
+      const cachedBooksRaw = localStorage.getItem(SAR_CACHE_BOOKS_KEY);
+      const cachedCatsRaw = localStorage.getItem(SAR_CACHE_CATS_KEY);
+
+      // FAST PATH: If user has opened the app before, render books INSTANTLY from local cache (0ms network wait)
+      if (cachedBooksRaw) {
+        try {
+          allPublishedBooks = JSON.parse(cachedBooksRaw) || [];
+          categoriesList = cachedCatsRaw ? JSON.parse(cachedCatsRaw) : [];
+          if (allPublishedBooks.length > 0) {
+            bar.style.width = '100%';
+            pctText.textContent = '100%';
+            statusText.textContent = 'အသင့်ဖြစ်ပါပြီ!';
+            renderCategoryTabs();
+            renderBooksFromMemory(allPublishedBooks);
+
+            // Hide splash immediately (0.2s)
+            setTimeout(() => {
+              splash.style.opacity = '0';
+              setTimeout(() => { splash.style.display = 'none'; }, 250);
+            }, 150);
+
+            // Silently sync new books in background without blocking the user
+            const url = localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL;
+            const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY');
+            startReaderAppBackground(url, key);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // FIRST VISIT PATH: No artificial 3-second delay; open as soon as book list JSON arrives
+      bar.style.width = '65%';
+      pctText.textContent = '65%';
+      statusText.textContent = 'စာအုပ်စာရင်း ရယူနေပါသည်...';
+
+      try {
+        const url = localStorage.getItem('SB_URL') || DEFAULT_SUPABASE_URL;
+        const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('SB_KEY');
+        await startReaderAppBackground(url, key);
+      } catch (e) {}
+
+      bar.style.width = '100%';
+      pctText.textContent = '100%';
+      splash.style.opacity = '0';
+      setTimeout(() => { splash.style.display = 'none'; }, 300);
+    }
+
+    async function startReaderAppBackground(url, key) {
+      supabaseClient = window.supabase.createClient(url.trim(), key.trim());
+      initRealtimeBookNotifications();
+      initReaderSponsorBanner();
+      verifyVipWithServer();
+      fetchUserDataFromSupabase().then(() => renderBooksFromMemory(allPublishedBooks));
+
+      const [catRes] = await Promise.all([
+        supabaseClient.from('categories').select('*').order('name'),
+        loadBooks(true)
+      ]);
+
+      if (catRes && catRes.data) {
+        categoriesList = catRes.data;
+        localStorage.setItem(SAR_CACHE_CATS_KEY, JSON.stringify(categoriesList));
+        renderCategoryTabs();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const sharedBookId = params.get('book');
+      if (sharedBookId) {
+        setTimeout(() => openBookDetail(sharedBookId), 200);
+      }
+    }
+
+    // 3. Local-first filtering & sorting (Zero network delay when searching, sorting, or switching tabs!)
+    function renderBooksFromMemory(sourceBooks) {
+      const sortBy = document.getElementById('sortSelect')?.value || 'newest';
+      const search = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+      let filtered = [...(sourceBooks || [])];
+
+      if (selectedCategoryId) {
+        filtered = filtered.filter((b) => String(b.category_id) === String(selectedCategoryId));
+      }
+      if (search !== '') {
+        filtered = filtered.filter((b) =>
+          (b.title || '').toLowerCase().includes(search) ||
+          (b.author || '').toLowerCase().includes(search)
+        );
+      }
+
+      if (sortBy === 'newest') filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      if (sortBy === 'popular') filtered.sort((a, b) => (b.read_count || 0) - (a.read_count || 0));
+      if (sortBy === 'pages_asc') filtered.sort((a, b) => (a.page_count || 0) - (b.page_count || 0));
+      if (sortBy === 'title_asc') filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+      updateHeroBanner(sourceBooks);
+      renderReadingStatsBar();
+      renderRecommendationsHorizontal(sourceBooks);
+
+      if (activeBottomFilter === 'bookmarks') {
+        const favs = getFavoritesIds();
+        filtered = filtered.filter((b) => favs.includes(b.id));
+      } else if (activeBottomFilter === 'progress') {
+        filtered = filtered.filter((b) => localStorage.getItem('BOOK_PAGE_' + b.id));
+      }
+
+      currentBooksList = filtered;
+      const countEl = document.getElementById('totalBooksCountText');
+      if (countEl) countEl.textContent = `စာအုပ် (${currentBooksList.length}) အုပ်`;
+      renderCleanShelfRows(currentBooksList);
+    }
+
+    // Override loadBooks to render from memory first, then sync with Supabase silently
+    async function loadBooks(isInitialLoad = false) {
+      if (allPublishedBooks.length > 0 && !isInitialLoad) {
+        renderBooksFromMemory(allPublishedBooks);
+        return;
+      }
+      if (!supabaseClient) return;
+
+      const { data: books } = await supabaseClient
+        .from('books')
+        .select('id,title,author,category_id,page_count,read_count,cover_url,pdf_url,description,status,created_at,categories(name)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (books && books.length > 0) {
+        allPublishedBooks = books;
+        localStorage.setItem(SAR_CACHE_BOOKS_KEY, JSON.stringify(books));
+        populateWelcomeOrbitCovers(allPublishedBooks);
+        if (isInitialLoad) checkNewlyUploadedBooksSinceLastVisit(allPublishedBooks);
+        renderBooksFromMemory(allPublishedBooks);
+      }
+    }
+
+    // 4. Override Shelf & Recommendation Renderers to use compressed 18KB WebP thumbnails with fallback
+    const _origRenderCleanShelfRows = renderCleanShelfRows;
+    renderCleanShelfRows = function(books) {
+      _origRenderCleanShelfRows(books);
+      document.querySelectorAll('#cleanShelfRows img, #recommendationsRow img, #heroFanCovers img').forEach((img, idx) => {
+        const origSrc = img.getAttribute('src');
+        if (origSrc && !origSrc.includes('wsrv.nl') && !origSrc.startsWith('data:')) {
+          img.dataset.raw = origSrc;
+          img.onerror = function() { if (this.src !== this.dataset.raw) this.src = this.dataset.raw; };
+          if (idx < 6) img.setAttribute('fetchpriority', 'high');
+          img.src = getFastCoverUrl(origSrc, 240);
+        }
+      });
+    };
+
+    
   </script>
 </body>
 </html>
