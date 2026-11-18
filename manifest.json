@@ -1,13 +1,14 @@
 {
   "name": "စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်",
   "short_name": "စာ",
-  "description": "မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့ ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်",
+  "description": "မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် အခမဲ့၊ လွယ်ကူချောမွေ့စွာ ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FAF8F5",
   "theme_color": "#6B141A",
+  "lang": "my",
   "icons": [
     {
       "src": "icon.png",
