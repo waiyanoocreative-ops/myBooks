@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
   <meta name="description" content="မြန်မာစာအုပ်ကောင်းများကို အင်တာနက်လိုင်းနှေးသည့်တိုင် လျင်မြန်ချောမွေ့စွာ အခမဲ့ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်" />
-  <meta name="theme-color" content="#0F1117" />
+  <meta name="theme-color" content="#0D0F14" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
@@ -22,28 +22,24 @@
     @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Playfair+Display:wght@700&display=swap');
 
     :root {
-      --bg-main: #0F1117;
-      --bg-surface: #181B24;
+      --bg-main: #0D0F14;
+      --bg-shelf-box: #12151E;
       --text-main: #F3F4F6;
       --text-muted: #9CA3AF;
-      --border-color: rgba(255, 255, 255, 0.1);
-      --accent-gold: #F59E0B;
-      --accent-crimson: #6B141A;
     }
 
     body.theme-paper {
       --bg-main: #FAF8F5;
-      --bg-surface: #F3EFE6;
+      --bg-shelf-box: #F3EFE6;
       --text-main: #1E1916;
       --text-muted: #786E65;
-      --border-color: #E5DEC9;
     }
 
     body {
       font-family: 'Padauk', sans-serif;
       background-color: var(--bg-main);
       color: var(--text-main);
-      line-height: 1.7;
+      line-height: 1.65;
       -webkit-tap-highlight-color: transparent;
       overflow-x: hidden;
       transition: background-color 0.25s ease, color 0.25s ease;
@@ -63,39 +59,60 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 3D Book Card & Shelf Plank with Fairy Lights */
-    .book-card-3d {
-      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.55), -2px 0 6px rgba(0, 0, 0, 0.3);
+    /* Book Cover 3D Styling */
+    .book-cover-frame {
+      box-shadow: 0 10px 22px -4px rgba(0, 0, 0, 0.7), -2px 0 6px rgba(0, 0, 0, 0.4);
       transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
     }
-    .group:hover .book-card-3d {
+    .group:hover .book-cover-frame {
       transform: translateY(-5px);
-      box-shadow: 0 16px 30px -5px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 16px 28px -4px rgba(0, 0, 0, 0.85);
     }
 
-    .shelf-plank-dark {
-      height: 14px;
-      background: linear-gradient(180deg, #2A303D 0%, #1B202B 60%, #10131A 100%);
+    /* 3D Shelf Plank & Hanging Fairy Lights */
+    .shelf-plank-bar {
+      height: 12px;
+      background: linear-gradient(180deg, #2B3242 0%, #1B202C 65%, #10131B 100%);
       border-radius: 6px;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
       position: relative;
+      z-index: 10;
     }
-    body.theme-paper .shelf-plank-dark {
+    body.theme-paper .shelf-plank-bar {
       background: linear-gradient(180deg, #D8CBB8 0%, #B8A68E 65%, #9B886E 100%);
-      box-shadow: 0 6px 12px rgba(30, 25, 22, 0.16);
+      box-shadow: 0 6px 14px rgba(30, 25, 22, 0.2);
     }
 
-    .fairy-light-dot {
+    .fairy-lights-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding: 0 18px;
+      margin-top: -1px;
+      height: 16px;
+      pointer-events: none;
+    }
+    .fairy-bulb {
       width: 6px;
       height: 6px;
       border-radius: 9999px;
-      background: #FDE68A;
-      box-shadow: 0 0 8px 2px rgba(251, 191, 36, 0.85);
-      animation: pulseGlow 2.4s infinite ease-in-out;
+      background: #FEF08A;
+      box-shadow: 0 0 10px 3px rgba(251, 191, 36, 0.9);
+      position: relative;
+      animation: twinkleBulb 2.4s infinite ease-in-out;
     }
-    @keyframes pulseGlow {
+    .fairy-bulb::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 2px;
+      width: 1.5px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.35);
+    }
+    @keyframes twinkleBulb {
       0%, 100% { opacity: 0.65; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.15); }
+      50% { opacity: 1; transform: scale(1.2); }
     }
 
     /* Reader Themes */
@@ -105,67 +122,58 @@
     .reader-theme-night canvas { filter: invert(0.9) hue-rotate(180deg) contrast(0.95); }
   </style>
 </head>
-<body class="min-h-screen pb-28">
+<body class="min-h-screen pb-32">
 
   <!-- ================= 1. SMART INSTANT SPLASH LOADER ================= -->
-  <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0F1117] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-300">
-    <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0F1117] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
+  <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0D0F14] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-200">
+    <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0D0F14] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">
       စာ
     </div>
     <h1 class="font-serif-display font-bold text-xl">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
     <p id="splashStatusText" class="text-xs text-gray-400 mt-1">စာအုပ်စင် ပြင်ဆင်နေပါသည်...</p>
     <div class="w-56 h-2 rounded-full bg-white/10 overflow-hidden mt-4">
-      <div id="splashProgressBar" class="h-full bg-amber-500 transition-all duration-200" style="width: 40%;"></div>
+      <div id="splashProgressBar" class="h-full bg-amber-500 transition-all duration-150" style="width: 45%;"></div>
     </div>
-    <span id="splashPctText" class="text-[10px] font-bold text-amber-400 mt-1">40%</span>
+    <span id="splashPctText" class="text-[10px] font-bold text-amber-400 mt-1">45%</span>
   </div>
 
   <!-- ================= 2. STICKY TOP NAVBAR ================= -->
-  <header class="sticky top-0 z-30 bg-[#0F1117]/90 backdrop-blur-md border-b border-white/10 px-4 py-2.5">
+  <header class="sticky top-0 z-30 bg-[#0D0F14]/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchBottomTab('all')">
-        <div class="w-9 h-9 rounded-full bg-amber-500 text-[#0F1117] flex items-center justify-center font-serif-display font-bold text-base shadow">
+        <div class="w-9 h-9 rounded-full bg-amber-500 text-[#0D0F14] flex items-center justify-center font-serif-display font-bold text-base shadow">
           စာ
         </div>
         <span class="font-serif-display font-bold text-base">စာ</span>
-        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> 1 online
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="onlineCountText">1 online</span>
         </span>
       </div>
 
       <div class="flex items-center gap-1.5">
-        <button onclick="toggleSiteTheme()" id="siteThemeBtn" class="tactile-btn px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold flex items-center gap-1">
-          <span>🟣</span><span id="siteThemeText">Midnight</span>
+        <button onclick="toggleSiteTheme()" class="tactile-btn px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+          <span id="siteThemeText">Midnight</span>
         </button>
         <button onclick="openRequestModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs" title="စာအုပ်တောင်းဆိုရန်">
           🔔
         </button>
-        <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+        <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-900/40 border border-amber-500/40 text-amber-300 text-xs font-bold">
           👑 VIP
         </button>
-        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500 text-[#0F1117] text-xs font-bold">
+        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-500 text-[#0D0F14] text-xs font-bold">
           📲 App
         </button>
+        <a href="admin.html" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs" title="Admin Panel">
+          ⚙️
+        </a>
       </div>
     </div>
   </header>
 
   <!-- ================= 3. MAIN CONTENT AREA ================= -->
-  <main class="max-w-5xl mx-auto px-4 pt-5 space-y-5">
-
-    <!-- HERO FEATURED BOOK & STATS BAR -->
-    <section id="heroBannerSection" class="bg-gradient-to-br from-[#6B141A] to-[#2A070A] text-white rounded-3xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
-      <div class="space-y-1.5 text-center sm:text-left flex-1">
-        <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">✨ အသစ်ရောက် စာအုပ်</span>
-        <h2 id="heroBookTitle" class="font-serif-display font-bold text-lg sm:text-xl line-clamp-1">စာအုပ်ကောင်းများ စုစည်းမှု</h2>
-        <p id="heroBookAuthor" class="text-xs text-white/80">အင်တာနက်လိုင်းနှေးသည့်တိုင် ချက်ချင်းဖွင့်ဖတ်နိုင်ပါသည်</p>
-        <div class="pt-1.5 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-          <button id="heroReadBtn" class="tactile-btn px-4 py-2 rounded-full bg-amber-400 text-[#1E1916] text-xs font-bold shadow">📖 ယခုဖတ်မည်</button>
-          <span id="readingStatsPill" class="px-3 py-1.5 rounded-full bg-black/30 text-[11px] text-white/90">📚 ဖတ်လက်စ 0 အုပ်</span>
-        </div>
-      </div>
-      <div id="heroFanCovers" class="flex items-center justify-center -space-x-4 shrink-0 py-1"></div>
-    </section>
+  <main class="max-w-5xl mx-auto px-3 sm:px-4 pt-5 space-y-5">
 
     <!-- 16:9 SPONSOR BANNER AD -->
     <section id="sponsorBannerSection" class="hidden">
@@ -175,31 +183,31 @@
       </a>
     </section>
 
-    <!-- SEARCH BAR & SORT CONTROLS -->
-    <section id="searchSectionBox" class="flex flex-col sm:flex-row gap-2.5">
-      <div class="relative flex-1">
-        <input id="searchInput" type="search" oninput="onFilterOrSearchChange()" placeholder="🔍 စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာရန်..." class="w-full pl-4 pr-9 py-2.5 rounded-2xl bg-white/10 border border-white/15 text-xs sm:text-sm focus:outline-none focus:border-amber-400" />
+    <!-- SEARCH BAR & CATEGORY PILLS -->
+    <section id="searchSectionBox" class="space-y-3">
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <input id="searchInput" type="search" oninput="onFilterOrSearchChange()" placeholder="🔍 စာအုပ်အမည် သို့မဟုတ် စာရေးဆရာ ရှာရန်..." class="w-full pl-4 pr-9 py-2.5 rounded-2xl bg-white/10 border border-white/15 text-xs sm:text-sm focus:outline-none focus:border-amber-400" />
+        </div>
+        <select id="sortSelect" onchange="onFilterOrSearchChange()" class="px-3.5 py-2.5 rounded-2xl bg-[#181B24] border border-white/15 text-xs font-bold text-amber-400 focus:outline-none">
+          <option value="newest">🕒 အသစ်ဆုံး စာအုပ်များ</option>
+          <option value="popular">🔥 လူဖတ်အများဆုံး</option>
+          <option value="pages_asc">📄 စာမျက်နှာ အနည်းမှအများ</option>
+          <option value="title_asc">🔤 အမည် (က မှ အ)</option>
+        </select>
       </div>
-      <select id="sortSelect" onchange="onFilterOrSearchChange()" class="px-3.5 py-2.5 rounded-2xl bg-[#181B24] border border-white/15 text-xs font-bold text-amber-400 focus:outline-none">
-        <option value="newest">🕒 အသစ်ဆုံး စာအုပ်များ</option>
-        <option value="popular">🔥 လူဖတ်အများဆုံး</option>
-        <option value="pages_asc">📄 စာမျက်နှာ အနည်းမှအများ</option>
-        <option value="title_asc">🔤 အမည် (က မှ အ)</option>
-      </select>
+      <div id="categoryTabsBox" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
     </section>
 
-    <!-- CATEGORY PILLS -->
-    <div id="categoryTabsBox" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
-
-    <!-- SHELF HEADER -->
-    <section class="space-y-5">
+    <!-- BOOKSHELF CONTAINER -->
+    <section class="bg-[#12151E]/90 border border-white/10 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-6">
       <div class="flex items-center justify-between px-1">
-        <h3 class="font-bold text-base sm:text-lg">စာအုပ်စင်</h3>
+        <h2 class="font-bold text-base sm:text-lg tracking-wide">စာအုပ်စင်</h2>
         <span id="totalBooksCountText" class="text-xs font-bold text-gray-400">စာအုပ် (0) အုပ်</span>
       </div>
 
-      <!-- WOODEN BOOKSHELF WITH FAIRY LIGHTS + BOOK TITLES & AUTHORS -->
-      <div id="cleanShelfRows" class="space-y-10"></div>
+      <!-- WOODEN BOOKSHELF ROWS WITH FAIRY LIGHTS + CLEAR BOOK TITLES & AUTHORS -->
+      <div id="cleanShelfRows" class="space-y-8"></div>
 
       <!-- PAGINATION BAR -->
       <div id="shelfPaginationBar" class="flex items-center justify-center gap-2 pt-2"></div>
@@ -210,17 +218,17 @@
   <!-- ================= 4. FLOATING BOTTOM NAVIGATION DOCK ================= -->
   <nav class="fixed bottom-3 inset-x-0 z-30 px-4 pointer-events-none">
     <div class="max-w-md mx-auto bg-[#181B24]/95 backdrop-blur-md border border-white/15 rounded-3xl px-3 py-2 shadow-2xl grid grid-cols-4 gap-1 text-center text-[11px] font-bold pointer-events-auto">
-      <button onclick="switchBottomTab('all')" id="navBtnAll" class="tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center">
-        <span>📚</span><span>စာအုပ်စင်</span>
+      <button onclick="switchBottomTab('all')" id="navBtnAll" class="tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center gap-0.5">
+        <span class="text-base">📚</span><span>စာအုပ်စင်</span>
       </button>
-      <button onclick="focusSearchInput()" id="navBtnSearch" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
-        <span>🔍</span><span>ရှာဖွေရန်</span>
+      <button onclick="focusSearchInput()" id="navBtnSearch" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5">
+        <span class="text-base">🔍</span><span>ရှာဖွေရန်</span>
       </button>
-      <button onclick="switchBottomTab('bookmarks')" id="navBtnBookmarks" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
-        <span>🔖</span><span>မှတ်သားထားသော</span>
+      <button onclick="switchBottomTab('bookmarks')" id="navBtnBookmarks" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5">
+        <span class="text-base">🔖</span><span>မှတ်သားထားသော</span>
       </button>
-      <button onclick="switchBottomTab('progress')" id="navBtnProgress" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center">
-        <span>📖</span><span>ဖတ်လက်စ</span>
+      <button onclick="switchBottomTab('progress')" id="navBtnProgress" class="tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5">
+        <span class="text-base">📖</span><span>ဖတ်လက်စ</span>
       </button>
     </div>
   </nav>
@@ -230,7 +238,7 @@
     <div class="bg-[#FAF8F5] text-[#1E1916] border-t sm:border border-[#E5DEC9] rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-start justify-between gap-3">
         <div class="flex gap-4">
-          <div class="w-24 h-36 rounded-xl bg-[#E5DEC9] overflow-hidden shrink-0 book-card-3d">
+          <div class="w-24 h-36 rounded-xl bg-[#E5DEC9] overflow-hidden shrink-0 book-cover-frame">
             <img id="detailCoverImg" src="" alt="Cover" class="w-full h-full object-cover" />
           </div>
           <div class="space-y-1.5">
@@ -357,8 +365,8 @@
 
     const DEFAULT_SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const DEFAULT_SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V3';
-    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V3';
+    const SAR_CACHE_BOOKS_KEY = 'SAR_TURBO_BOOKS_CACHE_V4';
+    const SAR_CACHE_CATS_KEY = 'SAR_TURBO_CATS_CACHE_V4';
     const OFFLINE_BOOKS_META_KEY = 'SAR_OFFLINE_BOOKS_IDS_V1';
     const BOOKS_PER_PAGE = 12;
 
@@ -382,19 +390,26 @@
     let pendingPageNum = null;
     const _prewarmedPdfPromises = new Map();
 
-    // ================= 1. AUTO-BUST OLD HTML CACHE & REGISTER SW =================
-    if ('caches' in window) {
-      caches.keys().then((keys) => {
-        keys.forEach((k) => {
-          if (k.includes('sar-library') || k.includes('sar-static-v4')) caches.delete(k);
-        });
-      });
-    }
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => reg.update()).catch(() => {});
-      });
-    }
+    // ================= 1. FORCE CLEAR STALE HTML CACHES & UPDATE SW =================
+    (async function purgeOldHtmlCaches() {
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (const k of keys) {
+            if (k.includes('sar-library') || k.includes('sar-static-v3') || k.includes('sar-static-v4') || k.includes('sar-static-v5')) {
+              await caches.delete(k);
+            }
+          }
+        }
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const reg of regs) {
+            reg.update();
+          }
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+      } catch (e) {}
+    })();
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -422,7 +437,7 @@
       const el = document.getElementById('searchInput');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => el.focus(), 300);
+        setTimeout(() => el.focus(), 250);
       }
     }
 
@@ -491,8 +506,8 @@
 
             setTimeout(() => {
               splash.style.opacity = '0';
-              setTimeout(() => { splash.style.display = 'none'; }, 200);
-            }, 100);
+              setTimeout(() => { splash.style.display = 'none'; }, 180);
+            }, 80);
 
             startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
             return;
@@ -509,7 +524,7 @@
       bar.style.width = '100%';
       pctText.textContent = '100%';
       splash.style.opacity = '0';
-      setTimeout(() => { splash.style.display = 'none'; }, 220);
+      setTimeout(() => { splash.style.display = 'none'; }, 200);
     }
 
     async function startReaderAppBackground(url, key) {
@@ -569,9 +584,9 @@
     function renderCategoryTabs() {
       const box = document.getElementById('categoryTabsBox');
       if (!box) return;
-      const allBtn = `<button onclick="selectCategory('')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${selectedCategoryId === '' ? 'bg-amber-500 text-[#0F1117]' : 'bg-white/10 border border-white/15'}">အားလုံး</button>`;
+      const allBtn = `<button onclick="selectCategory('')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${selectedCategoryId === '' ? 'bg-amber-500 text-[#0D0F14]' : 'bg-white/10 border border-white/15'}">အားလုံး</button>`;
       const catBtns = categoriesList.map((c) => `
-        <button onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${String(selectedCategoryId) === String(c.id) ? 'bg-amber-500 text-[#0F1117]' : 'bg-white/10 border border-white/15'}">
+        <button onclick="selectCategory('${c.id}')" class="tactile-btn px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${String(selectedCategoryId) === String(c.id) ? 'bg-amber-500 text-[#0D0F14]' : 'bg-white/10 border border-white/15'}">
           ${c.name}
         </button>
       `).join('');
@@ -597,38 +612,11 @@
         const btn = document.getElementById('navBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         if (btn) {
           btn.className = t === tab
-            ? 'tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center'
-            : 'tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center';
+            ? 'tactile-btn py-1.5 rounded-2xl text-amber-400 flex flex-col items-center gap-0.5'
+            : 'tactile-btn py-1.5 rounded-2xl text-gray-400 flex flex-col items-center gap-0.5';
         }
       });
       renderBooksFromMemory(allPublishedBooks);
-    }
-
-    function updateHeroBanner(books) {
-      if (!books || !books.length) return;
-      const featured = books[0];
-      document.getElementById('heroBookTitle').textContent = featured.title;
-      document.getElementById('heroBookAuthor').textContent = `✍️ ${featured.author} • ${featured.page_count || 1} မျက်နှာ`;
-      document.getElementById('heroReadBtn').onclick = () => openBookDetail(featured.id);
-
-      const fanBox = document.getElementById('heroFanCovers');
-      fanBox.innerHTML = books.slice(0, 3).map((b, i) => {
-        const fastSrc = getFastCoverUrl(b.cover_url, 180);
-        return `
-          <div onclick="openBookDetail('${b.id}')" title="${b.title} - ${b.author}" class="w-16 h-24 rounded-xl bg-[#E5DEC9] overflow-hidden border-2 border-white/80 shadow-lg cursor-pointer transform ${i === 0 ? '-rotate-6' : i === 2 ? 'rotate-6' : 'z-10 scale-105'}">
-            ${b.cover_url ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" class="w-full h-full object-cover" />` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderReadingStatsBar() {
-      let inProgressCount = 0;
-      (allPublishedBooks || []).forEach((b) => {
-        if (localStorage.getItem('BOOK_PAGE_' + b.id)) inProgressCount++;
-      });
-      const pill = document.getElementById('readingStatsPill');
-      if (pill) pill.textContent = `📚 ဖတ်လက်စ ${inProgressCount} အုပ်`;
     }
 
     function renderBooksFromMemory(sourceBooks) {
@@ -652,9 +640,6 @@
       if (sortBy === 'pages_asc') filtered.sort((a, b) => (a.page_count || 0) - (b.page_count || 0));
       if (sortBy === 'title_asc') filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 
-      updateHeroBanner(sourceBooks);
-      renderReadingStatsBar();
-
       if (activeBottomFilter === 'bookmarks') {
         const favs = getFavoritesIds();
         filtered = filtered.filter((b) => favs.includes(String(b.id)));
@@ -671,7 +656,7 @@
     function changeShelfPage(p) {
       currentShelfPage = p;
       renderCleanShelfRows(currentBooksList);
-      document.getElementById('cleanShelfRows')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function renderCleanShelfRows(books) {
@@ -698,9 +683,9 @@
       }
 
       container.innerHTML = rows.map((rowBooks, rowIdx) => `
-        <div class="space-y-2">
-          <!-- Books Grid Row -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 px-2 items-end">
+        <div>
+          <!-- Books Grid Sitting on the Shelf -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-4 items-end">
             ${rowBooks.map((b, idx) => {
               const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
               const isOffline = offIds.includes(String(b.id));
@@ -712,24 +697,27 @@
 
               return `
                 <div onclick="openBookDetail('${b.id}')" class="flex flex-col items-center cursor-pointer group">
-                  <!-- Book Cover Image -->
-                  <div class="w-full max-w-[155px] aspect-[2/3] rounded-xl bg-[#252A37] overflow-hidden book-card-3d relative">
+                  <!-- Book Cover Card -->
+                  <div class="w-full max-w-[165px] aspect-[2/3] rounded-t-xl rounded-b-md bg-[#222736] overflow-hidden book-cover-frame relative">
                     ${b.cover_url
                       ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" ${highPrio} class="w-full h-full object-cover" />`
                       : `<div class="w-full h-full flex items-center justify-center p-2 text-center text-xs font-bold text-amber-400">${titleText}</div>`
                     }
-                    <!-- Read Count Pill -->
-                    <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full bg-black/75 text-amber-300 text-[10px] font-bold flex items-center gap-1 shadow">
+                    <!-- Read Count Pill (Top Right) -->
+                    <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-md bg-black/75 text-amber-300 text-[10px] font-bold flex items-center gap-1 shadow">
                       👁 ${b.read_count || 0}
                     </span>
+                    <!-- Offline Badge (Top Left) -->
                     ${isOffline ? `<span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-bold shadow">✅ Offline</span>` : ''}
+                    <!-- Current Reading Page Badge -->
                     ${savedPage ? `<span class="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-500 text-black text-[9px] font-bold shadow">စာ-${savedPage}</span>` : ''}
-                    ${isFirstSlot ? `<span class="absolute bottom-1 right-1 text-2xl select-none drop-shadow-md" title="စာဖတ်ဖော်">🐱</span>` : ''}
+                    <!-- Cute Cat Mascot on First Book -->
+                    ${isFirstSlot ? `<span class="absolute bottom-1 right-1 text-2xl sm:text-3xl select-none drop-shadow-lg" title="စာဖတ်ဖော်">🐱</span>` : ''}
                   </div>
 
-                  <!-- CLEAR BOOK TITLE & AUTHOR NAME PLATE -->
-                  <div class="w-full max-w-[155px] mt-2 px-2 py-1.5 rounded-xl ${isPaper ? 'bg-white border border-[#E5DEC9] text-[#1E1916]' : 'bg-[#181B24]/95 border border-amber-500/25 text-white'} text-center shadow-md">
-                    <h4 class="font-bold text-[11px] sm:text-xs leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">
+                  <!-- CLEAR BOOK TITLE & AUTHOR NAME PLATE ON THE SHELF -->
+                  <div class="w-full max-w-[165px] mt-1.5 px-2 py-1.5 rounded-t-lg ${isPaper ? 'bg-white border border-[#E5DEC9] text-[#1E1916]' : 'bg-[#1A1F2C] border border-amber-500/30 text-white'} text-center shadow-md">
+                    <h4 class="font-bold text-[11px] sm:text-xs leading-snug line-clamp-1" title="${titleText}">
                       ${titleText}
                     </h4>
                     <p class="text-[10px] font-bold ${isPaper ? 'text-[#6B141A]' : 'text-amber-400'} truncate mt-0.5" title="${authorText}">
@@ -741,26 +729,28 @@
             }).join('')}
           </div>
 
-          <!-- 3D Shelf Plank with Glowing Fairy Lights -->
-          <div class="shelf-plank-dark flex items-center justify-around px-6">
-            <span class="fairy-light-dot"></span>
-            <span class="fairy-light-dot" style="animation-delay: 0.4s"></span>
-            <span class="fairy-light-dot" style="animation-delay: 0.8s"></span>
-            <span class="fairy-light-dot" style="animation-delay: 1.2s"></span>
-            <span class="fairy-light-dot" style="animation-delay: 1.6s"></span>
-            <span class="fairy-light-dot" style="animation-delay: 2.0s"></span>
+          <!-- 3D Shelf Plank -->
+          <div class="shelf-plank-bar"></div>
+
+          <!-- Hanging Fairy Lights Underneath Plank -->
+          <div class="fairy-lights-row">
+            <span class="fairy-bulb"></span>
+            <span class="fairy-bulb" style="animation-delay: 0.4s"></span>
+            <span class="fairy-bulb" style="animation-delay: 0.8s"></span>
+            <span class="fairy-bulb" style="animation-delay: 1.2s"></span>
+            <span class="fairy-bulb" style="animation-delay: 1.6s"></span>
+            <span class="fairy-bulb" style="animation-delay: 2.0s"></span>
           </div>
         </div>
       `).join('');
 
-      // Render Pagination Buttons
       if (pagBar) {
         if (totalPages <= 1) {
           pagBar.innerHTML = '';
         } else {
           let btns = '';
           for (let p = 1; p <= totalPages; p++) {
-            btns += `<button onclick="changeShelfPage(${p})" class="tactile-btn w-8 h-8 rounded-xl font-bold text-xs ${p === currentShelfPage ? 'bg-amber-500 text-[#0F1117] shadow' : 'bg-white/10 text-gray-300'}">${p}</button>`;
+            btns += `<button onclick="changeShelfPage(${p})" class="tactile-btn w-8 h-8 rounded-xl font-bold text-xs ${p === currentShelfPage ? 'bg-amber-500 text-[#0D0F14] shadow' : 'bg-white/10 text-gray-300'}">${p}</button>`;
           }
           pagBar.innerHTML = btns;
         }
@@ -835,7 +825,7 @@
       try {
         btn.disabled = true;
         btn.textContent = '⏳ သိမ်းဆည်းနေသည်...';
-        const cache = await caches.open('sar-offline-pdfs-v5');
+        const cache = await caches.open('sar-offline-pdfs-v6');
         const [baseUrl, partsHash] = currentDetailBook.pdf_url.split('#parts=');
         const totalParts = partsHash ? parseInt(partsHash, 10) : 1;
 
@@ -1000,7 +990,6 @@
     function closePdfReader() {
       document.getElementById('pdfReaderModal').style.display = 'none';
       activePdfDoc = null;
-      renderReadingStatsBar();
       renderCleanShelfRows(currentBooksList);
     }
 
