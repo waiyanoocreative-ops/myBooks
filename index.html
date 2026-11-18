@@ -4,10 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</title>
+  <meta name="description" content="မြန်မာစာအုပ်ကောင်းများကို တစ်နေရာတည်းတွင် လျင်မြန်ချောမွေ့စွာ အခမဲ့ဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ် စာကြည့်တိုက်" />
   <meta name="theme-color" content="#0D0F14" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
-  
+  <link rel="apple-touch-icon" href="icon.png" />
+
+  <link rel="preconnect" href="https://ksgxlvrojzawvkkvsbyi.supabase.co" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -83,10 +89,11 @@
   <!-- ================= 1. SPLASH LOADER ================= -->
   <div id="smartSplashLoader" class="fixed inset-0 z-50 bg-[#0D0F14] text-white flex flex-col items-center justify-center p-6 transition-opacity duration-200">
     <div class="w-16 h-16 rounded-2xl bg-amber-500 text-[#0D0F14] flex items-center justify-center font-serif-display font-bold text-3xl shadow-xl mb-4 animate-bounce">စာ</div>
-    <h1 class="font-serif-display font-bold text-xl mt-2">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
+    <h1 class="font-serif-display font-bold text-xl mt-4">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
+    <p class="text-xs text-gray-400 mt-1">စာအုပ်စင် ဖွင့်နေပါသည်...</p>
   </div>
 
-  <!-- ================= 2. NAVBAR ================= -->
+  <!-- ================= 2. NAVBAR (USER ONLY - NO ADMIN LINK) ================= -->
   <header class="sticky top-0 z-30 bg-[#0D0F14]/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchBottomTab('all')">
@@ -100,7 +107,7 @@
         <button onclick="toggleSiteTheme()" class="tactile-btn px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold flex items-center gap-1.5">
           <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span><span id="siteThemeText">Midnight</span>
         </button>
-        <button onclick="openRequestModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs">🔔</button>
+        <button onclick="openRequestModal()" class="tactile-btn w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs" title="စာအုပ်တောင်းဆိုရန်">🔔</button>
         <button onclick="openVipModal()" class="tactile-btn px-3 py-1.5 rounded-full bg-amber-900/40 border border-amber-500/40 text-amber-300 text-xs font-bold">👑 VIP</button>
       </div>
     </div>
@@ -123,6 +130,7 @@
           <option value="newest">🕒 အသစ်ဆုံး စာအုပ်များ</option>
           <option value="popular">🔥 လူဖတ်အများဆုံး</option>
           <option value="pages_asc">📄 စာမျက်နှာ အနည်းမှအများ</option>
+          <option value="title_asc">🔤 အမည် (က မှ အ)</option>
         </select>
       </div>
       <div id="categoryTabsBox" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
@@ -182,7 +190,7 @@
       <p id="detailDesc" class="text-xs bg-[#F3EFE6] p-3.5 rounded-2xl border border-[#E5DEC9] whitespace-pre-line"></p>
       
       <div class="grid grid-cols-2 gap-2.5 pt-1">
-        <button id="detailReadNowBtn" class="tactile-btn col-span-2 py-3 rounded-2xl bg-[#6B141A] text-white font-bold text-sm shadow-md">
+        <button id="detailReadNowBtn" class="tactile-btn col-span-2 py-3 rounded-2xl bg-[#6B141A] text-white font-bold text-sm shadow-md flex justify-center items-center gap-2">
           📖 စာအုပ်ဖတ်မည်
         </button>
         <button id="detailOfflineBtn" onclick="saveCurrentBookOffline()" class="tactile-btn py-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-xs">📥 Offline သိမ်းမည်</button>
@@ -190,6 +198,25 @@
           <button id="detailBookmarkBtn" onclick="toggleCurrentBookFavorite()" class="tactile-btn py-2.5 rounded-xl bg-[#F3EFE6] border border-[#E5DEC9] font-bold text-xs">🔖 မှတ်မည်</button>
           <button onclick="shareCurrentBook()" class="tactile-btn py-2.5 rounded-xl bg-[#F3EFE6] border border-[#E5DEC9] font-bold text-xs">🔗 မျှဝေမည်</button>
         </div>
+      </div>
+
+      <div class="border-t border-[#E5DEC9] pt-4 space-y-3">
+        <h4 class="font-bold text-xs text-[#6B141A]">⭐ စာဖတ်သူ မှတ်ချက်များ</h4>
+        <form onsubmit="submitBookReview(event)" class="space-y-2 text-xs">
+          <div class="flex gap-2">
+            <input id="reviewUserName" type="text" required placeholder="သင့်အမည်" class="flex-1 px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+            <select id="reviewRating" class="px-2.5 py-2 rounded-xl bg-white border border-[#E5DEC9] font-bold">
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <input id="reviewComment" type="text" required placeholder="စာအုပ်အပေါ် သင့်အမြင်..." class="flex-1 px-3 py-2 rounded-xl bg-white border border-[#E5DEC9]" />
+            <button type="submit" class="tactile-btn px-4 py-2 rounded-xl bg-[#6B141A] text-white font-bold shrink-0">ပို့မည်</button>
+          </div>
+        </form>
+        <div id="detailReviewsList" class="space-y-2 max-h-44 overflow-y-auto pr-1 text-xs"></div>
       </div>
     </div>
   </div>
@@ -212,12 +239,15 @@
       </div>
     </div>
 
-    <!-- Canvas Area -->
+    <!-- Canvas Area (Touch Pannable) -->
     <div id="readerCanvasContainer" class="flex-1 overflow-auto relative p-2 flex justify-center items-start touch-pan-x touch-pan-y">
       <div id="readerLoadingSpinner" style="display: none;" class="fixed inset-x-0 top-14 bottom-16 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm z-20">
-        <div class="bg-white rounded-3xl p-5 shadow-2xl space-y-3 text-center w-48 border border-gray-200">
-          <div class="w-8 h-8 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p id="readerLoadText" class="text-[11px] font-bold text-[#1E1916]">ဖွင့်နေပါသည်...</p>
+        <div class="bg-white rounded-3xl p-6 shadow-2xl space-y-4 text-center w-56 border border-gray-200">
+          <div class="w-10 h-10 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p id="readerLoadText" class="text-xs font-bold text-[#1E1916]">ချိတ်ဆက်နေပါသည်...</p>
+          <div class="w-full h-2.5 rounded-full bg-[#E5DEC9] overflow-hidden shadow-inner">
+            <div id="readerDownloadBar" class="h-full bg-[#6B141A] transition-all duration-300" style="width: 5%;"></div>
+          </div>
         </div>
       </div>
       <div class="m-auto flex items-center justify-center">
@@ -238,15 +268,30 @@
 
   <!-- MODALS -->
   <div id="requestModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
-    <div class="bg-[#FAF8F5] text-[#1E1916] rounded-3xl p-6 shadow-2xl space-y-4 w-full max-w-sm">
-      <div class="flex justify-between border-b pb-2"><h3 class="font-bold">စာအုပ်တောင်းဆိုရန်</h3><button onclick="closeRequestModal()">✕</button></div>
-      <p class="text-xs">ခေတ္တပိတ်ထားပါသည်။</p>
+    <div class="bg-[#FAF8F5] text-[#1E1916] rounded-3xl p-6 shadow-2xl space-y-4 w-full max-w-md max-h-[88vh] overflow-y-auto">
+      <div class="flex justify-between border-b border-[#E5DEC9] pb-3"><h3 class="font-bold text-base text-[#6B141A]">📩 စာအုပ်တောင်းဆိုရန်</h3><button onclick="closeRequestModal()" class="w-8 h-8 rounded-full bg-black/5 font-bold text-sm">✕</button></div>
+      <form onsubmit="submitBookRequest(event)" class="space-y-3 text-xs">
+        <input id="reqBookTitle" type="text" required placeholder="စာအုပ်အမည် *" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9]" />
+        <input id="reqAuthorName" type="text" placeholder="စာရေးဆရာအမည်" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5DEC9]" />
+        <button type="submit" class="tactile-btn w-full py-2.5 rounded-xl bg-[#6B141A] text-white font-bold">📩 တောင်းဆိုမည်</button>
+      </form>
+      <div class="space-y-2 pt-2">
+        <h4 class="font-bold text-xs text-[#786E65]">လက်ရှိ တောင်းဆိုထားသော စာအုပ်များ</h4>
+        <div id="publicRequestsList" class="space-y-2 max-h-56 overflow-y-auto text-xs"></div>
+      </div>
     </div>
   </div>
+  
   <div id="vipModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
     <div class="bg-[#FAF8F5] text-[#1E1916] rounded-3xl p-6 shadow-2xl space-y-4 w-full max-w-sm text-center">
-      <h3 class="font-bold">VIP System</h3>
-      <button onclick="closeVipModal()" class="tactile-btn w-full py-2 bg-gray-200 rounded-xl">ပိတ်မည်</button>
+      <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto shadow">👑</div>
+      <h3 class="font-bold text-base">VIP Member Code ထည့်ရန်</h3>
+      <p class="text-xs text-[#786E65]">VIP Code ထည့်သွင်းပြီး ကြော်ငြာကင်းစင်စွာ ဖတ်ရှုနိုင်ပါသည်</p>
+      <form onsubmit="activateVipCode(event)" class="space-y-3 text-xs">
+        <input id="vipInputCode" type="text" required placeholder="SAR-XXXXXX" class="w-full px-4 py-3 rounded-xl bg-white border border-[#E5DEC9] text-center font-mono font-bold uppercase tracking-widest" />
+        <button type="submit" class="tactile-btn w-full py-3 rounded-xl bg-amber-600 text-white font-bold shadow">👑 အတည်ပြုမည်</button>
+      </form>
+      <button onclick="closeVipModal()" class="text-xs font-bold text-[#786E65]">ပိတ်မည်</button>
     </div>
   </div>
 
@@ -257,9 +302,10 @@
 
     const SUPABASE_URL = 'https://ksgxlvrojzawvkkvsbyi.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_BcZTWsRcRYEJ_dtSAg1VnA_VWNE9FSg';
-    const SAR_CACHE_BOOKS_KEY = 'SAR_BOOKS_V3';
-    const SAR_CACHE_CATS_KEY = 'SAR_CATS_V3';
+    const SAR_CACHE_BOOKS_KEY = 'SAR_FINAL_APP_BOOKS';
+    const SAR_CACHE_CATS_KEY = 'SAR_FINAL_APP_CATS';
     const OFFLINE_BOOKS_KEY = 'SAR_OFFLINE_V1';
+    const PDF_CACHE_NAME = 'sar-offline-pdfs-v6';
     
     let supabaseClient = null;
     let allPublishedBooks = [];
@@ -269,6 +315,7 @@
     let activeBottomFilter = 'all';
     let currentShelfPage = 1;
     let currentDetailBook = null;
+    let activeSponsorAd = null;
 
     // Reader State
     let activePdfDoc = null;
@@ -285,10 +332,17 @@
 
     const _activePdfDownloads = new Map();
 
+    // ================= URL HELPERS =================
     function toFastCdnUrl(url) {
       if(!url) return '';
       const m = url.match(/^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
       if(m) return `https://cdn.jsdelivr.net/gh/${m[1]}/${m[2]}@${m[3]}/${m[4]}`;
+      return url.trim();
+    }
+    function toRawGitHubUrl(url) {
+      if(!url) return '';
+      const m = url.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^/]+)\/([^/@]+)@([^/]+)\/(.+)$/);
+      if(m) return `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}`;
       return url.trim();
     }
 
@@ -301,7 +355,7 @@
       document.getElementById('searchInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // INIT
+    // ================= INIT =================
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => { document.getElementById('smartSplashLoader').style.display = 'none'; }, 600);
       try {
@@ -317,6 +371,12 @@
       supabaseClient.from('categories').select('*').order('name').then(({ data }) => {
         if(data) { categoriesList = data; localStorage.setItem(SAR_CACHE_CATS_KEY, JSON.stringify(data)); renderCategoryTabs(); }
       });
+      initReaderSponsorBanner();
+      verifyVipWithServer();
+
+      const params = new URLSearchParams(window.location.search);
+      const sharedBookId = params.get('book');
+      if (sharedBookId) setTimeout(() => openBookDetail(sharedBookId), 150);
     });
 
     async function loadBooks() {
@@ -331,8 +391,16 @@
       }
     }
 
+    // ================= BOOKSHELF =================
     function getFavoritesIds() { return JSON.parse(localStorage.getItem('SAR_FAV_BOOKS') || '[]'); }
     function getOfflineBookIds() { return JSON.parse(localStorage.getItem(OFFLINE_BOOKS_KEY) || '[]'); }
+    function markBookOfflineSaved(bookId) {
+      const offIds = getOfflineBookIds();
+      if (!offIds.includes(String(bookId))) {
+        offIds.push(String(bookId));
+        localStorage.setItem(OFFLINE_BOOKS_KEY, JSON.stringify(offIds));
+      }
+    }
 
     function renderCategoryTabs() {
       const box = document.getElementById('categoryTabsBox');
@@ -358,6 +426,8 @@
       const sort = document.getElementById('sortSelect')?.value || 'newest';
       if(sort === 'newest') filtered.sort((a, b) => new Date(b.created_at||0) - new Date(a.created_at||0));
       if(sort === 'popular') filtered.sort((a, b) => (b.read_count||0) - (a.read_count||0));
+      if(sort === 'pages_asc') filtered.sort((a, b) => (a.page_count||0) - (b.page_count||0));
+      if(sort === 'title_asc') filtered.sort((a, b) => (a.title||'').localeCompare(b.title||''));
       
       if(activeBottomFilter === 'bookmarks') { const favs = getFavoritesIds(); filtered = filtered.filter(b => favs.includes(String(b.id))); }
       else if(activeBottomFilter === 'progress') { filtered = filtered.filter(b => localStorage.getItem('BOOK_PAGE_' + b.id)); }
@@ -367,7 +437,7 @@
       renderCleanShelfRows(filtered);
     }
 
-    function changeShelfPage(p) { currentShelfPage = p; renderCleanShelfRows(currentBooksList); window.scrollTo({ top: 0 }); }
+    function changeShelfPage(p) { currentShelfPage = p; renderCleanShelfRows(currentBooksList); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
     function renderCleanShelfRows(books) {
       const container = document.getElementById('cleanShelfRows');
@@ -413,46 +483,26 @@
       pagBar.innerHTML = totalPages <= 1 ? '' : Array.from({length: totalPages}, (_, i) => `<button onclick="changeShelfPage(${i+1})" class="w-8 h-8 rounded-xl font-bold text-xs ${i+1===currentShelfPage ? 'bg-amber-500 text-black' : 'bg-white/10'}">${i+1}</button>`).join(' ');
     }
 
-    // DETAIL MODAL & BACKGROUND PRELOAD
-    function startBackgroundPdfPreload(book) {
-      if(!book || !book.pdf_url) return null;
-      const key = String(book.id);
-      if(_activePdfDownloads.has(key)) return _activePdfDownloads.get(key);
-
-      const entry = { promise: null };
-      entry.promise = (async () => {
-        const url = toFastCdnUrl(book.pdf_url);
-        if('caches' in window) {
-          const c = await caches.match(url);
-          if(c) { const buf = await c.arrayBuffer(); return window.pdfjsLib.getDocument({data: buf}).promise; }
-        }
-        if(url.includes('#parts=')) {
-          const prefix = url.split('#parts=')[0].replace(/\.part0$/, '');
-          const parts = parseInt(url.split('#parts=')[1]||'1');
-          const bufs = await Promise.all(Array.from({length: parts}, (_,i)=> fetch(`${prefix}.part${i}`).then(r=>r.arrayBuffer())));
-          return window.pdfjsLib.getDocument(URL.createObjectURL(new Blob(bufs))).promise;
-        }
-        return window.pdfjsLib.getDocument({ url, disableAutoFetch: true, rangeChunkSize: 524288 }).promise;
-      })();
-      _activePdfDownloads.set(key, entry);
-      return entry;
-    }
-
+    // ================= BOOK DETAIL =================
     async function openBookDetail(bookId) {
       const b = allPublishedBooks.find(x => String(x.id) === String(bookId));
       if (!b) return;
       currentDetailBook = b;
+
       document.getElementById('detailCoverImg').src = toFastCdnUrl(b.cover_url);
       document.getElementById('detailTitle').textContent = b.title;
       document.getElementById('detailAuthor').textContent = `✍️ ${b.author}`;
       document.getElementById('detailMeta').textContent = `📄 ${b.page_count||1} မျက်နှာ • 👁 ${b.read_count||0} ကြိမ်`;
+      document.getElementById('detailDesc').textContent = b.description || 'စာအုပ်အညွှန်း မရှိသေးပါ။';
       
       const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
       document.getElementById('detailReadNowBtn').textContent = savedPage ? `📖 စာမျက်နှာ (${savedPage}) မှ ဆက်ဖတ်မည်` : '📖 စာအုပ်ဖတ်မည်';
+      
       updateDetailButtonsUI();
       document.getElementById('bookDetailModal').style.display = 'flex';
       
       startBackgroundPdfPreload(b); 
+      loadBookReviews(b.id);
     }
 
     function closeBookDetail() { document.getElementById('bookDetailModal').style.display = 'none'; }
@@ -462,6 +512,7 @@
       document.getElementById('detailBookmarkBtn').textContent = getFavoritesIds().includes(String(currentDetailBook.id)) ? '✅ မှတ်ထားပြီး' : '🔖 မှတ်မည်';
       document.getElementById('detailOfflineBtn').textContent = getOfflineBookIds().includes(String(currentDetailBook.id)) ? '✅ Offline သိမ်းပြီး' : '📥 Offline သိမ်းမည်';
     }
+    
     function toggleCurrentBookFavorite() {
       if(!currentDetailBook) return;
       const id = String(currentDetailBook.id);
@@ -470,24 +521,108 @@
       localStorage.setItem('SAR_FAV_BOOKS', JSON.stringify(f));
       updateDetailButtonsUI(); renderBooksFromMemory(allPublishedBooks);
     }
+
     async function saveCurrentBookOffline() {
       if(!currentDetailBook) return;
       const btn = document.getElementById('detailOfflineBtn');
       btn.disabled = true; btn.textContent = '⏳ သိမ်းဆည်းနေသည်...';
       try {
-        const cache = await caches.open('sar-offline-pdfs-v6');
-        await cache.add(toFastCdnUrl(currentDetailBook.pdf_url));
-        const off = getOfflineBookIds(); off.push(String(currentDetailBook.id));
-        localStorage.setItem(OFFLINE_BOOKS_KEY, JSON.stringify(off));
+        const cache = await caches.open(PDF_CACHE_NAME);
+        const pdfUrl = currentDetailBook.pdf_url.trim();
+        if (pdfUrl.includes('#parts=')) {
+          const prefix = pdfUrl.split('#parts=')[0].replace(/\.part0$/, '');
+          const totalParts = parseInt(pdfUrl.split('#parts=')[1]);
+          for (let i = 0; i < totalParts; i++) await cache.add(`${prefix}.part${i}`);
+        } else {
+          try { await cache.add(toFastCdnUrl(pdfUrl)); } 
+          catch (e) { await cache.add(toRawGitHubUrl(pdfUrl)); }
+        }
+        markBookOfflineSaved(currentDetailBook.id);
         updateDetailButtonsUI(); renderBooksFromMemory(allPublishedBooks);
       } catch(e) { btn.textContent = '📥 Offline သိမ်းမည်'; }
       finally { btn.disabled = false; }
     }
+
     function shareCurrentBook() {
-      if(navigator.share) navigator.share({ title: currentDetailBook.title, url: `?book=${currentDetailBook.id}` }).catch(()=>{});
+      if(!currentDetailBook) return;
+      const shareUrl = `${window.location.origin}${window.location.pathname}?book=${currentDetailBook.id}`;
+      if(navigator.share) navigator.share({ title: currentDetailBook.title, url: shareUrl }).catch(()=>{});
+      else { navigator.clipboard.writeText(shareUrl); alert('စာအုပ် Link ကို Copy ကူးပြီးပါပြီ!'); }
     }
 
-    // ================= READER LOGIC (HALF PAGE & TAP ZONES) =================
+    // ================= INSTANT BYTE-STREAMING PDF READER =================
+    function startBackgroundPdfPreload(book) {
+      if (!book || !book.pdf_url) return null;
+      const key = String(book.id);
+      if (_activePdfDownloads.has(key)) return _activePdfDownloads.get(key);
+
+      const entry = { task: null, promise: null, listeners: new Set(), pct: 0, statusText: 'ချိတ်ဆက်နေပါသည်...' };
+      const notify = (pct, msg) => {
+        entry.pct = pct; entry.statusText = msg;
+        entry.listeners.forEach(fn => { try { fn(pct, msg); } catch(e){} });
+      };
+
+      entry.promise = (async () => {
+        const pdfUrl = book.pdf_url.trim();
+        if ('caches' in window) {
+          try {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            const cachedRes = (await cache.match(toFastCdnUrl(pdfUrl))) || (await cache.match(toRawGitHubUrl(pdfUrl)));
+            if (cachedRes) {
+              notify(100, 'Offline ဖိုင် ဖွင့်နေပါသည်...');
+              const buf = await cachedRes.arrayBuffer();
+              return window.pdfjsLib.getDocument({ data: buf, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true }).promise;
+            }
+          } catch(e) {}
+        }
+        
+        if (pdfUrl.includes('#parts=')) {
+          const prefix = pdfUrl.split('#parts=')[0].replace(/\.part0$/, '');
+          const totalParts = parseInt(pdfUrl.split('#parts=')[1]);
+          const buffers = [];
+          for (let i = 0; i < totalParts; i++) {
+             notify(Math.round((i / totalParts) * 100), `အပိုင်းဟောင်းများ ရယူနေပါသည်...`);
+             buffers.push(await (await fetch(`${prefix}.part${i}`)).arrayBuffer());
+          }
+          return window.pdfjsLib.getDocument(URL.createObjectURL(new Blob(buffers, {type: 'application/pdf'}))).promise;
+        }
+
+        async function loadByRangeStream(targetUrl) {
+          const task = window.pdfjsLib.getDocument({
+            url: targetUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true,
+            disableAutoFetch: true, rangeChunkSize: 524288, disableStream: false
+          });
+          entry.task = task;
+          task.onProgress = (p) => {
+            if (p.total > 0) notify(Math.min(Math.round((p.loaded / p.total) * 100), 99), `စာမျက်နှာ (၁) ရယူနေပါသည်...`);
+            else notify(25, `စာမျက်နှာ (၁) ရယူနေပါသည်...`);
+          };
+          return await task.promise;
+        }
+
+        const primaryUrl = toFastCdnUrl(pdfUrl);
+        const fallbackUrl = toRawGitHubUrl(pdfUrl);
+        try {
+          const doc = await loadByRangeStream(primaryUrl);
+          notify(100, 'စာမျက်နှာ ဖွင့်နေပါသည်...');
+          return doc;
+        } catch (cdnErr) {
+          if (fallbackUrl && fallbackUrl !== primaryUrl) {
+            notify(15, 'မူရင်းဆာဗာမှ တိုက်ရိုက်ချိတ်ဆက်နေပါသည်...');
+            const doc = await loadByRangeStream(fallbackUrl);
+            notify(100, 'စာမျက်နှာ ဖွင့်နေပါသည်...');
+            return doc;
+          }
+          throw cdnErr;
+        }
+      })();
+
+      entry.promise.catch(() => _activePdfDownloads.delete(key));
+      _activePdfDownloads.set(key, entry);
+      return entry;
+    }
+
+    // --- HALF PAGE SPLIT TOGGLE ---
     function toggleHalfPageMode() {
       if(!activePdfDoc) return;
       isHalfPageMode = !isHalfPageMode;
@@ -495,7 +630,7 @@
       if(isHalfPageMode) {
         btn.classList.add('bg-amber-500', 'text-[#0D0F14]');
         btn.classList.remove('bg-black/10', 'text-white');
-        activePdfZoom = 2.0; 
+        activePdfZoom = 2.0; // Auto zoom in to cover width
         currentHalf = 'left';
       } else {
         btn.classList.remove('bg-amber-500', 'text-[#0D0F14]');
@@ -512,86 +647,122 @@
       activeBookIdForReader = b.id;
       document.getElementById('readerBookTitle').textContent = b.title;
       
-      // Reset modes
+      // Reset reader modes
       isHalfPageMode = false;
       document.getElementById('halfPageBtn').classList.remove('bg-amber-500', 'text-[#0D0F14]');
       document.getElementById('halfPageBtn').classList.add('bg-black/10', 'text-white');
       activePdfZoom = 1.0;
       document.getElementById('readerZoomLabel').textContent = '100%';
 
-      document.getElementById('pdfReaderModal').style.display = 'flex';
-      const spin = document.getElementById('readerLoadingSpinner');
-      spin.style.display = 'flex';
+      const modal = document.getElementById('pdfReaderModal');
+      const spinner = document.getElementById('readerLoadingSpinner');
+      const loadText = document.getElementById('readerLoadText');
+      const dlBar = document.getElementById('readerDownloadBar');
+
+      modal.style.display = 'flex';
+      spinner.style.display = 'flex';
       
+      if (supabaseClient) {
+        supabaseClient.from('books').update({ read_count: (b.read_count || 0) + 1 }).eq('id', b.id).then(() => {});
+      }
+
       try {
-        const preload = startBackgroundPdfPreload(b);
-        activePdfDoc = await preload.promise;
+        if (activePdfDoc) await activePdfDoc.destroy().catch(() => {});
+        const preloadEntry = startBackgroundPdfPreload(b);
+        
+        loadText.textContent = preloadEntry.statusText;
+        dlBar.style.width = `${Math.max(preloadEntry.pct, 5)}%`;
+        const uiListener = (pct, msg) => { loadText.textContent = msg; dlBar.style.width = `${Math.max(pct, 5)}%`; };
+        preloadEntry.listeners.add(uiListener);
+
+        const loadedTaskOrDoc = await preloadEntry.promise;
+        activePdfDoc = loadedTaskOrDoc.promise ? await loadedTaskOrDoc.promise : loadedTaskOrDoc;
+        preloadEntry.listeners.delete(uiListener);
+
         activePdfTotalPages = activePdfDoc.numPages;
-        activePdfPage = Math.min(parseInt(localStorage.getItem('BOOK_PAGE_'+b.id)||'1'), activePdfTotalPages);
+        const savedPage = parseInt(localStorage.getItem('BOOK_PAGE_' + b.id) || '1', 10);
+        activePdfPage = Math.min(Math.max(savedPage, 1), activePdfTotalPages);
+
         document.getElementById('readerPageSlider').max = activePdfTotalPages;
         await renderPdfPage(activePdfPage, true);
-      } catch(e) { alert('Error: '+e); closePdfReader(); }
+      } catch (err) {
+        alert('PDF ဖွင့်ရာတွင် အမှားရှိပါသည်: ' + (err.message || err));
+        closePdfReader();
+      }
     };
 
-    async function renderPdfPage(pageNum, isFirst = false) {
-      if(!activePdfDoc) return;
-      if(currentRenderTask) { renderQueuePage = pageNum; try { currentRenderTask.cancel(); }catch(e){} return; }
-      
-      const spin = document.getElementById('readerLoadingSpinner');
-      if(isFirst) spin.style.display = 'flex';
+    async function renderPdfPage(pageNum, isFirstOpen = false) {
+      if (!activePdfDoc) return;
+      if (currentRenderTask) { renderQueuePage = pageNum; try { currentRenderTask.cancel(); } catch (e) {} return; }
+
+      const spinner = document.getElementById('readerLoadingSpinner');
+      if (isFirstOpen) spinner.style.display = 'flex';
 
       try {
         const page = await activePdfDoc.getPage(pageNum);
+        const container = document.getElementById('readerCanvasContainer');
         const canvas = document.getElementById('pdfRenderCanvas');
-        const ctx = canvas.getContext('2d');
-        const vp = page.getViewport({ scale: 1 });
-        const availW = window.innerWidth - 16;
-        const scale = (availW / vp.width) * activePdfZoom;
-        const renderVp = page.getViewport({ scale: scale * Math.min(window.devicePixelRatio||1, 1.5) });
+        const ctx = canvas.getContext('2d', { alpha: false });
 
-        canvas.width = renderVp.width; canvas.height = renderVp.height;
-        canvas.style.width = `${vp.width * scale}px`;
-        
-        currentRenderTask = page.render({ canvasContext: ctx, viewport: renderVp });
+        const unscaledViewport = page.getViewport({ scale: 1 });
+        const availWidth = Math.max((container.clientWidth || window.innerWidth) - 16, 280);
+        const availHeight = Math.max((container.clientHeight || window.innerHeight - 115) - 16, 360);
+
+        const fitWidthScale = availWidth / unscaledViewport.width;
+        const fitHeightScale = availHeight / unscaledViewport.height;
+        const baseScale = window.innerWidth >= 640 ? Math.min(fitWidthScale, fitHeightScale * 1.05) : fitWidthScale;
+
+        const finalScale = baseScale * activePdfZoom;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const renderViewport = page.getViewport({ scale: finalScale * dpr });
+
+        canvas.width = Math.round(renderViewport.width);
+        canvas.height = Math.round(renderViewport.height);
+        canvas.style.width = `${Math.round(unscaledViewport.width * finalScale)}px`;
+        canvas.style.height = `${Math.round(unscaledViewport.height * finalScale)}px`;
+
+        currentRenderTask = page.render({ canvasContext: ctx, viewport: renderViewport });
         await currentRenderTask.promise;
         currentRenderTask = null;
 
-        const container = document.getElementById('readerCanvasContainer');
+        // Smart Scrolling for Half Page or Full Page
         if (isHalfPageMode) {
           if (currentHalf === 'left') container.scrollLeft = 0;
           else container.scrollLeft = container.scrollWidth;
           container.scrollTop = 0;
         } else {
-          container.scrollTo(0,0);
+          container.scrollTo(0, 0);
         }
 
         document.getElementById('readerPageIndicator').textContent = `${pageNum} / ${activePdfTotalPages}`;
         document.getElementById('readerPageSlider').value = pageNum;
-        localStorage.setItem('BOOK_PAGE_'+activeBookIdForReader, pageNum);
-        
-        if(pageNum < activePdfTotalPages) activePdfDoc.getPage(pageNum+1).catch(()=>{});
-      } catch(e) { currentRenderTask = null; }
-      finally {
-        spin.style.display = 'none';
-        if(renderQueuePage !== null) { const n = renderQueuePage; renderQueuePage = null; renderPdfPage(n); }
+        if (activeBookIdForReader) localStorage.setItem('BOOK_PAGE_' + activeBookIdForReader, String(pageNum));
+
+        if (pageNum < activePdfTotalPages) activePdfDoc.getPage(pageNum + 1).catch(() => {});
+      } catch (err) {
+        currentRenderTask = null;
+      } finally {
+        spinner.style.display = 'none';
+        if (renderQueuePage !== null) { const next = renderQueuePage; renderQueuePage = null; renderPdfPage(next, false); }
       }
     }
 
     function changePdfPage(delta) {
-      if(!activePdfDoc) return;
-
-      if(isHalfPageMode) {
+      if (!activePdfDoc) return;
+      
+      // Half-page split logic
+      if (isHalfPageMode) {
         const container = document.getElementById('readerCanvasContainer');
-        if(delta > 0) { // Next Half
-          if(currentHalf === 'left') {
+        if (delta > 0) { // Next
+          if (currentHalf === 'left') {
             currentHalf = 'right';
             container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
             return;
           } else {
             currentHalf = 'left';
           }
-        } else { // Prev Half
-          if(currentHalf === 'right') {
+        } else { // Prev
+          if (currentHalf === 'right') {
             currentHalf = 'left';
             container.scrollTo({ left: 0, behavior: 'smooth' });
             return;
@@ -601,85 +772,186 @@
         }
       }
 
-      const n = activePdfPage + delta;
-      if(n >= 1 && n <= activePdfTotalPages) { activePdfPage = n; renderPdfPage(n); }
+      const next = activePdfPage + delta;
+      if (next >= 1 && next <= activePdfTotalPages) { activePdfPage = next; renderPdfPage(next, false); }
     }
-    
-    function onPageSliderInput(v) { 
-      activePdfPage = parseInt(v); 
-      if(isHalfPageMode) currentHalf = 'left';
-      renderPdfPage(activePdfPage); 
+
+    function onPageSliderInput(val) {
+      if (!activePdfDoc) return;
+      activePdfPage = parseInt(val, 10) || 1;
+      if (isHalfPageMode) currentHalf = 'left';
+      renderPdfPage(activePdfPage, false);
     }
-    
+
     function promptJumpToPage() {
-      const num = parseInt(prompt(`(1 - ${activePdfTotalPages}):`, activePdfPage));
-      if(num >= 1 && num <= activePdfTotalPages) { 
-        activePdfPage = num; 
-        if(isHalfPageMode) currentHalf = 'left';
-        renderPdfPage(num); 
+      if (!activePdfDoc) return;
+      const input = prompt(`(1 - ${activePdfTotalPages}):`, String(activePdfPage));
+      if (!input) return;
+      const num = parseInt(input.trim(), 10);
+      if (num >= 1 && num <= activePdfTotalPages) {
+        activePdfPage = num;
+        if (isHalfPageMode) currentHalf = 'left';
+        renderPdfPage(activePdfPage, false);
       }
     }
-    
-    function changeReaderZoom(d) { 
-      activePdfZoom = Math.min(Math.max(activePdfZoom+d, 0.75), 2.5); 
-      document.getElementById('readerZoomLabel').textContent = `${Math.round(activePdfZoom*100)}%`; 
-      renderPdfPage(activePdfPage); 
-    }
-    
-    function resetReaderZoom() { 
-      activePdfZoom = 1.0; 
-      document.getElementById('readerZoomLabel').textContent = '100%'; 
-      renderPdfPage(activePdfPage); 
-    }
-    
-    function cycleReaderTheme() { 
-      const m = document.getElementById('pdfReaderModal'); 
-      const t = ['reader-theme-paper','reader-theme-sepia','reader-theme-night']; 
-      m.className = m.className.replace(/reader-theme-\w+/,''); 
-      m.classList.add(t[(t.indexOf(m.classList.value.match(/reader-theme-\w+/)?.[0]||'')+1)%3]); 
-    }
-    
-    function closePdfReader() { 
-      document.getElementById('pdfReaderModal').style.display = 'none'; 
-      if(currentRenderTask) try{currentRenderTask.cancel();}catch(e){} 
-      if(activePdfDoc) activePdfDoc.destroy().catch(()=>{}); 
-      activePdfDoc = null; 
-      renderCleanShelfRows(currentBooksList); 
+
+    function changeReaderZoom(delta) {
+      if (!activePdfDoc) return;
+      activePdfZoom = Math.min(Math.max(Math.round((activePdfZoom + delta) * 100) / 100, 0.75), 2.5);
+      document.getElementById('readerZoomLabel').textContent = `${Math.round(activePdfZoom * 100)}%`;
+      renderPdfPage(activePdfPage, false);
     }
 
-    // TOUCH SWIPE & EDGE TAP
-    let tsX=0, tsY=0;
+    function resetReaderZoom() {
+      if (!activePdfDoc) return;
+      activePdfZoom = 1.0;
+      document.getElementById('readerZoomLabel').textContent = '100%';
+      renderPdfPage(activePdfPage, false);
+    }
+
+    function cycleReaderTheme() {
+      const modal = document.getElementById('pdfReaderModal');
+      const themes = ['reader-theme-paper', 'reader-theme-sepia', 'reader-theme-night'];
+      modal.classList.remove(...themes);
+      currentThemeIdx = (currentThemeIdx || 0) + 1;
+      modal.classList.add(themes[currentThemeIdx % themes.length]);
+    }
+
+    function closePdfReader() {
+      document.getElementById('pdfReaderModal').style.display = 'none';
+      if (currentRenderTask) try { currentRenderTask.cancel(); } catch (e) {}
+      if (activePdfDoc) activePdfDoc.destroy().catch(() => {});
+      activePdfDoc = null;
+      renderCleanShelfRows(currentBooksList);
+    }
+
+    // --- SMART TOUCH SWIPE & EDGE TAP ---
+    let touchStartX = 0, touchStartY = 0;
     const canvasContainer = document.getElementById('readerCanvasContainer');
-    
-    canvasContainer?.addEventListener('touchstart', e => { 
-      if(e.touches.length===1) { tsX = e.touches[0].screenX; tsY = e.touches[0].screenY; } 
-    }, {passive:true});
-    
-    canvasContainer?.addEventListener('touchend', e => {
-      if(e.changedTouches.length>1 || (activePdfZoom > 1.05 && !isHalfPageMode)) return;
-      const dx = e.changedTouches[0].screenX - tsX; 
-      const dy = e.changedTouches[0].screenY - tsY;
-      if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.5) changePdfPage(dx < 0 ? 1 : -1);
-    }, {passive:true});
 
-    // Tap edges to turn page
+    canvasContainer?.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) { touchStartX = e.touches[0].screenX; touchStartY = e.touches[0].screenY; }
+    }, { passive: true });
+
+    canvasContainer?.addEventListener('touchend', e => {
+      if (e.changedTouches.length > 1 || (activePdfZoom > 1.05 && !isHalfPageMode)) return;
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      const dy = e.changedTouches[0].screenY - touchStartY;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) changePdfPage(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    // Edge Tapping
     canvasContainer?.addEventListener('click', (e) => {
-      if (activePdfZoom > 1.05 && !isHalfPageMode) return; // Allow manual panning if zoomed
+      if (activePdfZoom > 1.05 && !isHalfPageMode) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       if (x < rect.width * 0.25) changePdfPage(-1); // Tap Left Edge -> Prev
       else if (x > rect.width * 0.75) changePdfPage(1); // Tap Right Edge -> Next
     });
 
-    window.addEventListener('keydown', e => { 
-      if(document.getElementById('pdfReaderModal').style.display !== 'none') { 
-        if(e.key==='ArrowRight') changePdfPage(1); 
-        if(e.key==='ArrowLeft') changePdfPage(-1); 
-        if(e.key==='Escape') closePdfReader(); 
-      } 
+    window.addEventListener('keydown', e => {
+      if (document.getElementById('pdfReaderModal').style.display !== 'none') {
+        if (e.key === 'ArrowRight') changePdfPage(1);
+        else if (e.key === 'ArrowLeft') changePdfPage(-1);
+        else if (e.key === 'Escape') closePdfReader();
+      }
     });
 
-    function openRequestModal() {} function closeRequestModal() {} function openVipModal() {} function closeVipModal() {}
+    // ================= REVIEWS & REQUESTS & VIP =================
+    async function loadBookReviews(bookId) {
+      const box = document.getElementById('detailReviewsList');
+      if (!supabaseClient || !box) return;
+      const { data } = await supabaseClient.from('book_reviews').select('*').eq('book_id', bookId).order('created_at', { ascending: false });
+      const list = data || [];
+      if (!list.length) { box.innerHTML = `<p class="text-[#786E65] text-center py-2">မှတ်ချက် မရှိသေးပါ။ ပထမဆုံး မှတ်ချက်ရေးပေးပါ!</p>`; return; }
+      box.innerHTML = list.map(r => `
+        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9]">
+          <div class="flex items-center justify-between"><span class="font-bold">${r.user_name || 'စာဖတ်သူ'}</span><span class="text-amber-500 text-[10px]">${'⭐'.repeat(r.rating || 5)}</span></div>
+          <p class="text-[#1E1916] mt-0.5">${r.comment}</p>
+        </div>
+      `).join('');
+    }
+
+    async function submitBookReview(e) {
+      e.preventDefault();
+      if (!currentDetailBook || !supabaseClient) return;
+      const user_name = document.getElementById('reviewUserName').value.trim();
+      const rating = parseInt(document.getElementById('reviewRating').value || '5', 10);
+      const comment = document.getElementById('reviewComment').value.trim();
+      if (!user_name || !comment) return;
+      await supabaseClient.from('book_reviews').insert([{ book_id: currentDetailBook.id, user_name, rating, comment }]);
+      document.getElementById('reviewComment').value = '';
+      loadBookReviews(currentDetailBook.id);
+    }
+
+    async function openRequestModal() {
+      document.getElementById('requestModal').style.display = 'flex';
+      const box = document.getElementById('publicRequestsList');
+      const { data } = await supabaseClient.from('book_requests').select('*').order('upvotes', { ascending: false });
+      const list = data || [];
+      if (!list.length) { box.innerHTML = `<p class="text-[#786E65] text-center py-3">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`; return; }
+      box.innerHTML = list.map(r => `
+        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-bold truncate">${r.book_title} ${r.status === 'uploaded' ? '<span class="text-emerald-700 text-[10px]">✅ တင်ပြီး</span>' : ''}</p>
+            <p class="text-[10px] text-[#786E65] truncate">✍️ ${r.author_name || '-'}</p>
+          </div>
+          <button onclick="upvoteBookRequest('${r.id}', ${r.upvotes || 1})" class="tactile-btn px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[11px] shrink-0">👍 ${r.upvotes || 1}</button>
+        </div>
+      `).join('');
+    }
+    function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
+    
+    async function submitBookRequest(e) {
+      e.preventDefault();
+      const title = document.getElementById('reqBookTitle').value.trim();
+      const author = document.getElementById('reqAuthorName').value.trim();
+      if (!title) return;
+      await supabaseClient.from('book_requests').insert([{ book_title: title, author_name: author, upvotes: 1, status: 'pending' }]);
+      e.target.reset(); openRequestModal();
+    }
+    async function upvoteBookRequest(id, currentVotes) {
+      await supabaseClient.from('book_requests').update({ upvotes: currentVotes + 1 }).eq('id', id); openRequestModal();
+    }
+
+    // ================= VIP & ADS =================
+    function isVipActiveLocally() { return parseInt(localStorage.getItem('SAR_VIP_EXPIRY') || '0', 10) > Date.now(); }
+    async function initReaderSponsorBanner() {
+      if (isVipActiveLocally() || !supabaseClient) { document.getElementById('sponsorBannerSection')?.classList.add('hidden'); return; }
+      const { data } = await supabaseClient.from('ads').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1);
+      if (data && data.length > 0) {
+        activeSponsorAd = data[0];
+        document.getElementById('sponsorBannerImg').src = toFastCdnUrl(activeSponsorAd.image_url);
+        document.getElementById('sponsorBannerLink').href = activeSponsorAd.target_url || '#';
+        document.getElementById('sponsorBannerSection').classList.remove('hidden');
+      }
+    }
+    function recordAdClick() {
+      if (!activeSponsorAd || !supabaseClient) return;
+      supabaseClient.from('ads').update({ clicks: (activeSponsorAd.clicks || 0) + 1 }).eq('id', activeSponsorAd.id).then(() => {});
+    }
+    function openVipModal() { document.getElementById('vipModal').style.display = 'flex'; }
+    function closeVipModal() { document.getElementById('vipModal').style.display = 'none'; }
+    async function verifyVipWithServer() { if (isVipActiveLocally()) document.getElementById('sponsorBannerSection')?.classList.add('hidden'); }
+    
+    async function activateVipCode(e) {
+      e.preventDefault();
+      const code = document.getElementById('vipInputCode').value.trim().toUpperCase();
+      const { data } = await supabaseClient.from('vip_codes').select('*').eq('code', code).eq('is_active', true).limit(1);
+      if (!data || data.length === 0) { alert('❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။'); return; }
+      const vip = data[0];
+      localStorage.setItem('SAR_VIP_EXPIRY', String(Date.now() + (vip.duration_days || 30) * 86400000));
+      localStorage.setItem('SAR_VIP_CODE', code);
+      verifyVipWithServer(); closeVipModal();
+      alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
+    }
+
+    // ================= PWA SERVICE WORKER REGISTRATION =================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
