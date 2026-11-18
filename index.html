@@ -71,7 +71,7 @@
     .fairy-bulb::before { content: ''; position: absolute; top: -4px; left: 2px; width: 1.5px; height: 4px; background: rgba(255, 255, 255, 0.35); }
     @keyframes twinkleBulb { 0%, 100% { opacity: 0.65; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.2); } }
 
-    /* Native Reader Themes */
+    /* Reader Themes */
     .reader-theme-paper { background-color: #F5EFE6; color: #1E1916; }
     .reader-theme-sepia { background-color: #EADBC8; color: #2B2118; }
     .reader-theme-night { background-color: #0E1015; color: #E5E7EB; }
@@ -86,7 +86,7 @@
     <h1 class="font-serif-display font-bold text-xl mt-2">စာ — ဒစ်ဂျစ်တယ် စာကြည့်တိုက်</h1>
   </div>
 
-  <!-- ================= 2. NAVBAR (NO ADMIN BTN) ================= -->
+  <!-- ================= 2. NAVBAR ================= -->
   <header class="sticky top-0 z-30 bg-[#0D0F14]/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchBottomTab('all')">
@@ -108,7 +108,6 @@
 
   <!-- ================= 3. MAIN CONTENT ================= -->
   <main class="max-w-5xl mx-auto px-3 sm:px-4 pt-5 space-y-5">
-    
     <section id="sponsorBannerSection" class="hidden">
       <a id="sponsorBannerLink" href="#" target="_blank" class="block relative rounded-2xl overflow-hidden border border-white/15 shadow-xs group">
         <img id="sponsorBannerImg" src="" class="w-full max-h-40 object-cover" />
@@ -195,14 +194,17 @@
     </div>
   </div>
 
-  <!-- ================= 6. NATIVE-LIKE PDF READER ================= -->
+  <!-- ================= 6. NATIVE-LIKE PDF READER (WITH HALF-PAGE SPLIT & TAP) ================= -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 flex-col reader-theme-paper select-none">
+    <!-- Top Bar -->
     <div class="flex items-center justify-between px-3 py-2.5 border-b border-black/10 bg-black/5 shrink-0">
       <div class="flex items-center gap-2 min-w-0">
         <button onclick="closePdfReader()" class="tactile-btn px-3 py-1.5 rounded-xl bg-[#6B141A] text-white text-xs font-bold shrink-0">← ပိတ်မည်</button>
         <h3 id="readerBookTitle" class="font-bold text-xs sm:text-sm truncate"></h3>
       </div>
       <div class="flex items-center gap-1 shrink-0">
+        <button onclick="toggleHalfPageMode()" id="halfPageBtn" class="tactile-btn px-2 h-8 rounded-lg bg-black/10 text-white text-xs font-bold" title="စာမျက်နှာကို တစ်ခြမ်းစီခွဲဖတ်မည်">📖 1/2</button>
+        <div class="w-px h-5 bg-black/20 mx-0.5"></div>
         <button onclick="changeReaderZoom(-0.25)" class="tactile-btn w-8 h-8 rounded-lg bg-black/10 text-xs font-bold">A-</button>
         <button onclick="resetReaderZoom()" id="readerZoomLabel" class="tactile-btn px-2 h-8 rounded-lg bg-black/10 text-[11px] font-mono font-bold">100%</button>
         <button onclick="changeReaderZoom(0.25)" class="tactile-btn w-8 h-8 rounded-lg bg-black/10 text-xs font-bold">A+</button>
@@ -210,6 +212,7 @@
       </div>
     </div>
 
+    <!-- Canvas Area -->
     <div id="readerCanvasContainer" class="flex-1 overflow-auto relative p-2 flex justify-center items-start touch-pan-x touch-pan-y">
       <div id="readerLoadingSpinner" style="display: none;" class="fixed inset-x-0 top-14 bottom-16 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm z-20">
         <div class="bg-white rounded-3xl p-5 shadow-2xl space-y-3 text-center w-48 border border-gray-200">
@@ -217,11 +220,12 @@
           <p id="readerLoadText" class="text-[11px] font-bold text-[#1E1916]">ဖွင့်နေပါသည်...</p>
         </div>
       </div>
-      <div class="my-auto flex items-center justify-center">
-        <canvas id="pdfRenderCanvas" class="shadow-2xl rounded bg-white"></canvas>
+      <div class="m-auto flex items-center justify-center">
+        <canvas id="pdfRenderCanvas" class="shadow-2xl rounded bg-white transition-opacity duration-150"></canvas>
       </div>
     </div>
 
+    <!-- Bottom Nav -->
     <div class="px-3 py-2.5 border-t border-black/10 bg-[#12151E] text-white flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
       <div class="flex items-center gap-2 w-full sm:w-auto justify-between">
         <button onclick="changePdfPage(-1)" class="tactile-btn px-4 py-2 rounded-full bg-white/10 text-white text-xs font-bold">◀ ရှေ့သို့</button>
@@ -234,14 +238,12 @@
 
   <!-- MODALS -->
   <div id="requestModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
-    <!-- Same as before -->
     <div class="bg-[#FAF8F5] text-[#1E1916] rounded-3xl p-6 shadow-2xl space-y-4 w-full max-w-sm">
       <div class="flex justify-between border-b pb-2"><h3 class="font-bold">စာအုပ်တောင်းဆိုရန်</h3><button onclick="closeRequestModal()">✕</button></div>
       <p class="text-xs">ခေတ္တပိတ်ထားပါသည်။</p>
     </div>
   </div>
   <div id="vipModal" style="display: none;" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs items-center justify-center p-4">
-    <!-- Same as before -->
     <div class="bg-[#FAF8F5] text-[#1E1916] rounded-3xl p-6 shadow-2xl space-y-4 w-full max-w-sm text-center">
       <h3 class="font-bold">VIP System</h3>
       <button onclick="closeVipModal()" class="tactile-btn w-full py-2 bg-gray-200 rounded-xl">ပိတ်မည်</button>
@@ -270,7 +272,6 @@
 
     // Reader State
     let activePdfDoc = null;
-    let activeLoadingTask = null;
     let activePdfPage = 1;
     let activePdfTotalPages = 1;
     let activePdfZoom = 1.0;
@@ -278,19 +279,16 @@
     let currentRenderTask = null;
     let renderQueuePage = null;
 
+    // Half Page Split State
+    let isHalfPageMode = false;
+    let currentHalf = 'left';
+
     const _activePdfDownloads = new Map();
 
-    // URLs
     function toFastCdnUrl(url) {
       if(!url) return '';
       const m = url.match(/^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
       if(m) return `https://cdn.jsdelivr.net/gh/${m[1]}/${m[2]}@${m[3]}/${m[4]}`;
-      return url.trim();
-    }
-    function toRawGitHubUrl(url) {
-      if(!url) return '';
-      const m = url.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^/]+)\/([^/@]+)@([^/]+)\/(.+)$/);
-      if(m) return `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}`;
       return url.trim();
     }
 
@@ -434,7 +432,6 @@
           const bufs = await Promise.all(Array.from({length: parts}, (_,i)=> fetch(`${prefix}.part${i}`).then(r=>r.arrayBuffer())));
           return window.pdfjsLib.getDocument(URL.createObjectURL(new Blob(bufs))).promise;
         }
-        // INSTANT STREAMING MAGIC
         return window.pdfjsLib.getDocument({ url, disableAutoFetch: true, rangeChunkSize: 524288 }).promise;
       })();
       _activePdfDownloads.set(key, entry);
@@ -455,7 +452,7 @@
       updateDetailButtonsUI();
       document.getElementById('bookDetailModal').style.display = 'flex';
       
-      startBackgroundPdfPreload(b); // Preload immediately!
+      startBackgroundPdfPreload(b); 
     }
 
     function closeBookDetail() { document.getElementById('bookDetailModal').style.display = 'none'; }
@@ -490,18 +487,43 @@
       if(navigator.share) navigator.share({ title: currentDetailBook.title, url: `?book=${currentDetailBook.id}` }).catch(()=>{});
     }
 
-    // READER
+    // ================= READER LOGIC (HALF PAGE & TAP ZONES) =================
+    function toggleHalfPageMode() {
+      if(!activePdfDoc) return;
+      isHalfPageMode = !isHalfPageMode;
+      const btn = document.getElementById('halfPageBtn');
+      if(isHalfPageMode) {
+        btn.classList.add('bg-amber-500', 'text-[#0D0F14]');
+        btn.classList.remove('bg-black/10', 'text-white');
+        activePdfZoom = 2.0; 
+        currentHalf = 'left';
+      } else {
+        btn.classList.remove('bg-amber-500', 'text-[#0D0F14]');
+        btn.classList.add('bg-black/10', 'text-white');
+        activePdfZoom = 1.0;
+      }
+      document.getElementById('readerZoomLabel').textContent = `${Math.round(activePdfZoom*100)}%`;
+      renderPdfPage(activePdfPage, false);
+    }
+
     document.getElementById('detailReadNowBtn').onclick = async () => {
       closeBookDetail();
       const b = currentDetailBook;
       activeBookIdForReader = b.id;
       document.getElementById('readerBookTitle').textContent = b.title;
+      
+      // Reset modes
+      isHalfPageMode = false;
+      document.getElementById('halfPageBtn').classList.remove('bg-amber-500', 'text-[#0D0F14]');
+      document.getElementById('halfPageBtn').classList.add('bg-black/10', 'text-white');
+      activePdfZoom = 1.0;
+      document.getElementById('readerZoomLabel').textContent = '100%';
+
       document.getElementById('pdfReaderModal').style.display = 'flex';
       const spin = document.getElementById('readerLoadingSpinner');
       spin.style.display = 'flex';
       
       try {
-        if (activePdfDoc) await activePdfDoc.destroy().catch(()=>{});
         const preload = startBackgroundPdfPreload(b);
         activePdfDoc = await preload.promise;
         activePdfTotalPages = activePdfDoc.numPages;
@@ -534,7 +556,15 @@
         await currentRenderTask.promise;
         currentRenderTask = null;
 
-        document.getElementById('readerCanvasContainer').scrollTo(0,0);
+        const container = document.getElementById('readerCanvasContainer');
+        if (isHalfPageMode) {
+          if (currentHalf === 'left') container.scrollLeft = 0;
+          else container.scrollLeft = container.scrollWidth;
+          container.scrollTop = 0;
+        } else {
+          container.scrollTo(0,0);
+        }
+
         document.getElementById('readerPageIndicator').textContent = `${pageNum} / ${activePdfTotalPages}`;
         document.getElementById('readerPageSlider').value = pageNum;
         localStorage.setItem('BOOK_PAGE_'+activeBookIdForReader, pageNum);
@@ -547,30 +577,107 @@
       }
     }
 
-    function changePdfPage(d) {
+    function changePdfPage(delta) {
       if(!activePdfDoc) return;
-      const n = activePdfPage + d;
+
+      if(isHalfPageMode) {
+        const container = document.getElementById('readerCanvasContainer');
+        if(delta > 0) { // Next Half
+          if(currentHalf === 'left') {
+            currentHalf = 'right';
+            container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+            return;
+          } else {
+            currentHalf = 'left';
+          }
+        } else { // Prev Half
+          if(currentHalf === 'right') {
+            currentHalf = 'left';
+            container.scrollTo({ left: 0, behavior: 'smooth' });
+            return;
+          } else {
+            currentHalf = 'right';
+          }
+        }
+      }
+
+      const n = activePdfPage + delta;
       if(n >= 1 && n <= activePdfTotalPages) { activePdfPage = n; renderPdfPage(n); }
     }
-    function onPageSliderInput(v) { activePdfPage = parseInt(v); renderPdfPage(activePdfPage); }
+    
+    function onPageSliderInput(v) { 
+      activePdfPage = parseInt(v); 
+      if(isHalfPageMode) currentHalf = 'left';
+      renderPdfPage(activePdfPage); 
+    }
+    
     function promptJumpToPage() {
       const num = parseInt(prompt(`(1 - ${activePdfTotalPages}):`, activePdfPage));
-      if(num >= 1 && num <= activePdfTotalPages) { activePdfPage = num; renderPdfPage(num); }
+      if(num >= 1 && num <= activePdfTotalPages) { 
+        activePdfPage = num; 
+        if(isHalfPageMode) currentHalf = 'left';
+        renderPdfPage(num); 
+      }
     }
-    function changeReaderZoom(d) { activePdfZoom = Math.min(Math.max(activePdfZoom+d, 0.75), 2.5); document.getElementById('readerZoomLabel').textContent = `${Math.round(activePdfZoom*100)}%`; renderPdfPage(activePdfPage); }
-    function resetReaderZoom() { activePdfZoom = 1.0; document.getElementById('readerZoomLabel').textContent = '100%'; renderPdfPage(activePdfPage); }
-    function cycleReaderTheme() { const m = document.getElementById('pdfReaderModal'); const t = ['reader-theme-paper','reader-theme-sepia','reader-theme-night']; m.className = m.className.replace(/reader-theme-\w+/,''); m.classList.add(t[(t.indexOf(m.classList.value.match(/reader-theme-\w+/)?.[0]||'')+1)%3]); }
-    function closePdfReader() { document.getElementById('pdfReaderModal').style.display = 'none'; if(currentRenderTask) try{currentRenderTask.cancel();}catch(e){} if(activePdfDoc) activePdfDoc.destroy().catch(()=>{}); activePdfDoc = null; renderCleanShelfRows(currentBooksList); }
+    
+    function changeReaderZoom(d) { 
+      activePdfZoom = Math.min(Math.max(activePdfZoom+d, 0.75), 2.5); 
+      document.getElementById('readerZoomLabel').textContent = `${Math.round(activePdfZoom*100)}%`; 
+      renderPdfPage(activePdfPage); 
+    }
+    
+    function resetReaderZoom() { 
+      activePdfZoom = 1.0; 
+      document.getElementById('readerZoomLabel').textContent = '100%'; 
+      renderPdfPage(activePdfPage); 
+    }
+    
+    function cycleReaderTheme() { 
+      const m = document.getElementById('pdfReaderModal'); 
+      const t = ['reader-theme-paper','reader-theme-sepia','reader-theme-night']; 
+      m.className = m.className.replace(/reader-theme-\w+/,''); 
+      m.classList.add(t[(t.indexOf(m.classList.value.match(/reader-theme-\w+/)?.[0]||'')+1)%3]); 
+    }
+    
+    function closePdfReader() { 
+      document.getElementById('pdfReaderModal').style.display = 'none'; 
+      if(currentRenderTask) try{currentRenderTask.cancel();}catch(e){} 
+      if(activePdfDoc) activePdfDoc.destroy().catch(()=>{}); 
+      activePdfDoc = null; 
+      renderCleanShelfRows(currentBooksList); 
+    }
 
-    // TOUCH SWIPE
+    // TOUCH SWIPE & EDGE TAP
     let tsX=0, tsY=0;
-    document.getElementById('readerCanvasContainer')?.addEventListener('touchstart', e => { if(e.touches.length===1) { tsX = e.touches[0].screenX; tsY = e.touches[0].screenY; } }, {passive:true});
-    document.getElementById('readerCanvasContainer')?.addEventListener('touchend', e => {
-      if(activePdfZoom > 1.05 || e.changedTouches.length>1) return;
-      const dx = e.changedTouches[0].screenX - tsX; const dy = e.changedTouches[0].screenY - tsY;
+    const canvasContainer = document.getElementById('readerCanvasContainer');
+    
+    canvasContainer?.addEventListener('touchstart', e => { 
+      if(e.touches.length===1) { tsX = e.touches[0].screenX; tsY = e.touches[0].screenY; } 
+    }, {passive:true});
+    
+    canvasContainer?.addEventListener('touchend', e => {
+      if(e.changedTouches.length>1 || (activePdfZoom > 1.05 && !isHalfPageMode)) return;
+      const dx = e.changedTouches[0].screenX - tsX; 
+      const dy = e.changedTouches[0].screenY - tsY;
       if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.5) changePdfPage(dx < 0 ? 1 : -1);
     }, {passive:true});
-    window.addEventListener('keydown', e => { if(document.getElementById('pdfReaderModal').style.display !== 'none') { if(e.key==='ArrowRight') changePdfPage(1); if(e.key==='ArrowLeft') changePdfPage(-1); if(e.key==='Escape') closePdfReader(); } });
+
+    // Tap edges to turn page
+    canvasContainer?.addEventListener('click', (e) => {
+      if (activePdfZoom > 1.05 && !isHalfPageMode) return; // Allow manual panning if zoomed
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      if (x < rect.width * 0.25) changePdfPage(-1); // Tap Left Edge -> Prev
+      else if (x > rect.width * 0.75) changePdfPage(1); // Tap Right Edge -> Next
+    });
+
+    window.addEventListener('keydown', e => { 
+      if(document.getElementById('pdfReaderModal').style.display !== 'none') { 
+        if(e.key==='ArrowRight') changePdfPage(1); 
+        if(e.key==='ArrowLeft') changePdfPage(-1); 
+        if(e.key==='Escape') closePdfReader(); 
+      } 
+    });
 
     function openRequestModal() {} function closeRequestModal() {} function openVipModal() {} function closeVipModal() {}
   </script>
