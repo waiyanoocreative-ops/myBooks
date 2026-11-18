@@ -115,11 +115,15 @@
       50% { opacity: 1; transform: scale(1.2); }
     }
 
-    /* Reader Themes */
+    /* Reader Themes & Swipe Feedback */
     .reader-theme-paper { background-color: #F5EFE6; color: #1E1916; }
     .reader-theme-sepia { background-color: #EADBC8; color: #2B2118; }
     .reader-theme-night { background-color: #141416; color: #D4D4D8; }
     .reader-theme-night canvas { filter: invert(0.9) hue-rotate(180deg) contrast(0.95); }
+
+    #pdfRenderCanvas {
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
   </style>
 </head>
 <body class="min-h-screen pb-32">
@@ -293,26 +297,31 @@
     </div>
   </div>
 
-  <!-- ================= 6. FULL-SCREEN PDF READER MODAL ================= -->
-  <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 flex-col reader-theme-paper">
+  <!-- ================= 6. FULL-SCREEN PDF READER MODAL (WITH TOUCH SWIPE) ================= -->
+  <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 flex-col reader-theme-paper select-none">
     <div class="flex items-center justify-between px-4 py-2.5 border-b border-black/10 bg-black/5 backdrop-blur-xs">
       <div class="flex items-center gap-2 min-w-0">
         <button onclick="closePdfReader()" class="tactile-btn px-3 py-1.5 rounded-xl bg-[#6B141A] text-white text-xs font-bold shrink-0">← ပိတ်မည်</button>
         <h3 id="readerBookTitle" class="font-bold text-xs sm:text-sm truncate"></h3>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="changeReaderZoom(-0.2)" class="w-8 h-8 rounded-lg bg-black/10 text-xs font-bold">A-</button>
-        <button onclick="changeReaderZoom(0.2)" class="w-8 h-8 rounded-lg bg-black/10 text-xs font-bold">A+</button>
+        <button onclick="changeReaderZoom(-0.2)" class="w-8 h-8 rounded-lg bg-black/10 text-xs font-bold" title="စာလုံးချုံ့ရန် (-)">A-</button>
+        <button onclick="changeReaderZoom(0.2)" class="w-8 h-8 rounded-lg bg-black/10 text-xs font-bold" title="စာလုံးချဲ့ရန် (+)">A+</button>
         <button onclick="cycleReaderTheme()" id="readerThemeBtn" class="px-2.5 py-1.5 rounded-lg bg-black/10 text-xs font-bold">🌗 Theme</button>
       </div>
     </div>
 
+    <!-- Swipeable Canvas Area -->
     <div id="readerCanvasContainer" class="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 relative">
       <div id="readerLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-2xs z-10">
         <div class="w-10 h-10 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin"></div>
         <p id="readerLoadText" class="text-xs font-bold mt-2 bg-white text-[#1E1916] px-3 py-1 rounded-full shadow">စာမျက်နှာ ဖွင့်နေပါသည်...</p>
       </div>
       <canvas id="pdfRenderCanvas" class="max-w-full shadow-2xl rounded"></canvas>
+      <!-- Subtle Swipe Hint Toast -->
+      <div id="readerSwipeHint" class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 text-white text-[10px] font-bold opacity-0 transition-opacity duration-500">
+        👆 ဘယ်/ညာ ပွတ်ဆွဲ၍ စာမျက်နှာလှန်နိုင်ပါသည်
+      </div>
     </div>
 
     <div class="px-4 py-3 border-t border-black/10 bg-black/5 flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -403,9 +412,7 @@
         }
         if ('serviceWorker' in navigator) {
           const regs = await navigator.serviceWorker.getRegistrations();
-          for (const reg of regs) {
-            reg.update();
-          }
+          for (const reg of regs) reg.update();
           navigator.serviceWorker.register('./sw.js').catch(() => {});
         }
       } catch (e) {}
@@ -481,6 +488,7 @@
 
     // ================= 3. ZERO-WAIT INSTANT STARTUP =================
     window.addEventListener('DOMContentLoaded', () => {
+      initReaderTouchSwipeAndKeyboard();
       runInstantSplashAndPreload();
     });
 
@@ -757,7 +765,7 @@
       }
     }
 
-    // ================= 5. BOOK DETAIL, PRE-WARM & OFFLINE SAVE =================
+    // ================= 5. BOOK DETAIL, PRE-WARM & SOCIAL SHARE PREVIEW =================
     async function openBookDetail(bookId) {
       const b = allPublishedBooks.find((x) => String(x.id) === String(bookId));
       if (!b) return;
@@ -766,13 +774,7 @@
       document.getElementById('detailCoverImg').src = getFastCoverUrl(b.cover_url, 320);
       document.getElementById('detailCatBadge').textContent = b.categories?.name || 'အထွေထွေ';
       document.getElementById('detailTitle').textContent = b.title;
-      document.getElementById('detailAuthor').textContent = `✍️ ${b.author}`;
-      document.getElementById('detailMeta').textContent = `📄 ${b.page_count || 1} မျက်နှာ • 👁 ${b.read_count || 0} ကြိမ် ဖတ်ရှုပြီး`;
-      document.getElementById('detailDesc').textContent = b.description || 'စာအုပ်အညွှန်း မရှိသေးပါ။';
-
-      const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
-      document.getElementById('detailReadNowBtn').textContent = savedPage
-        ? `📖 စာမျက်နှာ (${savedPage}) မှ ဆက်ဖတ်မည်`
+      document.getElementById('detailAuthor').textContent = `✍️ ${b.author}`; document.getElementById('detailMeta').textContent = `📄 ${b.page_count || 1} မျက်နှာ • 👁 ${b.read_count \vert{}\vert{} 0} ကြိမ် ဖတ်ရှုပြီး`; document.getElementById('detailDesc').textContent = b.description \vert{}\vert{} 'စာအုပ်အညွှန်း မရှိသေးပါ။';  const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id); document.getElementById('detailReadNowBtn').textContent = savedPage ? `📖 စာမျက်နှာ (${savedPage}) မှ ဆက်ဖတ်မည်`
         : '📖 စာအုပ်ဖတ်မည်';
       document.getElementById('detailReadNowBtn').onclick = () => {
         closeBookDetail();
@@ -854,18 +856,88 @@
       }
     }
 
+    // Uses /api/share?book=ID so Facebook/Telegram displays cover image & book title
     function shareCurrentBook() {
       if (!currentDetailBook) return;
-      const shareUrl = `${window.location.origin}${window.location.pathname}?book=${currentDetailBook.id}`;
+      const shareUrl = `${window.location.origin}/api/share?book=${encodeURIComponent(currentDetailBook.id)}`;
       if (navigator.share) {
-        navigator.share({ title: currentDetailBook.title, text: `${currentDetailBook.title} - ${currentDetailBook.author}`, url: shareUrl }).catch(() => {});
+        navigator.share({
+          title: `${currentDetailBook.title} —${currentDetailBook.author}`,
+          text: `📖 "${currentDetailBook.title}" (✍️ ${currentDetailBook.author}) စာအုပ်ကို "စာ" စာကြည့်တိုက်တွင် အခမဲ့ ဖတ်ရှုနိုင်ပါပြီ။`,
+          url: shareUrl
+        }).catch(() => {});
       } else {
         navigator.clipboard.writeText(shareUrl);
-        alert('စာအုပ် Link ကို Copy ကူးပြီးပါပြီ!');
+        alert('✅ Social Preview ပါဝင်သော စာအုပ် Link ကို Copy ကူးပြီးပါပြီ!');
       }
     }
 
-    // ================= 6. FAST STREAMING PDF READER =================
+    // ================= 6. FAST STREAMING PDF READER + TOUCH SWIPE & KEYBOARD =================
+    function initReaderTouchSwipeAndKeyboard() {
+      const container = document.getElementById('readerCanvasContainer');
+      const canvas = document.getElementById('pdfRenderCanvas');
+      if (!container) return;
+
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartTime = 0;
+
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }, { passive: true });
+
+      container.addEventListener('touchend', (e) => {
+        if (!activePdfDoc || e.changedTouches.length !== 1) return;
+        // Skip swipe if user zoomed in and is horizontally scrolling the container
+        if (container.scrollWidth > container.clientWidth + 20) return;
+
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const dt = Date.now() - touchStartTime;
+
+        if (dt < 600 && Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+          if (dx < 0 && activePdfPage < activePdfTotalPages) {
+            if (canvas) {
+              canvas.style.transform = 'translateX(-18px)';
+              setTimeout(() => { canvas.style.transform = 'translateX(0)'; }, 160);
+            }
+            changePdfPage(1);
+          } else if (dx > 0 && activePdfPage > 1) {
+            if (canvas) {
+              canvas.style.transform = 'translateX(18px)';
+              setTimeout(() => { canvas.style.transform = 'translateX(0)'; }, 160);
+            }
+            changePdfPage(-1);
+          }
+        }
+      }, { passive: true });
+
+      // Keyboard navigation for Desktop/Laptop users
+      window.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('pdfReaderModal');
+        if (!modal || modal.style.display === 'none' || !activePdfDoc) return;
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+          e.preventDefault();
+          changePdfPage(1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          changePdfPage(-1);
+        } else if (e.key === '+' || e.key === '=') {
+          e.preventDefault();
+          changeReaderZoom(0.2);
+        } else if (e.key === '-') {
+          e.preventDefault();
+          changeReaderZoom(-0.2);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closePdfReader();
+        }
+      });
+    }
+
     async function loadPdfDocumentSmart(pdfUrl, onStatus) {
       if (!pdfUrl.includes('#parts=')) {
         return await window.pdfjsLib.getDocument(pdfUrl).promise;
@@ -888,12 +960,19 @@
       const modal = document.getElementById('pdfReaderModal');
       const spinner = document.getElementById('readerLoadingSpinner');
       const loadText = document.getElementById('readerLoadText');
-      document.getElementById('readerBookTitle').textContent = `${book.title} — ${book.author}`;
+      const hint = document.getElementById('readerSwipeHint');
+      document.getElementById('readerBookTitle').textContent = `${book.title} —${book.author}`;
       modal.style.display = 'flex';
       spinner.style.display = 'flex';
       loadText.textContent = 'စာမျက်နှာ ဖွင့်နေပါသည်...';
 
       activeBookIdForReader = book.id;
+
+      // Show swipe hint briefly on open
+      if (hint) {
+        hint.style.opacity = '1';
+        setTimeout(() => { hint.style.opacity = '0'; }, 2800);
+      }
 
       if (supabaseClient) {
         supabaseClient.from('books').update({ read_count: (book.read_count || 0) + 1 }).eq('id', book.id).then(() => {});
@@ -935,12 +1014,11 @@
 
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        canvas.style.width = `${viewport.width / dpr}px`;
-        canvas.style.height = `${viewport.height / dpr}px`;
+        canvas.style.width = `${viewport.width / dpr}px`; canvas.style.height = `${viewport.height / dpr}px`;
 
         await page.render({ canvasContext: ctx, viewport }).promise;
 
-        document.getElementById('readerPageIndicator').textContent = `${pageNum} / ${activePdfTotalPages}`;
+        document.getElementById('readerPageIndicator').textContent = `${pageNum} /${activePdfTotalPages}`;
         document.getElementById('readerPageSlider').value = pageNum;
         if (activeBookIdForReader) {
           localStorage.setItem('BOOK_PAGE_' + activeBookIdForReader, String(pageNum));
@@ -1009,118 +1087,3 @@
             <span class="font-bold">${r.user_name || 'စာဖတ်သူ'}</span>
             <span class="text-amber-500 text-[10px]">${'⭐'.repeat(Math.min(Math.max(Number(r.rating) || 5, 1), 5))}</span>
           </div>
-          <p class="text-[#1E1916] mt-0.5">${r.comment}</p>
-        </div>
-      `).join('');
-    }
-
-    async function submitBookReview(e) {
-      e.preventDefault();
-      if (!currentDetailBook || !supabaseClient) return;
-      const user_name = document.getElementById('reviewUserName').value.trim();
-      const rating = parseInt(document.getElementById('reviewRating').value || '5', 10);
-      const comment = document.getElementById('reviewComment').value.trim();
-      if (!user_name || !comment) return;
-      await supabaseClient.from('book_reviews').insert([{ book_id: currentDetailBook.id, user_name, rating, comment }]);
-      document.getElementById('reviewComment').value = '';
-      loadBookReviews(currentDetailBook.id);
-    }
-
-    async function openRequestModal() {
-      document.getElementById('requestModal').style.display = 'flex';
-      loadPublicRequests();
-    }
-    function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
-
-    async function loadPublicRequests() {
-      const box = document.getElementById('publicRequestsList');
-      if (!supabaseClient || !box) return;
-      const { data } = await supabaseClient.from('book_requests').select('*').order('upvotes', { ascending: false });
-      const list = data || [];
-      if (!list.length) {
-        box.innerHTML = `<p class="text-[#786E65] text-center py-3">တောင်းဆိုထားသော စာအုပ် မရှိသေးပါ။</p>`;
-        return;
-      }
-      box.innerHTML = list.map((r) => `
-        <div class="bg-white p-2.5 rounded-xl border border-[#E5DEC9] flex items-center justify-between gap-2">
-          <div class="min-w-0">
-            <p class="font-bold truncate">${r.book_title} ${r.status === 'uploaded' ? '<span class="text-emerald-700 text-[10px]">✅ တင်ပြီး</span>' : ''}</p>
-            <p class="text-[10px] text-[#786E65] truncate">✍️ ${r.author_name || '-'}</p>
-          </div>
-          <button onclick="upvoteBookRequest('${r.id}', ${r.upvotes || 1})" class="tactile-btn px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold text-[11px] shrink-0">
-            👍 ${r.upvotes || 1}
-          </button>
-        </div>
-      `).join('');
-    }
-
-    async function submitBookRequest(e) {
-      e.preventDefault();
-      if (!supabaseClient) return;
-      const book_title = document.getElementById('reqBookTitle').value.trim();
-      const author_name = document.getElementById('reqAuthorName').value.trim();
-      if (!book_title) return;
-      await supabaseClient.from('book_requests').insert([{ book_title, author_name, upvotes: 1, status: 'pending' }]);
-      e.target.reset();
-      loadPublicRequests();
-    }
-
-    async function upvoteBookRequest(id, currentVotes) {
-      if (!supabaseClient) return;
-      await supabaseClient.from('book_requests').update({ upvotes: currentVotes + 1 }).eq('id', id);
-      loadPublicRequests();
-    }
-
-    function isVipActiveLocally() {
-      const exp = parseInt(localStorage.getItem('SAR_VIP_EXPIRY') || '0', 10);
-      return exp > Date.now();
-    }
-
-    async function initReaderSponsorBanner() {
-      if (isVipActiveLocally() || !supabaseClient) {
-        document.getElementById('sponsorBannerSection')?.classList.add('hidden');
-        return;
-      }
-      const { data } = await supabaseClient.from('ads').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1);
-      if (data && data.length > 0) {
-        activeSponsorAd = data[0];
-        document.getElementById('sponsorBannerImg').src = getFastCoverUrl(activeSponsorAd.image_url, 800);
-        document.getElementById('sponsorBannerLink').href = activeSponsorAd.target_url || '#';
-        document.getElementById('sponsorBannerSection').classList.remove('hidden');
-      }
-    }
-
-    function recordAdClick() {
-      if (!activeSponsorAd || !supabaseClient) return;
-      supabaseClient.from('ads').update({ clicks: (activeSponsorAd.clicks || 0) + 1 }).eq('id', activeSponsorAd.id).then(() => {});
-    }
-
-    function openVipModal() { document.getElementById('vipModal').style.display = 'flex'; }
-    function closeVipModal() { document.getElementById('vipModal').style.display = 'none'; }
-
-    async function verifyVipWithServer() {
-      if (isVipActiveLocally()) {
-        document.getElementById('sponsorBannerSection')?.classList.add('hidden');
-      }
-    }
-
-    async function activateVipCode(e) {
-      e.preventDefault();
-      if (!supabaseClient) return;
-      const code = document.getElementById('vipInputCode').value.trim().toUpperCase();
-      const { data } = await supabaseClient.from('vip_codes').select('*').eq('code', code).eq('is_active', true).limit(1);
-      if (!data || data.length === 0) {
-        alert('❌ VIP Code မှားယွင်းနေပါသည် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားပါပြီ။');
-        return;
-      }
-      const vip = data[0];
-      const expiryMs = Date.now() + (vip.duration_days || 30) * 86400000;
-      localStorage.setItem('SAR_VIP_EXPIRY', String(expiryMs));
-      localStorage.setItem('SAR_VIP_CODE', code);
-      verifyVipWithServer();
-      closeVipModal();
-      alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
-    }
-  </script>
-</body>
-</html>
