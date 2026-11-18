@@ -10,7 +10,6 @@
   <link rel="icon" type="image/png" sizes="512x512" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
 
-  <!-- DNS Prefetch & Preconnect for Fast Loading on Slow Networks -->
   <link rel="preconnect" href="https://ksgxlvrojzawvkkvsbyi.supabase.co" crossorigin />
   <link rel="preconnect" href="https://wsrv.nl" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -51,7 +50,6 @@
       transform: scale(0.95);
     }
 
-    /* Hide Scrollbars for Clean Horizontal Shelves */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -60,12 +58,11 @@
       scrollbar-width: none;
     }
 
-    /* 3D Book Cover Shadow & Wood Shelf Plank */
     .book-card-3d {
       box-shadow: 0 8px 20px -4px rgba(30, 25, 22, 0.18), -2px 0 4px rgba(0, 0, 0, 0.08);
       transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
     }
-    .book-card-3d:hover {
+    .group:hover .book-card-3d {
       transform: translateY(-4px);
       box-shadow: 0 14px 26px -5px rgba(30, 25, 22, 0.25);
     }
@@ -76,7 +73,6 @@
       box-shadow: 0 6px 12px rgba(30, 25, 22, 0.12);
     }
 
-    /* Reader Themes */
     .reader-theme-paper { background-color: #F5EFE6; color: #1E1916; }
     .reader-theme-sepia { background-color: #EADBC8; color: #2B2118; }
     .reader-theme-night { background-color: #141416; color: #D4D4D8; }
@@ -174,7 +170,7 @@
       <div class="flex items-center justify-between">
         <h3 class="font-bold text-xs uppercase tracking-wider text-[#6B141A]">🔥 လူကြိုက်များသော စာအုပ်များ</h3>
       </div>
-      <div id="recommendationsRow" class="flex items-center gap-3.5 overflow-x-auto no-scrollbar pb-2"></div>
+      <div id="recommendationsRow" class="flex items-stretch gap-3.5 overflow-x-auto no-scrollbar pb-2"></div>
     </section>
 
     <!-- MAIN WOODEN BOOKSHELF ROWS -->
@@ -213,7 +209,7 @@
           <div class="space-y-1.5">
             <span id="detailCatBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-[#6B141A]/10 text-[#6B141A] text-[10px] font-bold">အထွေထွေ</span>
             <h3 id="detailTitle" class="font-bold text-base sm:text-lg leading-snug text-[#1E1916]"></h3>
-            <p id="detailAuthor" class="text-xs font-bold text-[#786E65]"></p>
+            <p id="detailAuthor" class="text-xs font-bold text-[#6B141A]"></p>
             <p id="detailMeta" class="text-[11px] text-[#786E65]"></p>
           </div>
         </div>
@@ -222,7 +218,6 @@
 
       <p id="detailDesc" class="text-xs text-[#1E1916] bg-[#F3EFE6] p-3.5 rounded-2xl border border-[#E5DEC9] whitespace-pre-line"></p>
 
-      <!-- Action Buttons -->
       <div class="grid grid-cols-2 gap-2.5 pt-1">
         <button id="detailReadNowBtn" class="tactile-btn col-span-2 py-3 rounded-2xl bg-[#6B141A] text-white font-bold text-sm shadow-md">
           📖 စာအုပ်ဖတ်မည်
@@ -266,7 +261,6 @@
 
   <!-- ================= 6. FULL-SCREEN PDF READER MODAL ================= -->
   <div id="pdfReaderModal" style="display: none;" class="fixed inset-0 z-50 flex-col reader-theme-paper">
-    <!-- Top Reader Bar -->
     <div class="flex items-center justify-between px-4 py-2.5 border-b border-black/10 bg-black/5 backdrop-blur-xs">
       <div class="flex items-center gap-2 min-w-0">
         <button onclick="closePdfReader()" class="tactile-btn px-3 py-1.5 rounded-xl bg-[#6B141A] text-white text-xs font-bold shrink-0">← ပိတ်မည်</button>
@@ -279,7 +273,6 @@
       </div>
     </div>
 
-    <!-- Canvas Area -->
     <div id="readerCanvasContainer" class="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 relative">
       <div id="readerLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-2xs z-10">
         <div class="w-10 h-10 border-4 border-[#6B141A] border-t-transparent rounded-full animate-spin"></div>
@@ -288,7 +281,6 @@
       <canvas id="pdfRenderCanvas" class="max-w-full shadow-2xl rounded"></canvas>
     </div>
 
-    <!-- Bottom Page Controls -->
     <div class="px-4 py-3 border-t border-black/10 bg-black/5 flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center gap-2 w-full sm:w-auto justify-between">
         <button onclick="changePdfPage(-1)" class="tactile-btn px-4 py-2 rounded-xl bg-[#6B141A] text-white text-xs font-bold">◀ ရှေ့သို့</button>
@@ -353,7 +345,6 @@
     let activeSponsorAd = null;
     let deferredPwaPrompt = null;
 
-    // PDF Reader State
     let activePdfDoc = null;
     let activePdfPage = 1;
     let activePdfTotalPages = 1;
@@ -409,7 +400,7 @@
           const streamConfig = {
             ...(typeof src === 'object' ? src : {}),
             url: targetUrl,
-            rangeChunkSize: 65536, // 64KB chunks for fast opening on slow internet
+            rangeChunkSize: 65536,
             disableAutoFetch: true,
             disableStream: false,
             cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
@@ -438,7 +429,6 @@
       const cachedBooksRaw = localStorage.getItem(SAR_CACHE_BOOKS_KEY);
       const cachedCatsRaw = localStorage.getItem(SAR_CACHE_CATS_KEY);
 
-      // Instant 0.2s boot if cached in phone memory
       if (cachedBooksRaw) {
         try {
           allPublishedBooks = JSON.parse(cachedBooksRaw) || [];
@@ -463,7 +453,7 @@
 
       bar.style.width = '75%';
       pctText.textContent = '75%';
-      statusText.textContent = 'စာအုပ်စာရင်း ရယူနေပါသည်...';
+      statusText.textContent = 'စာအုပ်စင် ရယူနေပါသည်...';
 
       await startReaderAppBackground(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
 
@@ -521,7 +511,7 @@
       }
     }
 
-    // ================= 4. SHELF, HERO & FILTER RENDERING =================
+    // ================= 4. SHELF, HERO & FILTER RENDERING (WITH CLEAR TITLE & AUTHOR) =================
     function getFavoritesIds() {
       try { return JSON.parse(localStorage.getItem('SAR_FAV_BOOKS') || '[]'); } catch { return []; }
     }
@@ -571,7 +561,7 @@
       fanBox.innerHTML = books.slice(0, 3).map((b, i) => {
         const fastSrc = getFastCoverUrl(b.cover_url, 180);
         return `
-          <div onclick="openBookDetail('${b.id}')" class="w-16 h-24 rounded-xl bg-[#E5DEC9] overflow-hidden border-2 border-white/80 shadow-lg cursor-pointer transform ${i === 0 ? '-rotate-6' : i === 2 ? 'rotate-6' : 'z-10 scale-105'}">
+          <div onclick="openBookDetail('${b.id}')" title="${b.title} - ${b.author}" class="w-16 h-24 rounded-xl bg-[#E5DEC9] overflow-hidden border-2 border-white/80 shadow-lg cursor-pointer transform ${i === 0 ? '-rotate-6' : i === 2 ? 'rotate-6' : 'z-10 scale-105'}">
             ${b.cover_url ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" class="w-full h-full object-cover" />` : ''}
           </div>
         `;
@@ -599,14 +589,18 @@
       const topBooks = [...books].sort((a, b) => (b.read_count || 0) - (a.read_count || 0)).slice(0, 8);
       row.innerHTML = topBooks.map((b) => {
         const fastSrc = getFastCoverUrl(b.cover_url, 200);
+        const titleText = b.title || 'အမည်မသိ စာအုပ်';
+        const authorText = b.author || 'အမည်မသိ စာရေးဆရာ';
         return `
-          <div onclick="openBookDetail('${b.id}')" class="w-28 shrink-0 cursor-pointer space-y-1">
-            <div class="w-28 h-40 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative">
+          <div onclick="openBookDetail('${b.id}')" class="w-32 shrink-0 cursor-pointer bg-white/80 hover:bg-white p-2 rounded-2xl border border-[#E5DEC9] shadow-2xs flex flex-col items-center group">
+            <div class="w-28 h-40 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative shrink-0">
               ${b.cover_url ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" loading="lazy" class="w-full h-full object-cover" />` : ''}
-              <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/65 text-white text-[9px] font-bold">👁 ${b.read_count || 0}</span>
+              <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">👁 ${b.read_count || 0}</span>
             </div>
-            <p class="font-bold text-xs truncate">${b.title}</p>
-            <p class="text-[10px] text-[#786E65] truncate">${b.author}</p>
+            <div class="w-full mt-2 pt-1.5 border-t border-[#E5DEC9]/70 text-center">
+              <p class="font-bold text-xs text-[#1E1916] leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">${titleText}</p>
+              <p class="text-[10px] font-bold text-[#6B141A] truncate mt-0.5" title="${authorText}">✍️ ${authorText}</p>
+            </div>
           </div>
         `;
       }).join('');
@@ -668,22 +662,38 @@
       }
 
       container.innerHTML = rows.map((rowBooks, rowIdx) => `
-        <div class="space-y-2">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 px-2 items-end">
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-5 px-2 items-start">
             ${rowBooks.map((b, idx) => {
               const savedPage = localStorage.getItem('BOOK_PAGE_' + b.id);
               const isOffline = offIds.includes(String(b.id));
               const fastSrc = getFastCoverUrl(b.cover_url, 240);
               const highPrio = rowIdx === 0 && idx < 4 ? 'fetchpriority="high"' : 'loading="lazy"';
+              const titleText = b.title || 'အမည်မသိ စာအုပ်';
+              const authorText = b.author || 'အမည်မသိ စာရေးဆရာ';
+
               return `
-                <div onclick="openBookDetail('${b.id}')" class="flex flex-col items-center cursor-pointer group">
-                  <div class="w-28 sm:w-32 h-40 sm:h-44 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative">
-                    ${b.cover_url ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" ${highPrio} class="w-full h-full object-cover" />` : `<div class="w-full h-full flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B141A]">${b.title}</div>`}
-                    ${savedPage ? `<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#6B141A] text-white text-[9px] font-bold">p.${savedPage}</span>` : ''}
-                    ${isOffline ? `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold">📥</span>` : ''}
+                <div onclick="openBookDetail('${b.id}')" class="flex flex-col items-center cursor-pointer group bg-white/85 hover:bg-white p-2.5 rounded-2xl border border-[#E5DEC9] shadow-xs transition">
+                  <!-- 3D Book Cover -->
+                  <div class="w-28 sm:w-32 h-40 sm:h-44 rounded-xl bg-[#E5DEC9] overflow-hidden book-card-3d relative shrink-0">
+                    ${b.cover_url
+                      ? `<img src="${fastSrc}" data-raw="${b.cover_url}" onerror="if(this.src!==this.dataset.raw)this.src=this.dataset.raw" ${highPrio} class="w-full h-full object-cover" />`
+                      : `<div class="w-full h-full flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B141A]">${titleText}</div>`
+                    }
+                    ${savedPage ? `<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#6B141A] text-white text-[9px] font-bold shadow">စာ-${savedPage}</span>` : ''}
+                    ${isOffline ? `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold shadow">📥</span>` : ''}
+                    <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">${b.page_count || 1}p</span>
                   </div>
-                  <h4 class="font-bold text-xs text-center mt-2 line-clamp-1 w-full">${b.title}</h4>
-                  <p class="text-[10px] text-[#786E65] text-center line-clamp-1 w-full">${b.author}</p>
+
+                  <!-- Clear Book Title & Author Name Box -->
+                  <div class="w-full mt-2.5 pt-2 border-t border-[#E5DEC9]/80 text-center space-y-0.5">
+                    <h4 class="font-bold text-xs sm:text-[13px] text-[#1E1916] leading-snug line-clamp-2 min-h-[2.4em]" title="${titleText}">
+                      ${titleText}
+                    </h4>
+                    <p class="text-[11px] font-bold text-[#6B141A] truncate" title="${authorText}">
+                      ✍️ ${authorText}
+                    </p>
+                  </div>
                 </div>
               `;
             }).join('')}
@@ -718,7 +728,6 @@
       updateDetailButtonsUI();
       document.getElementById('bookDetailModal').style.display = 'flex';
 
-      // Pre-warm PDF Page 1 in background so clicking Read opens immediately
       try {
         if (b.pdf_url && !b.pdf_url.includes('#parts=') && window.pdfjsLib) {
           const pdfTask = window.pdfjsLib.getDocument(b.pdf_url);
@@ -807,7 +816,6 @@
       if (!pdfUrl.includes('#parts=')) {
         return await window.pdfjsLib.getDocument(pdfUrl).promise;
       }
-      // Multi-part reassembly support for older chunked books
       const [part0Url, countStr] = pdfUrl.split('#parts=');
       const totalParts = parseInt(countStr, 10) || 1;
       const prefix = part0Url.replace(/\.part0$/, '');
@@ -826,14 +834,13 @@
       const modal = document.getElementById('pdfReaderModal');
       const spinner = document.getElementById('readerLoadingSpinner');
       const loadText = document.getElementById('readerLoadText');
-      document.getElementById('readerBookTitle').textContent = book.title;
+      document.getElementById('readerBookTitle').textContent = `${book.title} — ${book.author}`;
       modal.style.display = 'flex';
       spinner.style.display = 'flex';
       loadText.textContent = 'စာမျက်နှာ ဖွင့်နေပါသည်...';
 
       activeBookIdForReader = book.id;
 
-      // Increment read_count silently
       if (supabaseClient) {
         supabaseClient.from('books').update({ read_count: (book.read_count || 0) + 1 }).eq('id', book.id).then(() => {});
       }
@@ -885,7 +892,6 @@
           localStorage.setItem('BOOK_PAGE_' + activeBookIdForReader, String(pageNum));
         }
 
-        // Pre-fetch next page silently
         if (pageNum < activePdfTotalPages) {
           activePdfDoc.getPage(pageNum + 1).catch(() => {});
         }
@@ -1011,7 +1017,6 @@
       loadPublicRequests();
     }
 
-    // Sponsor Banner & VIP
     function isVipActiveLocally() {
       const exp = parseInt(localStorage.getItem('SAR_VIP_EXPIRY') || '0', 10);
       return exp > Date.now();
