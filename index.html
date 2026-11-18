@@ -1250,6 +1250,88 @@
       closeVipModal();
       alert(`🎉 ဂုဏ်ယူပါသည် ${vip.member_name || ''}! VIP Member (${vip.duration_days} ရက်) အောင်မြင်စွာ ရရှိပါပြီ။`);
     }
+
+// ================= 1-CLICK MERGE OLD SPLIT BOOKS (#parts=18) INTO SINGLE PDF =================
+    (function injectMergeSplitBooksButton() {
+      window.addEventListener('DOMContentLoaded', () => {
+        const cdnBtn = document.getElementById('cdnUpgradeBtn');
+        if (cdnBtn && !document.getElementById('mergePartsBtn')) {
+          const btn = document.createElement('button');
+          btn.id = 'mergePartsBtn';
+          btn.type = 'button';
+          btn.className = 'tactile-btn px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-bold';
+          btn.textContent = '🔧 အပိုင်းခွဲစာအုပ်များ တစ်ဖိုင်တည်းပေါင်းမည်';
+          btn.onclick = mergeAllChunkedBooksToSinglePdf;
+          cdnBtn.parentNode.insertBefore(btn, cdnBtn.nextSibling);
+        }
+      });
+    })();
+
+    async function mergeAllChunkedBooksToSinglePdf() {
+      if (!supabaseClient || !booksData.length) return;
+      if (!findAnySavedGitHubToken()) {
+        openConfigModal();
+        alert('GitHub Token အရင်ထည့်သွင်းပေးပါ။');
+        return;
+      }
+
+      const chunkedBooks = booksData.filter((b) => b.pdf_url && b.pdf_url.includes('#parts='));
+      if (chunkedBooks.length === 0) {
+        alert('✅ စာအုပ်အားလုံးသည် တစ်ဖိုင်တည်း (Single PDF) စနစ် ဖြစ်နေပြီးသား ဖြစ်ပါသည်! (အပိုင်းခွဲစာအုပ် မရှိတော့ပါ)');
+        return;
+      }
+
+      if (!confirm(`အပိုင်းကွဲနေသော စာအုပ် (${chunkedBooks.length}) အုပ်ကို တွေ့ရှိပါသည်။\nတစ်ဖိုင်တည်း (Single PDF) အဖြစ် အလိုအလျောက် ပြောင်းလဲပေးရမလား?`)) return;
+
+      const btn = document.getElementById('mergePartsBtn');
+      const origText = btn ? btn.textContent : '';
+      if (btn) btn.disabled = true;
+
+      let fixedCount = 0;
+      try {
+        for (let idx = 0; idx < chunkedBooks.length; idx++) {
+          const b = chunkedBooks[idx];
+          const oldUrl = b.pdf_url;
+          const [part0Url, countStr] = oldUrl.split('#parts=');
+          const totalParts = parseInt(countStr, 10) || 1;
+          const prefix = part0Url.replace(/\.part0$/, '');
+
+          if (btn) btn.textContent = `⏳ (${idx + 1}/${chunkedBooks.length}) "${b.title}" အပိုင်း ${totalParts} ပိုင်း ဆွဲယူနေသည်...`;
+
+          // 1. Download all parts in parallel
+          const partPromises = Array.from({ length: totalParts }, async (_, i) => {
+            const res = await fetch(`${prefix}.part${i}`);
+            if (!res.ok) throw new Error(`Part ${i} ဆွဲယူ၍မရပါ`);
+            return await res.arrayBuffer();
+          });
+          const buffers = await Promise.all(partPromises);
+          const mergedBlob = new Blob(buffers, { type: 'application/pdf' });
+
+          // 2. Upload as a single PDF via Git Blob API
+          if (btn) btn.textContent = `⏳ (${idx + 1}/${chunkedBooks.length}) "${b.title}" တစ်ဖိုင်တည်း ပြန်တင်နေသည်...`;
+          const newSingleUrl = await uploadViaGitBlobApi(mergedBlob, `${b.id || 'book'}.pdf`, 'pdfs');
+
+          // 3. Update Supabase record to single PDF URL
+          await supabaseClient.from('books').update({ pdf_url: newSingleUrl }).eq('id', b.id);
+
+          // 4. Delete old .part0 ~ .partN files from GitHub
+          await deleteFilesFromGitHubByUrls([oldUrl]);
+          fixedCount++;
+        }
+
+        updateHeaderBadgeUI();
+        await loadAllAdminData();
+        alert(`🎉 အောင်မြင်ပါသည်! စာအုပ် (${fixedCount}) အုပ်ကို တစ်ဖိုင်တည်း (Single PDF) အဖြစ် ပြောင်းလဲပြီးပါပြီ။ ယခု (12/18) လုံးဝ မပေါ်တော့ဘဲ တိုက်ရိုက်ပွင့်ပါမည်။`);
+      } catch (err) {
+        alert('ပြောင်းလဲရာတွင် အမှားရှိပါသည်: ' + (err.message || err));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+    }
+    
   </script>
 </body>
 </html>
